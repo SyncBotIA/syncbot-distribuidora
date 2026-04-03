@@ -14,6 +14,7 @@ import Estoque from '@/pages/Estoque'
 import Pedidos from '@/pages/Pedidos'
 import Clientes from '@/pages/Clientes'
 import MasterPanel from '@/pages/MasterPanel'
+import Configuracoes from '@/pages/Configuracoes'
 import type { ReactNode } from 'react'
 
 function PrivateRoute({ children }: { children: ReactNode }) {
@@ -77,6 +78,7 @@ function AppRoutes() {
         <Route path="/produtos" element={<Produtos />} />
         <Route path="/estoque" element={<Estoque />} />
         <Route path="/pedidos" element={<Pedidos />} />
+        <Route path="/configuracoes" element={<Configuracoes />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

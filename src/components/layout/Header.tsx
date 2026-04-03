@@ -2,15 +2,15 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, Building2 } from 'lucide-react'
+import { Menu, LogOut, Building2, ArrowLeft } from 'lucide-react'
 
 interface HeaderProps {
   onMenuClick: () => void
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
-  const { usuario, signOut } = useAuth()
-  const { empresa, empresas } = useEmpresa()
+  const { usuario, signOut, isMaster } = useAuth()
+  const { empresa, empresas, clearEmpresa } = useEmpresa()
   const navigate = useNavigate()
 
   return (
@@ -23,11 +23,22 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        {empresas.length > 1 && (
+        {isMaster && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/selecionar-empresa')}
+            onClick={() => { clearEmpresa(); navigate('/master') }}
+            className="gap-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Painel Master</span>
+          </Button>
+        )}
+        {!isMaster && empresas.length > 1 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { clearEmpresa(); navigate('/selecionar-empresa') }}
             className="gap-1"
           >
             <Building2 className="h-4 w-4" />

@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import type { EmpresaUsuario, Hierarquia } from '@/types/database'
 
 export default function Usuarios() {
@@ -27,9 +27,11 @@ export default function Usuarios() {
   // Form state
   const [formNome, setFormNome] = useState('')
   const [formEmail, setFormEmail] = useState('')
+  const [formSenha, setFormSenha] = useState('')
   const [formTelefone, setFormTelefone] = useState('')
   const [formHierarquiaId, setFormHierarquiaId] = useState('')
   const [formSuperiorId, setFormSuperiorId] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (empresa) {
@@ -47,7 +49,6 @@ export default function Usuarios() {
 
     let result = data ?? []
 
-    // Filter by subordinate tree if not admin
     if (!isAdmin && empresaUsuario) {
       const { data: subs } = await supabase.rpc('get_subordinados', {
         p_empresa_usuario_id: empresaUsuario.id,
@@ -86,49 +87,33 @@ export default function Usuarios() {
 
   async function handleInvite() {
     if (!empresa || !usuario) return
+    if (!formSenha || formSenha.length < 6) {
+      toast({ title: 'Erro', description: 'A senha deve ter pelo menos 6 caracteres', variant: 'destructive' })
+      return
+    }
 
+    setSaving(true)
     try {
-      // Create user via signUp (simplified - in production use Supabase invite)
-      const tempPassword = Math.random().toString(36).slice(2) + 'A1!'
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formEmail,
-        password: tempPassword,
+      const { error } = await supabase.rpc('convidar_usuario', {
+        p_empresa_id: empresa.id,
+        p_nome: formNome,
+        p_email: formEmail,
+        p_senha: formSenha,
+        p_telefone: formTelefone || null,
+        p_hierarquia_id: formHierarquiaId,
+        p_superior_id: formSuperiorId || null,
       })
 
-      if (authError) throw authError
+      if (error) throw error
 
-      if (authData.user) {
-        // Create usuario record
-        const { data: newUser, error: userError } = await supabase
-          .from('usuarios')
-          .insert({
-            auth_id: authData.user.id,
-            nome: formNome,
-            email: formEmail,
-            telefone: formTelefone || null,
-          })
-          .select()
-          .single()
-
-        if (userError) throw userError
-
-        // Link to empresa
-        const { error: euError } = await supabase.from('empresa_usuarios').insert({
-          empresa_id: empresa.id,
-          usuario_id: newUser.id,
-          hierarquia_id: formHierarquiaId,
-          superior_id: formSuperiorId || null,
-        })
-
-        if (euError) throw euError
-      }
-
-      toast({ title: 'Usuário convidado com sucesso', variant: 'success' })
+      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha: ${formSenha}`, variant: 'success' })
       setDialogOpen(false)
       fetchUsuarios()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao convidar'
       toast({ title: 'Erro', description: message, variant: 'destructive' })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -142,9 +127,13 @@ export default function Usuarios() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Usuários</h1>
+        <h1 className="text-2xl font-bold">Usuarios</h1>
         {availableHierarquias.length > 0 && (
-          <Button onClick={() => { setDialogOpen(true); setFormNome(''); setFormEmail(''); setFormTelefone(''); setFormHierarquiaId(''); setFormSuperiorId('') }} className="gap-2">
+          <Button onClick={() => {
+            setDialogOpen(true)
+            setFormNome(''); setFormEmail(''); setFormSenha(''); setFormTelefone('')
+            setFormHierarquiaId(''); setFormSuperiorId('')
+          }} className="gap-2">
             <UserPlus className="h-4 w-4" />
             Convidar
           </Button>
@@ -196,7 +185,7 @@ export default function Usuarios() {
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      Nenhum usuário encontrado
+                      Nenhum usuario encontrado
                     </TableCell>
                   </TableRow>
                 )}
@@ -209,7 +198,7 @@ export default function Usuarios() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
-            <DialogTitle>Convidar Usuário</DialogTitle>
+            <DialogTitle>Convidar Usuario</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -219,6 +208,11 @@ export default function Usuarios() {
             <div className="space-y-2">
               <Label>Email</Label>
               <Input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="email@exemplo.com" />
+            </div>
+            <div className="space-y-2">
+              <Label>Senha de acesso</Label>
+              <Input type="text" value={formSenha} onChange={(e) => setFormSenha(e.target.value)} placeholder="Minimo 6 caracteres" />
+              <p className="text-xs text-muted-foreground">O usuario pode alterar depois em Configuracoes</p>
             </div>
             <div className="space-y-2">
               <Label>Telefone (opcional)</Label>
@@ -245,9 +239,8 @@ export default function Usuarios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formHierarquiaId}>
-              <Plus className="h-4 w-4 mr-1" />
-              Convidar
+            <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formSenha || !formHierarquiaId || saving}>
+              {saving ? 'Criando...' : 'Criar Usuario'}
             </Button>
           </DialogFooter>
         </DialogContent>

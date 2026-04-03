@@ -28,7 +28,7 @@ export default function Estoque() {
 
   // Form
   const [formProdutoId, setFormProdutoId] = useState('')
-  const [formTipo, setFormTipo] = useState<'entrada' | 'ajuste'>('entrada')
+  const [formTipo, setFormTipo] = useState<'entrada' | 'saida' | 'ajuste'>('entrada')
   const [formQuantidade, setFormQuantidade] = useState('')
   const [formObs, setFormObs] = useState('')
 
@@ -247,9 +247,11 @@ export default function Estoque() {
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>
-              <Select value={formTipo} onChange={(e) => setFormTipo(e.target.value as 'entrada' | 'ajuste')}>
-                <option value="entrada">Entrada</option>
-                <option value="ajuste">Ajuste (definir quantidade)</option>
+              <Select value={formTipo} onChange={(e) => setFormTipo(e.target.value as 'entrada' | 'saida' | 'ajuste')}>
+                <option value="">Selecione o tipo...</option>
+                <option value="entrada">Entrada (adicionar ao estoque)</option>
+                <option value="saida">Saida (retirar do estoque)</option>
+                <option value="ajuste">Ajuste (definir quantidade total)</option>
               </Select>
             </div>
             <div className="space-y-2">

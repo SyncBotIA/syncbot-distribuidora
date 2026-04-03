@@ -103,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    localStorage.removeItem('distribuidora_empresa_id')
     await supabase.auth.signOut()
     setUser(null)
     setUsuario(null)

@@ -44,10 +44,7 @@ export default function Clientes() {
       .eq('ativo', true)
       .order('nome')
 
-    // Non-admin sees only their own clients
-    if (!isAdmin && usuario) {
-      query = query.eq('vendedor_id', usuario.id)
-    }
+    // Non-admin vê todos os clientes da empresa (cliente pode ter vários vendedores)
 
     const { data } = await query
     setClientes(data ?? [])

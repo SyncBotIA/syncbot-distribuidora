@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Search } from 'lucide-react'
+import { Plus, Pencil, Search, Trash2, Tags } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import type { Produto, Categoria } from '@/types/database'
 
@@ -21,9 +21,11 @@ export default function Produtos() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [catDialogOpen, setCatDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Produto | null>(null)
   const [search, setSearch] = useState('')
   const [filterCategoria, setFilterCategoria] = useState('')
+  const [newCatNome, setNewCatNome] = useState('')
 
   // Form
   const [form, setForm] = useState({
@@ -43,6 +45,7 @@ export default function Produtos() {
       .from('produtos')
       .select('*, categorias(*)')
       .eq('empresa_id', empresa!.id)
+      .eq('ativo', true)
       .order('nome')
 
     setProdutos(data ?? [])
@@ -104,6 +107,48 @@ export default function Produtos() {
     fetchProdutos()
   }
 
+  async function handleDelete(p: Produto) {
+    if (!confirm(`Excluir o produto "${p.nome}"? Ele sera desativado.`)) return
+
+    const { error } = await supabase.from('produtos').update({ ativo: false }).eq('id', p.id)
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' })
+      return
+    }
+    toast({ title: 'Produto excluido', variant: 'success' })
+    fetchProdutos()
+  }
+
+  async function handleAddCategoria() {
+    if (!empresa || !newCatNome.trim()) return
+
+    const { error } = await supabase.from('categorias').insert({
+      empresa_id: empresa.id,
+      nome: newCatNome.trim(),
+    })
+
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' })
+      return
+    }
+
+    toast({ title: 'Categoria criada', variant: 'success' })
+    setNewCatNome('')
+    fetchCategorias()
+  }
+
+  async function handleDeleteCategoria(catId: string, catNome: string) {
+    if (!confirm(`Excluir a categoria "${catNome}"?`)) return
+
+    const { error } = await supabase.from('categorias').delete().eq('id', catId)
+    if (error) {
+      toast({ title: 'Erro', description: 'Nao e possivel excluir: existem produtos nesta categoria', variant: 'destructive' })
+      return
+    }
+    toast({ title: 'Categoria excluida', variant: 'success' })
+    fetchCategorias()
+  }
+
   const filtered = produtos.filter((p) => {
     const q = search.toLowerCase()
     const matchSearch = p.nome.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
@@ -115,12 +160,20 @@ export default function Produtos() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Produtos</h1>
-        {canManageProducts && (
-          <Button onClick={openCreate} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Produto
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {canManageProducts && (
+            <>
+              <Button variant="outline" onClick={() => setCatDialogOpen(true)} className="gap-2">
+                <Tags className="h-4 w-4" />
+                Categorias
+              </Button>
+              <Button onClick={openCreate} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Produto
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2">
@@ -154,7 +207,7 @@ export default function Produtos() {
                   <TableHead className="text-right">Custo</TableHead>
                   <TableHead className="text-right">Venda</TableHead>
                   <TableHead>Status</TableHead>
-                  {canManageProducts && <TableHead className="w-16">Ações</TableHead>}
+                  {canManageProducts && <TableHead className="w-24">Acoes</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -171,9 +224,14 @@ export default function Produtos() {
                     </TableCell>
                     {canManageProducts && (
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(p)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     )}
                   </TableRow>
@@ -189,6 +247,7 @@ export default function Produtos() {
         </CardContent>
       </Card>
 
+      {/* Produto dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
@@ -206,7 +265,7 @@ export default function Produtos() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Descrição</Label>
+              <Label>Descricao</Label>
               <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -230,15 +289,15 @@ export default function Produtos() {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Preço Custo</Label>
+                <Label>Preco Custo</Label>
                 <Input type="number" step="0.01" value={form.preco_custo} onChange={(e) => setForm({ ...form, preco_custo: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label>Preço Venda</Label>
+                <Label>Preco Venda</Label>
                 <Input type="number" step="0.01" value={form.preco_venda} onChange={(e) => setForm({ ...form, preco_venda: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label>Estoque Mín.</Label>
+                <Label>Estoque Min.</Label>
                 <Input type="number" value={form.estoque_minimo} onChange={(e) => setForm({ ...form, estoque_minimo: e.target.value })} />
               </div>
             </div>
@@ -247,6 +306,42 @@ export default function Produtos() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleSave} disabled={!form.nome || !form.sku}>Salvar</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Categorias dialog */}
+      <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+        <DialogContent onClose={() => setCatDialogOpen(false)}>
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nome da nova categoria..."
+                value={newCatNome}
+                onChange={(e) => setNewCatNome(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCategoria()}
+              />
+              <Button onClick={handleAddCategoria} disabled={!newCatNome.trim()}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+              {categorias.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">Nenhuma categoria cadastrada</p>
+              ) : (
+                categorias.map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between p-2 rounded border">
+                    <span>{cat.nome}</span>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteCategoria(cat.id, cat.nome)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Plus, Eye, XCircle, Check, Truck } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import type { Pedido, Produto, PedidoItem, Usuario, Cliente } from '@/types/database'
+import type { Pedido, Produto, PedidoItem, Usuario, Cliente, EmpresaUsuario, Hierarquia } from '@/types/database'
 
 interface PedidoItemForm {
   produto_id: string
@@ -29,6 +29,7 @@ export default function Pedidos() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [produtos, setProdutos] = useState<Produto[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
+  const [subordinados, setSubordinados] = useState<EmpresaUsuario[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -38,36 +39,37 @@ export default function Pedidos() {
   // Form
   const [itens, setItens] = useState<PedidoItemForm[]>([])
   const [formClienteId, setFormClienteId] = useState('')
+  const [formVendedorId, setFormVendedorId] = useState('')
   const [formObs, setFormObs] = useState('')
   const [addProdutoId, setAddProdutoId] = useState('')
   const [addQtd, setAddQtd] = useState('1')
+
+  // Pode lançar pedido no nome de outro? (hierarquia >= gerente)
+  const canAssignToOther = hierarquiaOrdem !== null && hierarquiaOrdem <= 2
 
   useEffect(() => {
     if (empresa) {
       fetchPedidos()
       fetchProdutos()
       fetchClientes()
+      if (canAssignToOther) fetchSubordinados()
     }
   }, [empresa])
 
   async function fetchPedidos() {
-    let query = supabase
+    const { data } = await supabase
       .from('pedidos')
       .select('*, usuarios(nome), clientes(nome)')
       .eq('empresa_id', empresa!.id)
       .order('created_at', { ascending: false })
 
-    const { data } = await query
-
     let result = data ?? []
 
-    // Filter by subordinate tree if not admin
     if (!isAdmin && empresaUsuario) {
       const { data: subs } = await supabase.rpc('get_subordinados', {
         p_empresa_usuario_id: empresaUsuario.id,
       })
       const subUserIds = new Set((subs ?? []).map((s: { id: string }) => s.id))
-      // Also include own pedidos
       result = result.filter(
         (p) => p.usuario_id === usuario?.id || subUserIds.has(p.usuario_id)
       )
@@ -99,6 +101,34 @@ export default function Pedidos() {
     setClientes(data ?? [])
   }
 
+  async function fetchSubordinados() {
+    if (!empresaUsuario) return
+
+    // Buscar todos usuarios da empresa com hierarquia
+    const { data } = await supabase
+      .from('empresa_usuarios')
+      .select('*, usuarios(id, nome), hierarquias(nome, ordem)')
+      .eq('empresa_id', empresa!.id)
+      .eq('ativo', true)
+
+    if (data) {
+      // Filtrar: apenas subordinados (ordem maior que a minha)
+      const meus = data.filter((eu) => {
+        const h = eu.hierarquias as unknown as Hierarquia
+        return h && hierarquiaOrdem !== null && h.ordem >= hierarquiaOrdem
+      })
+      setSubordinados(meus as unknown as EmpresaUsuario[])
+    }
+  }
+
+  function openCreateDialog() {
+    setItens([])
+    setFormClienteId('')
+    setFormVendedorId(usuario?.id ?? '')
+    setFormObs('')
+    setDialogOpen(true)
+  }
+
   function addItem() {
     const prod = produtos.find((p) => p.id === addProdutoId)
     if (!prod) return
@@ -121,13 +151,15 @@ export default function Pedidos() {
   async function handleCreatePedido() {
     if (!empresa || !usuario || itens.length === 0) return
 
+    // O pedido vai no nome do vendedor selecionado (ou do proprio usuario)
+    const vendedorId = canAssignToOther && formVendedorId ? formVendedorId : usuario.id
+
     try {
-      // Create pedido
       const { data: pedido, error: pError } = await supabase
         .from('pedidos')
         .insert({
           empresa_id: empresa.id,
-          usuario_id: usuario.id,
+          usuario_id: vendedorId,
           cliente_id: formClienteId || null,
           status: 'rascunho',
           valor_total: valorTotal,
@@ -138,7 +170,6 @@ export default function Pedidos() {
 
       if (pError) throw pError
 
-      // Create items
       const { error: iError } = await supabase.from('pedido_itens').insert(
         itens.map((i) => ({
           pedido_id: pedido.id,
@@ -155,6 +186,7 @@ export default function Pedidos() {
       setDialogOpen(false)
       setItens([])
       setFormClienteId('')
+      setFormVendedorId('')
       setFormObs('')
       fetchPedidos()
     } catch (err: unknown) {
@@ -172,9 +204,7 @@ export default function Pedidos() {
 
       if (error) throw error
 
-      // Handle stock changes
       if (newStatus === 'confirmado') {
-        // Fetch items and deduct stock
         const { data: items } = await supabase
           .from('pedido_itens')
           .select('*')
@@ -188,11 +218,10 @@ export default function Pedidos() {
             quantidade: item.quantidade,
             pedido_id: pedido.id,
             usuario_id: usuario!.id,
-            observacao: `Pedido confirmado`,
+            observacao: 'Pedido confirmado',
           })
         }
       } else if (newStatus === 'cancelado' && pedido.status === 'confirmado') {
-        // Revert stock
         const { data: items } = await supabase
           .from('pedido_itens')
           .select('*')
@@ -206,7 +235,7 @@ export default function Pedidos() {
             quantidade: item.quantidade,
             pedido_id: pedido.id,
             usuario_id: usuario!.id,
-            observacao: `Pedido cancelado - estoque revertido`,
+            observacao: 'Pedido cancelado - estoque revertido',
           })
         }
       }
@@ -248,7 +277,7 @@ export default function Pedidos() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Pedidos</h1>
-        <Button onClick={() => { setDialogOpen(true); setItens([]); setFormClienteId(''); setFormObs('') }} className="gap-2">
+        <Button onClick={openCreateDialog} className="gap-2">
           <Plus className="h-4 w-4" />
           Novo Pedido
         </Button>
@@ -263,11 +292,11 @@ export default function Pedidos() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>
-                  <TableHead>Criado por</TableHead>
+                  <TableHead>Vendedor</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Valor Total</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead>Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -325,6 +354,25 @@ export default function Pedidos() {
             <DialogTitle>Novo Pedido</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Vendedor selector - apenas se hierarquia permite */}
+            {canAssignToOther && (
+              <div className="space-y-2">
+                <Label>Vendedor responsavel</Label>
+                <Select value={formVendedorId} onChange={(e) => setFormVendedorId(e.target.value)}>
+                  {subordinados.map((eu) => {
+                    const u = eu.usuario as unknown as { id: string; nome: string }
+                    const h = eu.hierarquias as unknown as Hierarquia
+                    return (
+                      <option key={eu.id} value={u?.id}>
+                        {u?.nome} ({h?.nome})
+                      </option>
+                    )
+                  })}
+                </Select>
+                <p className="text-xs text-muted-foreground">Voce pode lancar o pedido no nome de um subordinado</p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Cliente</Label>
               <Select value={formClienteId} onChange={(e) => setFormClienteId(e.target.value)}>
@@ -351,7 +399,7 @@ export default function Pedidos() {
                   <TableRow>
                     <TableHead>Produto</TableHead>
                     <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead className="text-right">Preço Un.</TableHead>
+                    <TableHead className="text-right">Preco Un.</TableHead>
                     <TableHead className="text-right">Subtotal</TableHead>
                     <TableHead className="w-16"></TableHead>
                   </TableRow>
@@ -380,7 +428,7 @@ export default function Pedidos() {
             )}
 
             <div className="space-y-2">
-              <Label>Observação (opcional)</Label>
+              <Label>Observacao (opcional)</Label>
               <Input value={formObs} onChange={(e) => setFormObs(e.target.value)} />
             </div>
           </div>
@@ -416,7 +464,7 @@ export default function Pedidos() {
                 </div>
                 {selectedPedido.observacao && (
                   <div>
-                    <p className="text-muted-foreground">Observação</p>
+                    <p className="text-muted-foreground">Observacao</p>
                     <p>{selectedPedido.observacao}</p>
                   </div>
                 )}
@@ -426,7 +474,7 @@ export default function Pedidos() {
                   <TableRow>
                     <TableHead>Produto</TableHead>
                     <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead className="text-right">Preço Un.</TableHead>
+                    <TableHead className="text-right">Preco Un.</TableHead>
                     <TableHead className="text-right">Subtotal</TableHead>
                   </TableRow>
                 </TableHeader>

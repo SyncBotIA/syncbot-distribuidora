@@ -10,6 +10,7 @@ import {
   UserCheck,
   X,
   Building2,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +30,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     { to: '/produtos', label: 'Produtos', icon: Package, show: true },
     { to: '/estoque', label: 'Estoque', icon: Warehouse, show: canManageProducts },
     { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart, show: true },
+    { to: '/configuracoes', label: 'Configuracoes', icon: Settings, show: true },
   ]
 
   return (
