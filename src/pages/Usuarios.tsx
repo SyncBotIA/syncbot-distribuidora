@@ -46,7 +46,6 @@ export default function Usuarios() {
       .select('*, usuarios(*), hierarquias(*)')
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
-
     let result = data ?? []
 
     if (!isAdmin && empresaUsuario) {
@@ -118,7 +117,7 @@ export default function Usuarios() {
   }
 
   const filtered = usuarios.filter((eu) => {
-    const u = eu.usuario
+    const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
     if (!u) return false
     const q = search.toLowerCase()
     return u.nome.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
@@ -164,8 +163,8 @@ export default function Usuarios() {
               </TableHeader>
               <TableBody>
                 {filtered.map((eu) => {
-                  const u = eu.usuario
-                  const h = eu.hierarquias as unknown as Hierarquia
+                  const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+                  const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
                   return (
                     <TableRow key={eu.id}>
                       <TableCell className="font-medium">{u?.nome ?? '—'}</TableCell>
