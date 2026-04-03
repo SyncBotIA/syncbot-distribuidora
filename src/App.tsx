@@ -12,6 +12,8 @@ import Usuarios from '@/pages/Usuarios'
 import Produtos from '@/pages/Produtos'
 import Estoque from '@/pages/Estoque'
 import Pedidos from '@/pages/Pedidos'
+import Clientes from '@/pages/Clientes'
+import MasterPanel from '@/pages/MasterPanel'
 import type { ReactNode } from 'react'
 
 function PrivateRoute({ children }: { children: ReactNode }) {
@@ -57,6 +59,10 @@ function AppRoutes() {
         <PrivateRoute><CriarEmpresa /></PrivateRoute>
       } />
 
+      <Route path="/master" element={
+        <PrivateRoute><MasterPanel /></PrivateRoute>
+      } />
+
       <Route element={
         <PrivateRoute>
           <EmpresaRoute>
@@ -67,6 +73,7 @@ function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/hierarquias" element={<Hierarquias />} />
         <Route path="/usuarios" element={<Usuarios />} />
+        <Route path="/clientes" element={<Clientes />} />
         <Route path="/produtos" element={<Produtos />} />
         <Route path="/estoque" element={<Estoque />} />
         <Route path="/pedidos" element={<Pedidos />} />

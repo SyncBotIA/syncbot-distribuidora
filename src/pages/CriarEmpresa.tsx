@@ -25,46 +25,25 @@ export default function CriarEmpresa() {
     setLoading(true)
 
     try {
-      // 1. Criar empresa
-      const { data: empresa, error: empError } = await supabase
-        .from('empresas')
-        .insert({ nome, cnpj })
-        .select()
-        .single()
+      // Usar função RPC que cria tudo de uma vez (bypassa RLS)
+      const { data: empresaId, error: rpcError } = await supabase.rpc('criar_empresa_completa', {
+        p_nome: nome,
+        p_cnpj: cnpj || null,
+        p_usuario_id: usuario.id,
+      })
 
-      if (empError) throw empError
-
-      // 2. Criar hierarquias padrão
-      const { data: hierAdmin, error: hError } = await supabase
-        .from('hierarquias')
-        .insert([
-          { empresa_id: empresa.id, nome: 'Administrador', ordem: 1, descricao: 'Acesso total ao sistema' },
-          { empresa_id: empresa.id, nome: 'Funcionário', ordem: 2, descricao: 'Acesso básico' },
-        ])
-        .select()
-
-      if (hError) throw hError
-
-      const adminHierarquia = hierAdmin.find((h) => h.ordem === 1)
-
-      // 3. Vincular usuário como admin
-      const { error: euError } = await supabase
-        .from('empresa_usuarios')
-        .insert({
-          empresa_id: empresa.id,
-          usuario_id: usuario.id,
-          hierarquia_id: adminHierarquia!.id,
-          superior_id: null,
-        })
-
-      if (euError) throw euError
+      if (rpcError) throw rpcError
 
       await refreshEmpresas()
-      setEmpresaId(empresa.id)
+      setEmpresaId(empresaId)
       navigate('/dashboard')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao criar empresa'
-      setError(message)
+      if (message.includes('CNPJ')) {
+        setError('Já existe uma empresa cadastrada com este CNPJ.')
+      } else {
+        setError(message)
+      }
     } finally {
       setLoading(false)
     }

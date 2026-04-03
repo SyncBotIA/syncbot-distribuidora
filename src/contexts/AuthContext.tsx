@@ -8,6 +8,7 @@ interface AuthContextType {
   usuario: Usuario | null
   session: Session | null
   loading: boolean
+  isMaster: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signUp: (email: string, password: string, nome: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
@@ -108,8 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null)
   }
 
+  const isMaster = usuario?.is_master ?? false
+
   return (
-    <AuthContext value={{ user, usuario, session, loading, signIn, signUp, signOut }}>
+    <AuthContext value={{ user, usuario, session, loading, isMaster, signIn, signUp, signOut }}>
       {children}
     </AuthContext>
   )

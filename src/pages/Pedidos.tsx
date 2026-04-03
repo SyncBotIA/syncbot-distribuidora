@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Plus, Eye, XCircle, Check, Truck } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import type { Pedido, Produto, PedidoItem, Usuario } from '@/types/database'
+import type { Pedido, Produto, PedidoItem, Usuario, Cliente } from '@/types/database'
 
 interface PedidoItemForm {
   produto_id: string
@@ -28,6 +28,7 @@ export default function Pedidos() {
   const { toast } = useToast()
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [produtos, setProdutos] = useState<Produto[]>([])
+  const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -36,6 +37,7 @@ export default function Pedidos() {
 
   // Form
   const [itens, setItens] = useState<PedidoItemForm[]>([])
+  const [formClienteId, setFormClienteId] = useState('')
   const [formObs, setFormObs] = useState('')
   const [addProdutoId, setAddProdutoId] = useState('')
   const [addQtd, setAddQtd] = useState('1')
@@ -44,13 +46,14 @@ export default function Pedidos() {
     if (empresa) {
       fetchPedidos()
       fetchProdutos()
+      fetchClientes()
     }
   }, [empresa])
 
   async function fetchPedidos() {
     let query = supabase
       .from('pedidos')
-      .select('*, usuarios(nome)')
+      .select('*, usuarios(nome), clientes(nome)')
       .eq('empresa_id', empresa!.id)
       .order('created_at', { ascending: false })
 
@@ -85,6 +88,17 @@ export default function Pedidos() {
     setProdutos(data ?? [])
   }
 
+  async function fetchClientes() {
+    const { data } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('empresa_id', empresa!.id)
+      .eq('ativo', true)
+      .order('nome')
+
+    setClientes(data ?? [])
+  }
+
   function addItem() {
     const prod = produtos.find((p) => p.id === addProdutoId)
     if (!prod) return
@@ -114,6 +128,7 @@ export default function Pedidos() {
         .insert({
           empresa_id: empresa.id,
           usuario_id: usuario.id,
+          cliente_id: formClienteId || null,
           status: 'rascunho',
           valor_total: valorTotal,
           observacao: formObs || null,
@@ -139,6 +154,7 @@ export default function Pedidos() {
       toast({ title: 'Pedido criado como rascunho', variant: 'success' })
       setDialogOpen(false)
       setItens([])
+      setFormClienteId('')
       setFormObs('')
       fetchPedidos()
     } catch (err: unknown) {
@@ -232,7 +248,7 @@ export default function Pedidos() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Pedidos</h1>
-        <Button onClick={() => { setDialogOpen(true); setItens([]); setFormObs('') }} className="gap-2">
+        <Button onClick={() => { setDialogOpen(true); setItens([]); setFormClienteId(''); setFormObs('') }} className="gap-2">
           <Plus className="h-4 w-4" />
           Novo Pedido
         </Button>
@@ -248,6 +264,7 @@ export default function Pedidos() {
                 <TableRow>
                   <TableHead>Data</TableHead>
                   <TableHead>Criado por</TableHead>
+                  <TableHead>Cliente</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Valor Total</TableHead>
                   <TableHead>Ações</TableHead>
@@ -260,6 +277,7 @@ export default function Pedidos() {
                     <TableRow key={p.id}>
                       <TableCell>{formatDate(p.created_at)}</TableCell>
                       <TableCell>{(p.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
+                      <TableCell>{(p.clientes as unknown as Cliente)?.nome ?? (p.cliente as unknown as Cliente)?.nome ?? '—'}</TableCell>
                       <TableCell>
                         <Badge variant={sc.variant}>{sc.label}</Badge>
                       </TableCell>
@@ -291,7 +309,7 @@ export default function Pedidos() {
                 })}
                 {pedidos.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">Nenhum pedido</TableCell>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">Nenhum pedido</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -307,6 +325,15 @@ export default function Pedidos() {
             <DialogTitle>Novo Pedido</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Cliente</Label>
+              <Select value={formClienteId} onChange={(e) => setFormClienteId(e.target.value)}>
+                <option value="">Sem cliente</option>
+                {clientes.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nome}{c.cidade ? ` — ${c.cidade}` : ''}</option>
+                ))}
+              </Select>
+            </div>
             <div className="flex gap-2">
               <Select value={addProdutoId} onChange={(e) => setAddProdutoId(e.target.value)} className="flex-1">
                 <option value="">Selecione um produto...</option>

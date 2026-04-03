@@ -7,6 +7,7 @@ import {
   Package,
   Warehouse,
   ShoppingCart,
+  UserCheck,
   X,
   Building2,
 } from 'lucide-react'
@@ -24,6 +25,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
     { to: '/hierarquias', label: 'Hierarquias', icon: ShieldCheck, show: isAdmin },
     { to: '/usuarios', label: 'Usuários', icon: Users, show: true },
+    { to: '/clientes', label: 'Clientes', icon: UserCheck, show: true },
     { to: '/produtos', label: 'Produtos', icon: Package, show: true },
     { to: '/estoque', label: 'Estoque', icon: Warehouse, show: canManageProducts },
     { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart, show: true },

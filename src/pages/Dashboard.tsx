@@ -4,10 +4,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Select } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
-import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp } from 'lucide-react'
+import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp, Users, Trophy } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import type { Pedido, Produto } from '@/types/database'
+import type { Pedido, Produto, Usuario } from '@/types/database'
 
 interface DashboardStats {
   totalPedidos: number
@@ -17,42 +19,61 @@ interface DashboardStats {
   pedidosPorMes: { mes: string; total: number; valor: number }[]
   produtosMaisVendidos: { nome: string; quantidade: number }[]
   estoqueCritico: { nome: string; atual: number; minimo: number }[]
+  rankingVendedores: { nome: string; pedidos: number; valor: number; comissao: number }[]
 }
+
+type Periodo = 'dia' | 'semana' | 'mes' | 'ano'
 
 const COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#93bbfd', '#bfdbfe']
 
+function getStartDate(periodo: Periodo): Date {
+  const now = new Date()
+  switch (periodo) {
+    case 'dia': return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    case 'semana': { const d = new Date(now); d.setDate(d.getDate() - d.getDay()); d.setHours(0, 0, 0, 0); return d }
+    case 'mes': return new Date(now.getFullYear(), now.getMonth(), 1)
+    case 'ano': return new Date(now.getFullYear(), 0, 1)
+  }
+}
+
+const periodoLabels: Record<Periodo, string> = {
+  dia: 'Hoje',
+  semana: 'Esta Semana',
+  mes: 'Este Mês',
+  ano: 'Este Ano',
+}
+
 export default function Dashboard() {
   const { usuario } = useAuth()
-  const { empresa, empresaUsuario, isAdmin, hierarquiaOrdem } = useEmpresa()
+  const { empresa, empresaUsuario, isAdmin } = useEmpresa()
+  const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [stats, setStats] = useState<DashboardStats>({
-    totalPedidos: 0,
-    valorTotal: 0,
-    totalProdutos: 0,
-    estoqueBaixo: 0,
-    pedidosPorMes: [],
-    produtosMaisVendidos: [],
-    estoqueCritico: [],
+    totalPedidos: 0, valorTotal: 0, totalProdutos: 0, estoqueBaixo: 0,
+    pedidosPorMes: [], produtosMaisVendidos: [], estoqueCritico: [], rankingVendedores: [],
   })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (empresa && usuario) fetchStats()
-  }, [empresa, usuario])
+  }, [empresa, usuario, periodo])
 
   async function fetchStats() {
-    // Fetch pedidos
+    setLoading(true)
+    const startDate = getStartDate(periodo).toISOString()
+
+    // Fetch pedidos filtered by period
     let pedidosQuery = supabase
       .from('pedidos')
-      .select('*')
+      .select('*, usuarios(nome)')
       .eq('empresa_id', empresa!.id)
       .neq('status', 'cancelado')
+      .gte('created_at', startDate)
 
     if (!isAdmin && empresaUsuario) {
       const { data: subs } = await supabase.rpc('get_subordinados', {
         p_empresa_usuario_id: empresaUsuario.id,
       })
       const subIds = new Set((subs ?? []).map((s: { id: string }) => s.id))
-
       const { data: pedidos } = await pedidosQuery
       const filteredPedidos = (pedidos ?? []).filter(
         (p) => p.usuario_id === usuario!.id || subIds.has(p.usuario_id)
@@ -94,11 +115,10 @@ export default function Dashboard() {
       }
     }
 
-    // Fetch top products by sales
+    // Top products
     const { data: topItems } = await supabase
       .from('pedido_itens')
       .select('produto_id, quantidade, produtos(nome)')
-      .eq('produtos.empresa_id', empresa!.id)
 
     const prodMap = new Map<string, { nome: string; quantidade: number }>()
     for (const item of topItems ?? []) {
@@ -108,22 +128,18 @@ export default function Dashboard() {
       prodMap.set(item.produto_id, existing)
     }
 
-    const produtosMaisVendidos = Array.from(prodMap.values())
-      .sort((a, b) => b.quantidade - a.quantidade)
-      .slice(0, 5)
-
     setStats((prev) => ({
       ...prev,
       totalProdutos: prods?.length ?? 0,
       estoqueBaixo,
       estoqueCritico: estoqueCritico.slice(0, 5),
-      produtosMaisVendidos,
+      produtosMaisVendidos: Array.from(prodMap.values()).sort((a, b) => b.quantidade - a.quantidade).slice(0, 5),
     }))
 
     setLoading(false)
   }
 
-  function processPedidos(pedidos: Pedido[]) {
+  function processPedidos(pedidos: (Pedido & { usuarios?: { nome: string } })[]) {
     const totalPedidos = pedidos.length
     const valorTotal = pedidos.reduce((sum, p) => sum + (p.valor_total || 0), 0)
 
@@ -143,7 +159,22 @@ export default function Dashboard() {
       .slice(-6)
       .map(([mes, data]) => ({ mes, ...data }))
 
-    setStats((prev) => ({ ...prev, totalPedidos, valorTotal, pedidosPorMes }))
+    // Ranking vendedores
+    const vendedorMap = new Map<string, { nome: string; pedidos: number; valor: number }>()
+    for (const p of pedidos) {
+      const nome = (p.usuarios as unknown as { nome: string })?.nome ?? 'Desconhecido'
+      const existing = vendedorMap.get(p.usuario_id) ?? { nome, pedidos: 0, valor: 0 }
+      existing.pedidos++
+      existing.valor += p.valor_total || 0
+      vendedorMap.set(p.usuario_id, existing)
+    }
+
+    const rankingVendedores = Array.from(vendedorMap.values())
+      .sort((a, b) => b.valor - a.valor)
+      .slice(0, 10)
+      .map((v) => ({ ...v, comissao: 0 }))
+
+    setStats((prev) => ({ ...prev, totalPedidos, valorTotal, pedidosPorMes, rankingVendedores }))
   }
 
   if (loading) {
@@ -152,7 +183,19 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <Select
+          value={periodo}
+          onChange={(e) => setPeriodo(e.target.value as Periodo)}
+          className="w-40"
+        >
+          <option value="dia">Hoje</option>
+          <option value="semana">Esta Semana</option>
+          <option value="mes">Este Mês</option>
+          <option value="ano">Este Ano</option>
+        </Select>
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -162,7 +205,7 @@ export default function Dashboard() {
               <ShoppingCart className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Pedidos</p>
+              <p className="text-sm text-muted-foreground">Pedidos ({periodoLabels[periodo]})</p>
               <p className="text-2xl font-bold">{stats.totalPedidos}</p>
             </div>
           </CardContent>
@@ -204,7 +247,6 @@ export default function Dashboard() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pedidos por mês */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -229,7 +271,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Produtos mais vendidos */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -241,15 +282,7 @@ export default function Dashboard() {
             {stats.produtosMaisVendidos.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie
-                    data={stats.produtosMaisVendidos}
-                    dataKey="quantidade"
-                    nameKey="nome"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label={({ nome, quantidade }) => `${nome}: ${quantidade}`}
-                  >
+                  <Pie data={stats.produtosMaisVendidos} dataKey="quantidade" nameKey="nome" cx="50%" cy="50%" outerRadius={100} label={({ nome, quantidade }) => `${nome}: ${quantidade}`}>
                     {stats.produtosMaisVendidos.map((_, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -263,6 +296,42 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Ranking de Vendedores */}
+      {isAdmin && stats.rankingVendedores.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              Ranking de Vendedores — {periodoLabels[periodo]}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Vendedor</TableHead>
+                  <TableHead className="text-right">Pedidos</TableHead>
+                  <TableHead className="text-right">Valor Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stats.rankingVendedores.map((v, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-bold">
+                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
+                    </TableCell>
+                    <TableCell className="font-medium">{v.nome}</TableCell>
+                    <TableCell className="text-right">{v.pedidos}</TableCell>
+                    <TableCell className="text-right font-semibold">{formatCurrency(v.valor)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Estoque crítico */}
       {isAdmin && stats.estoqueCritico.length > 0 && (

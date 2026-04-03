@@ -46,6 +46,11 @@ export interface Database {
         Insert: Omit<PedidoItem, 'id'>
         Update: Partial<Omit<PedidoItem, 'id'>>
       }
+      clientes: {
+        Row: Cliente
+        Insert: Omit<Cliente, 'id' | 'created_at'>
+        Update: Partial<Omit<Cliente, 'id' | 'created_at'>>
+      }
     }
     Functions: {
       get_subordinados: {
@@ -87,6 +92,7 @@ export interface Usuario {
   nome: string
   email: string
   telefone: string | null
+  is_master: boolean
   created_at: string
 }
 
@@ -96,6 +102,7 @@ export interface EmpresaUsuario {
   usuario_id: string
   hierarquia_id: string
   superior_id: string | null
+  comissao_percentual: number
   ativo: boolean
   created_at: string
   // Joined fields
@@ -150,6 +157,7 @@ export interface Pedido {
   id: string
   empresa_id: string
   usuario_id: string
+  cliente_id: string | null
   status: 'rascunho' | 'confirmado' | 'entregue' | 'cancelado'
   valor_total: number
   observacao: string | null
@@ -158,6 +166,7 @@ export interface Pedido {
   // Joined
   itens?: PedidoItem[]
   usuario?: Usuario
+  cliente?: Cliente
 }
 
 export interface PedidoItem {
@@ -169,4 +178,20 @@ export interface PedidoItem {
   subtotal: number
   // Joined
   produto?: Produto
+}
+
+export interface Cliente {
+  id: string
+  empresa_id: string
+  nome: string
+  telefone: string | null
+  endereco: string | null
+  bairro: string | null
+  cidade: string | null
+  observacao: string | null
+  vendedor_id: string | null
+  ativo: boolean
+  created_at: string
+  // Joined
+  vendedor?: Usuario
 }
