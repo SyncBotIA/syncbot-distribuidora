@@ -254,62 +254,112 @@ export default function Produtos() {
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Unidade</TableHead>
-                  <TableHead className="text-right">Custo</TableHead>
-                  <TableHead className="text-right">Venda</TableHead>
-                  <TableHead>Status</TableHead>
-                  {canManageProducts && <TableHead className="w-24">Ações</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>SKU</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead>Unidade</TableHead>
+                      <TableHead className="text-right">Custo</TableHead>
+                      <TableHead className="text-right">Venda</TableHead>
+                      <TableHead>Status</TableHead>
+                      {canManageProducts && <TableHead className="w-24">Ações</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell className="font-semibold">{p.nome}</TableCell>
+                        <TableCell className="font-mono text-xs text-zinc-400">{p.sku}</TableCell>
+                        <TableCell>{p.categoria?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
+                        <TableCell>{unidadeLabels[p.unidade_medida] ?? p.unidade_medida}</TableCell>
+                        <TableCell className="text-right text-zinc-400">{formatCurrency(p.preco_custo)}</TableCell>
+                        <TableCell className="text-right font-semibold text-white">{formatCurrency(p.preco_venda)}</TableCell>
+                        <TableCell>
+                          <Badge variant={p.ativo ? 'success' : 'secondary'}>{p.ativo ? 'Ativo' : 'Inativo'}</Badge>
+                        </TableCell>
+                        {canManageProducts && (
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete(p)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                    {filtered.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={8}>
+                          <div className="flex flex-col items-center justify-center py-14">
+                            <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                              <Package className="h-7 w-7 text-zinc-600" />
+                            </div>
+                            <p className="text-sm font-semibold text-zinc-400">Nenhum produto encontrado</p>
+                            <p className="text-xs text-zinc-600 mt-1">
+                              {search ? 'Tente ajustar sua busca' : 'Cadastre seu primeiro produto'}
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-2">
                 {filtered.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-semibold">{p.nome}</TableCell>
-                    <TableCell className="font-mono text-xs text-zinc-400">{p.sku}</TableCell>
-                    <TableCell>{p.categoria?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
-                    <TableCell>{unidadeLabels[p.unidade_medida] ?? p.unidade_medida}</TableCell>
-                    <TableCell className="text-right text-zinc-400">{formatCurrency(p.preco_custo)}</TableCell>
-                    <TableCell className="text-right font-semibold text-white">{formatCurrency(p.preco_venda)}</TableCell>
-                    <TableCell>
+                  <div key={p.id} className="rounded-xl border border-white/[0.06] p-3.5 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-white text-sm truncate">{p.nome}</p>
+                        <p className="text-xs text-zinc-500 font-mono mt-0.5">{p.sku}</p>
+                      </div>
                       <Badge variant={p.ativo ? 'success' : 'secondary'}>{p.ativo ? 'Ativo' : 'Inativo'}</Badge>
-                    </TableCell>
-                    {canManageProducts && (
-                      <TableCell>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-zinc-400">
+                      <span>Categoria: {p.categoria?.nome ?? '—'}</span>
+                      <span>{unidadeLabels[p.unidade_medida] ?? p.unidade_medida}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Preço Venda</p>
+                        <p className="text-sm font-bold text-white">{formatCurrency(p.preco_venda)}</p>
+                      </div>
+                      {canManageProducts && (
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(p)} className="h-11 w-11 min-h-[44px]">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(p)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(p)} className="h-11 w-11 min-h-[44px]">
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
+                      )}
+                    </div>
+                  </div>
                 ))}
                 {filtered.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={8}>
-                      <div className="flex flex-col items-center justify-center py-14">
-                        <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
-                          <Package className="h-7 w-7 text-zinc-600" />
-                        </div>
-                        <p className="text-sm font-semibold text-zinc-400">Nenhum produto encontrado</p>
-                        <p className="text-xs text-zinc-600 mt-1">
-                          {search ? 'Tente ajustar sua busca' : 'Cadastre seu primeiro produto'}
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <div className="flex flex-col items-center justify-center py-14">
+                    <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                      <Package className="h-7 w-7 text-zinc-600" />
+                    </div>
+                    <p className="text-sm font-semibold text-zinc-400">Nenhum produto encontrado</p>
+                    <p className="text-xs text-zinc-600 mt-1">
+                      {search ? 'Tente ajustar sua busca' : 'Cadastre seu primeiro produto'}
+                    </p>
+                  </div>
                 )}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -321,7 +371,7 @@ export default function Produtos() {
             <DialogTitle>{editing ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Nome</Label>
                 <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
@@ -354,7 +404,7 @@ export default function Produtos() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label>Preço Custo</Label>
                 <Input type="number" step="0.01" value={form.preco_custo} onChange={(e) => setForm({ ...form, preco_custo: e.target.value })} />

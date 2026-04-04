@@ -27,6 +27,8 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
       ref={ref}
       className={cn(
         'relative z-50 w-full max-w-lg rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#0d1525] to-[#0a0f1a] p-6 shadow-2xl shadow-black/60 max-h-[85vh] overflow-y-auto animate-scale-in ring-1 ring-white/[0.04]',
+        'sm:rounded-2xl sm:p-6',
+        'fixed inset-x-3 bottom-3 top-auto sm:static sm:inset-auto sm:mx-auto sm:max-h-[85vh] sm:max-w-lg',
         className
       )}
       {...props}
@@ -34,7 +36,7 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.08] transition-all cursor-pointer"
+          className="absolute right-3 sm:right-4 top-3 sm:top-4 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.08] transition-all cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -58,7 +60,13 @@ function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLPar
 }
 
 function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-6 pt-5 border-t border-white/[0.06]', className)} {...props} />
+  return (
+    <div className={cn(
+      'flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-2 mt-6 pt-5 border-t border-white/[0.06]',
+      '[&>button]:w-full [&>button]:sm:w-auto',
+      className
+    )} {...props} />
+  )
 }
 
 export { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter }

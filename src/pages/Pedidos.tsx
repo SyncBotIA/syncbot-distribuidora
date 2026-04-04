@@ -380,83 +380,140 @@ export default function Pedidos() {
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data
-                  <span className="text-[10px] font-normal normal-case tracking-normal block text-zinc-600">Relativo</span>
-                </TableHead>
-                  <TableHead>Vendedor</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Valor Total</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data
+                      <span className="text-[10px] font-normal normal-case tracking-normal block text-zinc-600">Relativo</span>
+                    </TableHead>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Valor Total</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPedidos.map((p) => {
+                      const sc = statusConfig[p.status]
+                      return (
+                        <TableRow key={p.id}>
+                          <TableCell>
+                            <div>
+                              <p className="text-zinc-300">{formatDate(p.created_at)}</p>
+                              <p className="text-[10px] text-zinc-500">{formatRelativeDate(p.created_at)}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-semibold">{(p.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
+                          <TableCell>{(p.cliente as unknown as Cliente)?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
+                          <TableCell>
+                            <Badge variant={sc.variant}>{sc.label}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-white">{formatCurrency(p.valor_total ?? 0)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => viewDetail(p)} title="Detalhes">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {p.status === 'rascunho' && (
+                                <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'confirmado')} title="Confirmar">
+                                  <Check className="h-4 w-4 text-emerald-400" />
+                                </Button>
+                              )}
+                              {p.status === 'confirmado' && (
+                                <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'entregue')} title="Marcar entregue">
+                                  <Truck className="h-4 w-4 text-blue-400" />
+                                </Button>
+                              )}
+                              {canCancel(p) && p.status !== 'cancelado' && p.status !== 'entregue' && (
+                                <Button variant="ghost" size="icon" onClick={() => { if (confirm('Cancelar este pedido?')) handleStatusChange(p, 'cancelado') }} title="Cancelar">
+                                  <XCircle className="h-4 w-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                    {filteredPedidos.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <div className="flex flex-col items-center justify-center py-14">
+                            <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                              <ShoppingCart className="h-7 w-7 text-zinc-600" />
+                            </div>
+                            <p className="text-sm font-semibold text-zinc-400">{pedidos.length === 0 ? 'Nenhum pedido registrado' : 'Nenhum pedido encontrado'}</p>
+                            <p className="text-xs text-zinc-600 mt-1">{pedidos.length === 0 ? 'Crie seu primeiro pedido' : 'Tente ajustar seus filtros'}</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-2">
                 {filteredPedidos.map((p) => {
-                  const sc = statusConfig[p.status]
+                  const sc = getStatusConfig(p.status)
                   return (
-                    <TableRow key={p.id}>
-                      <TableCell>
+                    <div key={p.id} className="rounded-xl border border-white/[0.06] p-3.5 space-y-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-white text-sm truncate">{(p.usuario as unknown as Usuario)?.nome ?? '—'}</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">{(p.cliente as unknown as Cliente)?.nome ?? 'Sem cliente'}</p>
+                        </div>
+                        <Badge variant={sc.variant}>{sc.label}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-zinc-300">{formatDate(p.created_at)}</p>
+                          <p className="text-sm font-bold text-white">{formatCurrency(p.valor_total ?? 0)}</p>
                           <p className="text-[10px] text-zinc-500">{formatRelativeDate(p.created_at)}</p>
                         </div>
-                      </TableCell>
-                      <TableCell className="font-semibold">{(p.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
-                      <TableCell>{(p.cliente as unknown as Cliente)?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
-                      <TableCell>
-                        <Badge variant={sc.variant}>{sc.label}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-white">{formatCurrency(p.valor_total ?? 0)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => viewDetail(p)} title="Detalhes">
+                        <div className="flex gap-0.5">
+                          <Button variant="ghost" size="icon" onClick={() => viewDetail(p)} className="h-10 w-10" title="Detalhes">
                             <Eye className="h-4 w-4" />
                           </Button>
                           {p.status === 'rascunho' && (
-                            <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'confirmado')} title="Confirmar">
+                            <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'confirmado')} className="h-10 w-10" title="Confirmar">
                               <Check className="h-4 w-4 text-emerald-400" />
                             </Button>
                           )}
                           {p.status === 'confirmado' && (
-                            <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'entregue')} title="Marcar entregue">
+                            <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'entregue')} className="h-10 w-10" title="Entregue">
                               <Truck className="h-4 w-4 text-blue-400" />
                             </Button>
                           )}
                           {canCancel(p) && p.status !== 'cancelado' && p.status !== 'entregue' && (
-                            <Button variant="ghost" size="icon" onClick={() => { if (confirm('Cancelar este pedido?')) handleStatusChange(p, 'cancelado') }} title="Cancelar">
+                            <Button variant="ghost" size="icon" onClick={() => { if (confirm('Cancelar este pedido?')) handleStatusChange(p, 'cancelado') }} className="h-10 w-10" title="Cancelar">
                               <XCircle className="h-4 w-4 text-destructive" />
                             </Button>
                           )}
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </div>
                   )
                 })}
                 {filteredPedidos.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6}>
-                      <div className="flex flex-col items-center justify-center py-14">
-                        <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
-                          <ShoppingCart className="h-7 w-7 text-zinc-600" />
-                        </div>
-                        <p className="text-sm font-semibold text-zinc-400">{pedidos.length === 0 ? 'Nenhum pedido registrado' : 'Nenhum pedido encontrado'}</p>
-                        <p className="text-xs text-zinc-600 mt-1">{pedidos.length === 0 ? 'Crie seu primeiro pedido' : 'Tente ajustar seus filtros'}</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <div className="flex flex-col items-center justify-center py-14">
+                    <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                      <ShoppingCart className="h-7 w-7 text-zinc-600" />
+                    </div>
+                    <p className="text-sm font-semibold text-zinc-400">{pedidos.length === 0 ? 'Nenhum pedido registrado' : 'Nenhum pedido encontrado'}</p>
+                    <p className="text-xs text-zinc-600 mt-1">{pedidos.length === 0 ? 'Crie seu primeiro pedido' : 'Tente ajustar seus filtros'}</p>
+                  </div>
                 )}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
 
       {/* Create dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent onClose={() => setDialogOpen(false)} className="max-w-2xl p-4 sm:p-6">
+        <DialogContent onClose={() => setDialogOpen(false)} className="max-w-2xl p-4 sm:p-6 w-full sm:max-w-lg md:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Novo Pedido</DialogTitle>
           </DialogHeader>
@@ -489,15 +546,17 @@ export default function Pedidos() {
               </Select>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Select value={addProdutoId} onChange={(e) => setAddProdutoId(e.target.value)} className="flex-1">
                 <option value="">Selecione um produto...</option>
                 {produtos.map((p) => (
                   <option key={p.id} value={p.id}>{p.nome} — {formatCurrency(p.preco_venda)}</option>
                 ))}
               </Select>
-              <Input type="number" min="1" value={addQtd} onChange={(e) => setAddQtd(e.target.value)} className="w-20" placeholder="Qtd" />
-              <Button onClick={addItem} disabled={!addProdutoId}>Adicionar</Button>
+              <div className="flex gap-2">
+                <Input type="number" min="1" value={addQtd} onChange={(e) => setAddQtd(e.target.value)} className="w-20" placeholder="Qtd" />
+                <Button onClick={addItem} disabled={!addProdutoId}>Adicionar</Button>
+              </div>
             </div>
 
             {itens.length > 0 && (

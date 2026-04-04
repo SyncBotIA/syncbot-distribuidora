@@ -275,7 +275,7 @@ export default function Dashboard() {
                 <div className={`p-2.5 rounded-xl ${kpi.iconBg} transition-transform duration-300 group-hover:scale-110`}>
                   <kpi.icon className={`h-5 w-5 ${kpi.textColor}`} />
                 </div>
-                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">{kpi.sublabel}</span>
+                <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">{kpi.sublabel}</span>
               </div>
               <p className="text-2xl font-bold tracking-tight text-white">{kpi.value}</p>
               <p className="text-xs font-medium text-zinc-500 mt-1">{kpi.label}</p>
@@ -398,40 +398,66 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>Vendedor</TableHead>
-                  <TableHead className="text-right">Pedidos</TableHead>
-                  <TableHead className="text-right">Valor Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stats.rankingVendedores.map((v, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      {i < 3 ? (
-                        <div className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          i === 0 ? 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20' :
-                          i === 1 ? 'bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20' :
-                          'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20'
-                        }`}>
-                          {i + 1}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground pl-2">{i + 1}</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-semibold">{v.nome}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="secondary">{v.pedidos}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-emerald-400">{formatCurrency(v.valor)}</TableCell>
+            {/* Desktop table */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>Vendedor</TableHead>
+                    <TableHead className="text-right">Pedidos</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {stats.rankingVendedores.map((v, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        {i < 3 ? (
+                          <div className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                            i === 0 ? 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20' :
+                            i === 1 ? 'bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20' :
+                            'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20'
+                          }`}>
+                            {i + 1}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground pl-2">{i + 1}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-semibold">{v.nome}</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant="secondary">{v.pedidos}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-emerald-400">{formatCurrency(v.valor)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-2">
+              {stats.rankingVendedores.map((v, i) => (
+                <div key={i} className="rounded-xl border border-white/[0.06] p-3.5 flex items-center gap-3">
+                  {i < 3 ? (
+                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+                      i === 0 ? 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20' :
+                      i === 1 ? 'bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20' :
+                      'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20'
+                    }`}>
+                      {i + 1}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground w-8 text-center text-sm font-medium shrink-0">{i + 1}</span>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm truncate">{v.nome}</p>
+                    <p className="text-xs text-zinc-500">{v.pedidos} pedidos</p>
+                  </div>
+                  <p className="text-sm font-bold text-emerald-400 shrink-0">{formatCurrency(v.valor)}</p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

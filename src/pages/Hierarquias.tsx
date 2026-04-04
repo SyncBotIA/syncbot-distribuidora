@@ -187,51 +187,87 @@ export default function Hierarquias() {
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Ordem</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-40">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Ordem</TableHead>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-40">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {hierarquias.map((h, idx) => (
+                      <TableRow key={h.id}>
+                        <TableCell>
+                          <div className="h-7 w-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-xs font-bold text-indigo-300">
+                            {h.ordem}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-semibold">{h.nome}</TableCell>
+                        <TableCell className="text-zinc-500">{h.descricao ?? <span className="text-zinc-600">—</span>}</TableCell>
+                        <TableCell>
+                          <Badge variant={h.ativo ? 'success' : 'secondary'}>
+                            {h.ativo ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => handleMove(h, 'up')} disabled={idx === 0} title="Subir">
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleMove(h, 'down')} disabled={idx === hierarquias.length - 1} title="Descer">
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => openEdit(h)} title="Editar">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(h)} title="Excluir">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-2">
                 {hierarquias.map((h, idx) => (
-                  <TableRow key={h.id}>
-                    <TableCell>
-                      <div className="h-7 w-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-xs font-bold text-indigo-300">
+                  <div key={h.id} className="rounded-xl border border-white/[0.06] p-3.5">
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-xs font-bold text-indigo-300 shrink-0">
                         {h.ordem}
                       </div>
-                    </TableCell>
-                    <TableCell className="font-semibold">{h.nome}</TableCell>
-                    <TableCell className="text-zinc-500">{h.descricao ?? <span className="text-zinc-600">—</span>}</TableCell>
-                    <TableCell>
-                      <Badge variant={h.ativo ? 'success' : 'secondary'}>
-                        {h.ativo ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleMove(h, 'up')} disabled={idx === 0} title="Subir">
-                          <ArrowUp className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleMove(h, 'down')} disabled={idx === hierarquias.length - 1} title="Descer">
-                          <ArrowDown className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(h)} title="Editar">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(h)} title="Excluir">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-white text-sm truncate">{h.nome}</p>
+                        {h.descricao && <p className="text-xs text-zinc-500 truncate">{h.descricao}</p>}
                       </div>
-                    </TableCell>
-                  </TableRow>
+                      <Badge variant={h.ativo ? 'success' : 'secondary'}>{h.ativo ? 'Ativo' : 'Inativo'}</Badge>
+                    </div>
+                    <div className="flex items-center gap-1 justify-end">
+                      <Button variant="ghost" size="icon" onClick={() => handleMove(h, 'up')} disabled={idx === 0} className="h-10 w-10" title="Subir">
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleMove(h, 'down')} disabled={idx === hierarquias.length - 1} className="h-10 w-10" title="Descer">
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(h)} className="h-10 w-10" title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(h)} className="h-10 w-10" title="Excluir">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

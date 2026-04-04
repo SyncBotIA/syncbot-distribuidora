@@ -180,7 +180,7 @@ export default function Estoque() {
       <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] w-fit">
         <button
           onClick={() => setTab('estoque')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+          className={`px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-all cursor-pointer ${
             tab === 'estoque' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
@@ -188,7 +188,7 @@ export default function Estoque() {
         </button>
         <button
           onClick={() => setTab('historico')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+          className={`px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-all cursor-pointer ${
             tab === 'historico' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
@@ -209,53 +209,88 @@ export default function Estoque() {
                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produto</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead className="text-right">Estoque Atual</TableHead>
-                    <TableHead className="text-right">Mínimo</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Desktop table */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead>SKU</TableHead>
+                        <TableHead className="text-right">Estoque Atual</TableHead>
+                        <TableHead className="text-right">Mínimo</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredProdutos.map((p) => {
+                        const baixo = p.estoque_atual <= p.estoque_minimo
+                        return (
+                          <TableRow key={p.id}>
+                            <TableCell className="font-semibold">{p.nome}</TableCell>
+                            <TableCell className="font-mono text-xs text-zinc-400">{p.sku}</TableCell>
+                            <TableCell className={`text-right font-bold ${baixo ? 'text-red-400' : 'text-white'}`}>{p.estoque_atual}</TableCell>
+                            <TableCell className="text-right text-zinc-500">{p.estoque_minimo}</TableCell>
+                            <TableCell>
+                              {baixo ? (
+                                <Badge variant="destructive" className="gap-1">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Baixo
+                                </Badge>
+                              ) : (
+                                <Badge variant="success">Normal</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                      {filteredProdutos.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5}>
+                            <div className="flex flex-col items-center justify-center py-14">
+                              <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                                <Warehouse className="h-7 w-7 text-zinc-600" />
+                              </div>
+                              <p className="text-sm font-semibold text-zinc-400">Nenhum produto encontrado</p>
+                              <p className="text-xs text-zinc-600 mt-1">{search ? 'Tente ajustar sua busca' : 'Nenhum produto cadastrado'}</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                {/* Mobile cards */}
+                <div className="md:hidden space-y-2">
                   {filteredProdutos.map((p) => {
                     const baixo = p.estoque_atual <= p.estoque_minimo
                     return (
-                      <TableRow key={p.id}>
-                        <TableCell className="font-semibold">{p.nome}</TableCell>
-                        <TableCell className="font-mono text-xs text-zinc-400">{p.sku}</TableCell>
-                        <TableCell className={`text-right font-bold ${baixo ? 'text-red-400' : 'text-white'}`}>{p.estoque_atual}</TableCell>
-                        <TableCell className="text-right text-zinc-500">{p.estoque_minimo}</TableCell>
-                        <TableCell>
-                          {baixo ? (
-                            <Badge variant="destructive" className="gap-1">
-                              <AlertTriangle className="h-3 w-3" />
-                              Baixo
-                            </Badge>
-                          ) : (
-                            <Badge variant="success">Normal</Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
+                      <div key={p.id} className="rounded-xl border border-white/[0.06] p-3.5">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-white text-sm truncate">{p.nome}</p>
+                            <p className="text-xs text-zinc-500 font-mono mt-0.5">{p.sku}</p>
+                          </div>
+                          <Badge variant={baixo ? 'destructive' : 'success'}>{baixo ? 'Baixo' : 'Normal'}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-500">Estoque: <span className={`font-bold text-sm ${baixo ? 'text-red-400' : 'text-white'}`}>{p.estoque_atual}</span></span>
+                          <span className="text-zinc-500">Min: <span className="font-semibold">{p.estoque_minimo}</span></span>
+                        </div>
+                      </div>
                     )
                   })}
                   {filteredProdutos.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5}>
-                        <div className="flex flex-col items-center justify-center py-14">
-                          <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
-                            <Warehouse className="h-7 w-7 text-zinc-600" />
-                          </div>
-                          <p className="text-sm font-semibold text-zinc-400">Nenhum produto encontrado</p>
-                          <p className="text-xs text-zinc-600 mt-1">{search ? 'Tente ajustar sua busca' : 'Nenhum produto cadastrado'}</p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    <div className="flex flex-col items-center justify-center py-14">
+                      <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                        <Warehouse className="h-7 w-7 text-zinc-600" />
+                      </div>
+                      <p className="text-sm font-semibold text-zinc-400">Nenhum produto encontrado</p>
+                      <p className="text-xs text-zinc-600 mt-1">{search ? 'Tente ajustar sua busca' : 'Nenhum produto cadastrado'}</p>
+                    </div>
                   )}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -265,45 +300,76 @@ export default function Estoque() {
             <CardTitle className="text-base">Histórico de Movimentações</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Quantidade</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Observação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {movimentacoes.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell className="text-zinc-400">{formatDate(m.created_at)}</TableCell>
-                    <TableCell className="font-semibold">{(m.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
-                    <TableCell>
-                      <Badge variant={tipoVariant[m.tipo]}>{tipoLabel[m.tipo]}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-semibold">{m.quantidade}</TableCell>
-                    <TableCell>{(m.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
-                    <TableCell className="text-zinc-500 max-w-[200px] truncate">{m.observacao ?? '—'}</TableCell>
-                  </TableRow>
-                ))}
-                {movimentacoes.length === 0 && (
+            {/* Desktop table */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6}>
-                      <div className="flex flex-col items-center justify-center py-14">
-                        <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
-                          <Warehouse className="h-7 w-7 text-zinc-600" />
-                        </div>
-                        <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentação registrada</p>
-                        <p className="text-xs text-zinc-600 mt-1">Registre sua primeira movimentação de estoque</p>
-                      </div>
-                    </TableCell>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="text-right">Quantidade</TableHead>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead>Observação</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {movimentacoes.map((m) => (
+                    <TableRow key={m.id}>
+                      <TableCell className="text-zinc-400">{formatDate(m.created_at)}</TableCell>
+                      <TableCell className="font-semibold">{(m.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
+                      <TableCell>
+                        <Badge variant={tipoVariant[m.tipo]}>{tipoLabel[m.tipo]}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-semibold">{m.quantidade}</TableCell>
+                      <TableCell>{(m.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
+                      <TableCell className="text-zinc-500 max-w-[200px] truncate">{m.observacao ?? '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                  {movimentacoes.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <div className="flex flex-col items-center justify-center py-14">
+                          <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                            <Warehouse className="h-7 w-7 text-zinc-600" />
+                          </div>
+                          <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentação registrada</p>
+                          <p className="text-xs text-zinc-600 mt-1">Registre sua primeira movimentação de estoque</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-2">
+              {movimentacoes.map((m) => (
+                <div key={m.id} className="rounded-xl border border-white/[0.06] p-3.5">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-white text-sm truncate">{(m.produto as unknown as Produto)?.nome ?? '—'}</p>
+                      <p className="text-xs text-zinc-500 mt-0.5">{formatDate(m.created_at)}</p>
+                    </div>
+                    <Badge variant={tipoVariant[m.tipo]}>{tipoLabel[m.tipo]}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-zinc-400">
+                    <span>Qtd: <span className="font-mono font-semibold text-white">{m.quantidade}</span></span>
+                    <span>{(m.usuario as unknown as Usuario)?.nome ?? '—'}</span>
+                  </div>
+                  {m.observacao && <p className="text-xs text-zinc-500 mt-1 truncate">{m.observacao}</p>}
+                </div>
+              ))}
+              {movimentacoes.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-14">
+                  <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                    <Warehouse className="h-7 w-7 text-zinc-600" />
+                  </div>
+                  <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentação registrada</p>
+                  <p className="text-xs text-zinc-600 mt-1">Registre sua primeira movimentação de estoque</p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}

@@ -324,67 +324,116 @@ export default function Clientes() {
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>CNPJ</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Cidade</TableHead>
-                  <TableHead>Bairro</TableHead>
-                  {isAdmin && <TableHead>Vendedor</TableHead>}
-                  <TableHead className="w-16">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-semibold">{c.nome}</TableCell>
-                      <TableCell className="font-mono text-xs text-zinc-400">{formatCnpjDisplay(c.cnpj)}</TableCell>
-                      <TableCell>
-                        {c.telefone ? (
-                          <span className="flex items-center gap-1.5 text-zinc-300">
-                            <Phone className="h-3 w-3 text-zinc-500" />
-                            {c.telefone}
-                          </span>
-                        ) : <span className="text-zinc-600">—</span>}
-                      </TableCell>
-                      <TableCell>{c.cidade ?? <span className="text-zinc-600">—</span>}</TableCell>
-                      <TableCell>{c.bairro ?? <span className="text-zinc-600">—</span>}</TableCell>
-                      {isAdmin && (
-                        <TableCell>
-                          <Badge variant="outline">{(c.vendedor as Usuario)?.nome ?? '—'}</Badge>
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>CNPJ</TableHead>
+                      <TableHead>Telefone</TableHead>
+                      <TableHead>Cidade</TableHead>
+                      <TableHead>Bairro</TableHead>
+                      {isAdmin && <TableHead>Vendedor</TableHead>}
+                      <TableHead className="w-16">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell className="font-semibold">{c.nome}</TableCell>
+                          <TableCell className="font-mono text-xs text-zinc-400">{formatCnpjDisplay(c.cnpj)}</TableCell>
+                          <TableCell>
+                            {c.telefone ? (
+                              <span className="flex items-center gap-1.5 text-zinc-300">
+                                <Phone className="h-3 w-3 text-zinc-500" />
+                                {c.telefone}
+                              </span>
+                            ) : <span className="text-zinc-600">—</span>}
+                          </TableCell>
+                          <TableCell>{c.cidade ?? <span className="text-zinc-600">—</span>}</TableCell>
+                          <TableCell>{c.bairro ?? <span className="text-zinc-600">—</span>}</TableCell>
+                          {isAdmin && (
+                            <TableCell>
+                              <Badge variant="outline">{(c.vendedor as Usuario)?.nome ?? '—'}</Badge>
+                            </TableCell>
+                          )}
+                          <TableCell className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            {canDeleteClient() && (
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete(c)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                    ))}
+                    {filtered.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={isAdmin ? 7 : 6}>
+                          <div className="flex flex-col items-center justify-center py-14">
+                            <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                              <UserCheck className="h-7 w-7 text-zinc-600" />
+                            </div>
+                            <p className="text-sm font-semibold text-zinc-400">Nenhum cliente encontrado</p>
+                            <p className="text-xs text-zinc-600 mt-1">
+                              {search ? 'Tente ajustar sua busca' : 'Adicione seu primeiro cliente'}
+                            </p>
+                          </div>
                         </TableCell>
-                      )}
-                      <TableCell className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-2">
+                {filtered.map((c) => (
+                  <div key={c.id} className="rounded-xl border border-white/[0.06] p-3.5 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-white text-sm truncate">{c.nome}</p>
+                        {c.cnpj && <p className="text-[11px] text-zinc-500 font-mono mt-0.5">{formatCnpjDisplay(c.cnpj)}</p>}
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(c)} className="h-10 w-10">
                           <Pencil className="h-4 w-4" />
                         </Button>
                         {canDeleteClient() && (
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(c)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(c)} className="h-10 w-10">
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         )}
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
+                      {c.telefone && (
+                        <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-zinc-500" />{c.telefone}</span>
+                      )}
+                      {c.cidade && <span>{c.cidade}</span>}
+                      {c.bairro && <span>{c.bairro}</span>}
+                    </div>
+                    {isAdmin && c.vendedor && (
+                      <Badge variant="outline" className="text-xs">{(c.vendedor as Usuario)?.nome ?? '—'}</Badge>
+                    )}
+                  </div>
                 ))}
                 {filtered.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={isAdmin ? 7 : 6}>
-                      <div className="flex flex-col items-center justify-center py-14">
-                        <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
-                          <UserCheck className="h-7 w-7 text-zinc-600" />
-                        </div>
-                        <p className="text-sm font-semibold text-zinc-400">Nenhum cliente encontrado</p>
-                        <p className="text-xs text-zinc-600 mt-1">
-                          {search ? 'Tente ajustar sua busca' : 'Adicione seu primeiro cliente'}
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <div className="flex flex-col items-center justify-center py-14">
+                    <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                      <UserCheck className="h-7 w-7 text-zinc-600" />
+                    </div>
+                    <p className="text-sm font-semibold text-zinc-400">Nenhum cliente encontrado</p>
+                    <p className="text-xs text-zinc-600 mt-1">
+                      {search ? 'Tente ajustar sua busca' : 'Adicione seu primeiro cliente'}
+                    </p>
+                  </div>
                 )}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -410,7 +459,7 @@ export default function Clientes() {
                   </div>
                 )}
               </div>
-              <p className="text-[10px] text-zinc-500">Digite o CNPJ para preencher automaticamente</p>
+              <p className="text-[11px] text-zinc-500">Digite o CNPJ para preencher automaticamente</p>
             </div>
 
             <div className="space-y-2">
@@ -428,7 +477,7 @@ export default function Clientes() {
                   </div>
                 )}
               </div>
-              <p className="text-[10px] text-zinc-500">Digite o CEP para preencher endereço automaticamente</p>
+              <p className="text-[11px] text-zinc-500">Digite o CEP para preencher endereço automaticamente</p>
             </div>
 
             <div className="space-y-2">
@@ -439,7 +488,7 @@ export default function Clientes() {
               <Label>Telefone</Label>
               <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(00) 00000-0000" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Cidade</Label>
                 <Input value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />
