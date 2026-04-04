@@ -5,6 +5,7 @@ import { useEmpresa } from '@/contexts/EmpresaContext'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Link } from 'react-router-dom'
 import { Building2, Plus, LogOut, Trash2, Settings, Package, ArrowRight } from 'lucide-react'
 
 export default function SelecionarEmpresa() {
@@ -103,10 +104,10 @@ export default function SelecionarEmpresa() {
 
             <div className="flex flex-col gap-2 pt-4 border-t border-white/[0.06]">
               {isMaster && (
-                <Button onClick={() => navigate('/master')} className="w-full gap-2 h-11">
+                <Link to="/master" className="inline-flex items-center justify-center gap-2 w-full h-11 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-600/20 cursor-pointer">
                   <Settings className="h-4 w-4" />
                   Painel Master
-                </Button>
+                </Link>
               )}
               <div className="flex gap-2">
                 {isMaster && (

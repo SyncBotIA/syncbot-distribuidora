@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { UserPlus, Trash2, Users, Search, ShieldCheck } from 'lucide-react'
+import { UserPlus, Trash2, Users, Search, ShieldCheck, Pencil } from 'lucide-react'
 import type { EmpresaUsuario, Hierarquia } from '@/types/database'
 
 export default function Usuarios() {
@@ -24,13 +24,22 @@ export default function Usuarios() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [search, setSearch] = useState('')
 
-  // Form state
+  // Form state (criar)
   const [formNome, setFormNome] = useState('')
   const [formEmail, setFormEmail] = useState('')
   const [formTelefone, setFormTelefone] = useState('')
   const [formHierarquiaId, setFormHierarquiaId] = useState('')
   const [formSuperiorId, setFormSuperiorId] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // Edit state
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<EmpresaUsuario | null>(null)
+  const [editNome, setEditNome] = useState('')
+  const [editTelefone, setEditTelefone] = useState('')
+  const [editHierarquiaId, setEditHierarquiaId] = useState('')
+  const [editSuperiorId, setEditSuperiorId] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
 
   useEffect(() => {
     if (empresa) {
@@ -122,6 +131,74 @@ export default function Usuarios() {
       toast({ title: 'Erro', description: message, variant: 'destructive' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  function canEdit(eu: EmpresaUsuario) {
+    // Pode editar a si mesmo (nome/telefone)
+    if (eu.usuario_id === usuario?.id) return true
+    // Master edita todos
+    if (isMaster) return true
+    // Admin edita todos
+    if (isAdmin) return true
+    // Superior edita subordinados
+    const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+    if (hierarquiaOrdem !== null && h && h.ordem > hierarquiaOrdem) return true
+    return false
+  }
+
+  function openEditDialog(eu: EmpresaUsuario) {
+    const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+    const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+    setEditingUser(eu)
+    setEditNome(u?.nome || '')
+    setEditTelefone(u?.telefone || '')
+    setEditHierarquiaId(h?.id || '')
+    setEditSuperiorId(eu.superior_id || '')
+    setEditDialogOpen(true)
+  }
+
+  async function handleSaveEdit() {
+    if (!editingUser || !usuario) return
+    setEditSaving(true)
+
+    try {
+      const u = editingUser.usuario || (editingUser as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+
+      // Atualizar nome e telefone na tabela usuarios
+      if (u) {
+        const { error: userError } = await supabase
+          .from('usuarios')
+          .update({ nome: editNome, telefone: editTelefone || null })
+          .eq('id', u.id)
+
+        if (userError) throw userError
+      }
+
+      // Atualizar hierarquia e superior na empresa_usuarios (se tiver permissao)
+      const isSelf = editingUser.usuario_id === usuario.id
+      if (!isSelf && editHierarquiaId) {
+        const updateData: Record<string, unknown> = { hierarquia_id: editHierarquiaId }
+        if (editSuperiorId) updateData.superior_id = editSuperiorId
+        else updateData.superior_id = null
+
+        const { error: euError } = await supabase
+          .from('empresa_usuarios')
+          .update(updateData)
+          .eq('id', editingUser.id)
+
+        if (euError) throw euError
+      }
+
+      toast({ title: 'Usuario atualizado', variant: 'success' })
+      setEditDialogOpen(false)
+      setEditingUser(null)
+      fetchUsuarios()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao atualizar'
+      toast({ title: 'Erro', description: message, variant: 'destructive' })
+    } finally {
+      setEditSaving(false)
     }
   }
 
@@ -264,11 +341,18 @@ export default function Usuarios() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {canDelete(eu) && (
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(eu)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {canEdit(eu) && (
+                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(eu)} title="Editar">
+                              <Pencil className="h-4 w-4 text-blue-400" />
+                            </Button>
+                          )}
+                          {canDelete(eu) && (
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(eu)} title="Remover">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
@@ -339,6 +423,59 @@ export default function Usuarios() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formHierarquiaId || saving}>
               {saving ? 'Criando...' : 'Criar Usuario'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Dialog Editar Usuario */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent onClose={() => setEditDialogOpen(false)}>
+          <DialogHeader>
+            <DialogTitle>Editar Usuario</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} placeholder="Nome completo" />
+            </div>
+            <div className="space-y-2">
+              <Label>Telefone</Label>
+              <Input value={editTelefone} onChange={(e) => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+            </div>
+            {editingUser && editingUser.usuario_id !== usuario?.id && (
+              <>
+                <div className="space-y-2">
+                  <Label>Hierarquia</Label>
+                  <Select value={editHierarquiaId} onChange={(e) => setEditHierarquiaId(e.target.value)}>
+                    <option value="">Selecione...</option>
+                    {hierarquias.filter(h => hierarquiaOrdem !== null ? h.ordem >= hierarquiaOrdem : true).map((h) => (
+                      <option key={h.id} value={h.id}>{h.nome} (ordem {h.ordem})</option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Superior direto</Label>
+                  <Select value={editSuperiorId} onChange={(e) => setEditSuperiorId(e.target.value)}>
+                    <option value="">Nenhum</option>
+                    {usuarios.filter((eu) => {
+                      if (!editHierarquiaId) return false
+                      const selectedH = hierarquias.find((h) => h.id === editHierarquiaId)
+                      if (!selectedH) return false
+                      const euH = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+                      return euH && euH.ordem < selectedH.ordem
+                    }).map((eu) => {
+                      const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+                      return <option key={eu.id} value={eu.id}>{u?.nome}</option>
+                    })}
+                  </Select>
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={!editNome || editSaving}>
+              {editSaving ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>
         </DialogContent>
