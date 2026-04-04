@@ -21,7 +21,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
     .toUpperCase() ?? '?'
 
   return (
-    <header className="h-16 border-b border-white/[0.06] bg-[#060a14]/90 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 sticky top-0 z-30">
+    <header className="h-16 border-b border-white/[0.06] bg-[#060a14]/90 backdrop-blur-xl flex items-center justify-between px-4 sm:px-6 shrink-0 sticky top-0 z-30">
       <div className="flex items-center gap-4">
         <button onClick={onMenuClick} className="lg:hidden cursor-pointer p-2 rounded-xl hover:bg-white/[0.06] transition-all">
           <Menu className="h-5 w-5 text-zinc-400" />

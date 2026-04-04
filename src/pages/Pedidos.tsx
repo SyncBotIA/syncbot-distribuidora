@@ -287,7 +287,7 @@ export default function Pedidos() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/20">
             <ShoppingCart className="h-5 w-5 text-white" />
@@ -297,7 +297,7 @@ export default function Pedidos() {
             <p className="text-sm text-zinc-500 mt-0.5">Gerenciamento de vendas e pedidos</p>
           </div>
         </div>
-        <Button onClick={openCreateDialog} className="gap-2">
+        <Button onClick={openCreateDialog} className="gap-2 self-start">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Novo Pedido</span>
         </Button>
@@ -353,11 +353,11 @@ export default function Pedidos() {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 w-full sm:max-w-sm">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <Input placeholder="Buscar por vendedor ou cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
         </div>
-        <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="max-w-[180px]">
+        <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="sm:max-w-[180px] w-full">
           <option value="">Todos os status</option>
           <option value="rascunho">Rascunho</option>
           <option value="confirmado">Confirmado</option>
@@ -449,7 +449,7 @@ export default function Pedidos() {
 
       {/* Create dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent onClose={() => setDialogOpen(false)} className="max-w-2xl">
+        <DialogContent onClose={() => setDialogOpen(false)} className="max-w-2xl p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Novo Pedido</DialogTitle>
           </DialogHeader>

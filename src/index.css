@@ -51,6 +51,7 @@ body {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* ============================================
@@ -232,7 +233,6 @@ body {
   padding: 1px;
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(147, 197, 253, 0.05), rgba(37, 99, 235, 0.1));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
 }
@@ -319,3 +319,20 @@ input[type="number"] {
   to { width: 0%; }
 }
 
+/* ============================================
+   MOBILE IMPROVEMENTS
+   ============================================ */
+
+/* Prevent iOS zoom on input focus */
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Safe area inset for iOS Safari */
+@supports (padding: max(0px)) {
+  .safe-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+}

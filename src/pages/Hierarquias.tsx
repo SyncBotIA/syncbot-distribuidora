@@ -138,7 +138,7 @@ export default function Hierarquias() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/20">
             <ShieldCheck className="h-5 w-5 text-white" />
@@ -148,7 +148,7 @@ export default function Hierarquias() {
             <p className="text-sm text-zinc-500 mt-0.5">Estrutura organizacional e niveis de acesso</p>
           </div>
         </div>
-        <Button onClick={openCreate} className="gap-2">
+        <Button onClick={openCreate} className="gap-2 self-start">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Nova Hierarquia</span>
         </Button>

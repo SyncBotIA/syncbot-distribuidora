@@ -249,7 +249,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard</h1>
           <p className="text-sm text-zinc-500 mt-1">Visao geral do seu negocio</p>
@@ -257,7 +257,7 @@ export default function Dashboard() {
         <Select
           value={periodo}
           onChange={(e) => setPeriodo(e.target.value as Periodo)}
-          className="w-40"
+          className="w-full sm:w-40 max-w-[240px]"
         >
           <option value="dia">Hoje</option>
           <option value="semana">Esta Semana</option>

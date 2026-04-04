@@ -245,7 +245,7 @@ export default function Usuarios() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/20">
             <Users className="h-5 w-5 text-white" />
@@ -260,7 +260,7 @@ export default function Usuarios() {
             setDialogOpen(true)
             setFormNome(''); setFormEmail(''); setFormTelefone('')
             setFormHierarquiaId(''); setFormSuperiorId('')
-          }} className="gap-2">
+          }} className="gap-2 self-start">
             <UserPlus className="h-4 w-4" />
             Convidar
           </Button>

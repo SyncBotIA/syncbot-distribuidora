@@ -172,7 +172,7 @@ export default function Produtos() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 shadow-lg shadow-violet-500/20">
             <Package className="h-5 w-5 text-white" />
@@ -199,7 +199,7 @@ export default function Produtos() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 stagger-children">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 stagger-children">
         <Card className="border-violet-500/10">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-xl bg-violet-500/10">
