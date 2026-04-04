@@ -121,25 +121,7 @@ export default function Usuarios() {
 
     setSaving(true)
     try {
-      // 1. Tentar RPC que cria tudo de uma vez (sem rate limit)
-      let result = await supabase.rpc('criar_usuario_interno', {
-        p_empresa_id: empresa.id,
-        p_nome: formNome,
-        p_email: formEmail.toLowerCase(),
-        p_senha: '123456',
-        p_telefone: formTelefone || null,
-        p_hierarquia_id: formHierarquiaId,
-        p_superior_id: formSuperiorId || null,
-      })
-
-      if (!result.error && result.data) {
-        toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisória: 123456`, variant: 'success' })
-        setDialogOpen(false)
-        fetchUsuarios()
-        return
-      }
-
-      // Fallback: metodo antigo com signUp + wait
+      // 1. Criar conta no Supabase Auth
       const isolated = createIsolatedClient()
       const { data: authData, error: authError } = await isolated.auth.signUp({
         email: formEmail.toLowerCase(),
@@ -150,11 +132,8 @@ export default function Usuarios() {
       if (authError) throw authError
       if (!authData?.user) throw new Error('Erro ao criar usuario')
 
-      // Aguardar commit do auth
-      await new Promise(r => setTimeout(r, 1500))
-
-      // Tentar RPC com auth_id direto
-      result = await supabase.rpc('convidar_usuario_com_auth_id', {
+      // 2. Vincular a empresa via RPC
+      const { error: linkError } = await supabase.rpc('convidar_usuario_com_auth_id', {
         p_empresa_id: empresa.id,
         p_nome: formNome,
         p_email: formEmail.toLowerCase(),
@@ -164,20 +143,7 @@ export default function Usuarios() {
         p_auth_id: authData.user.id,
       })
 
-      if (result.error) {
-        // Ultimo fallback: RPC antigo
-        result = await supabase.rpc('convidar_usuario', {
-          p_empresa_id: empresa.id,
-          p_nome: formNome,
-          p_email: formEmail.toLowerCase(),
-          p_senha: '123456',
-          p_telefone: formTelefone || null,
-          p_hierarquia_id: formHierarquiaId,
-          p_superior_id: formSuperiorId || null,
-        })
-      }
-
-      if (result.error) throw result.error
+      if (linkError) throw linkError
 
       toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisória: 123456`, variant: 'success' })
       setDialogOpen(false)

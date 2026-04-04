@@ -109,47 +109,27 @@ export default function MasterPanel() {
     const emailUsuario = email.trim().toLowerCase()
 
     try {
-      // Tenta RPC que cria tudo de uma vez (sem rate limit de email)
-      let result = await supabase.rpc('criar_usuario_interno', {
+      // 1. Criar conta no Supabase Auth
+      const isolated = createIsolatedClient()
+      const { data: authData, error: authError } = await isolated.auth.signUp({
+        email: emailUsuario,
+        password: '123456',
+        options: { data: { nome: nomeUsuario } },
+      })
+
+      if (authError) throw authError
+      if (!authData?.user) throw new Error('Erro ao criar usuário')
+
+      // 2. Vincular a empresa via RPC
+      const { error: linkError } = await supabase.rpc('convidar_usuario_com_auth_id', {
         p_empresa_id: selectedEmpresa.id,
         p_nome: nomeUsuario,
         p_email: emailUsuario,
-        p_senha: '123456',
         p_hierarquia_id: selectedHierarquiaId,
+        p_auth_id: authData.user.id,
       })
 
-      // Fallback: usar metodo antigo com signUp
-      if (result.error) {
-        const isolated = createIsolatedClient()
-        const { data: authData, error: authError } = await isolated.auth.signUp({
-          email: emailUsuario,
-          password: '123456',
-          options: { data: { nome: nomeUsuario } },
-        })
-
-        if (authError) throw authError
-        if (!authData?.user) throw new Error('Erro ao criar usuário')
-
-        result = await supabase.rpc('convidar_usuario_com_auth_id', {
-          p_empresa_id: selectedEmpresa.id,
-          p_nome: nomeUsuario,
-          p_email: emailUsuario,
-          p_hierarquia_id: selectedHierarquiaId,
-          p_auth_id: authData.user.id,
-        })
-
-        if (result.error) {
-          result = await supabase.rpc('convidar_usuario', {
-            p_empresa_id: selectedEmpresa.id,
-            p_nome: nomeUsuario,
-            p_email: emailUsuario,
-            p_senha: '123456',
-            p_hierarquia_id: selectedHierarquiaId,
-          })
-        }
-      }
-
-      if (result.error) throw result.error
+      if (linkError) throw linkError
 
       setSuccess(`Usuário criado! Email: ${emailUsuario} / Senha provisória: 123456`)
       setNome('')
