@@ -3,15 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { supabase } from '@/lib/supabase'
+import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 
 export default function CriarEmpresa() {
   const { usuario, isMaster } = useAuth()
   const { refreshEmpresas, setEmpresaId } = useEmpresa()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [nome, setNome] = useState('')
   const [cnpj, setCnpj] = useState('')
@@ -19,8 +21,50 @@ export default function CriarEmpresa() {
   const [gerenteEmail, setGerenteEmail] = useState('')
   const [gerenteSenha, setGerenteSenha] = useState('')
   const [loading, setLoading] = useState(false)
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  function formatCnpj(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 14)
+    return digits
+      .replace(/^(\d{2})(\d)/, '$1.$2')
+      .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/, '.$1/$2')
+      .replace(/(\d{4})(\d)/, '$1-$2')
+  }
+
+  async function buscarCnpj(cnpjRaw: string) {
+    const digits = cnpjRaw.replace(/\D/g, '')
+    if (digits.length !== 14) return
+
+    setBuscandoCnpj(true)
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
+      if (!res.ok) {
+        toast({ title: 'CNPJ nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
+        setBuscandoCnpj(false)
+        return
+      }
+      const data = await res.json()
+      setNome(data.razao_social || data.nome_fantasia || nome)
+      toast({ title: 'Dados preenchidos', description: `${data.razao_social || data.nome_fantasia}`, variant: 'success' })
+    } catch {
+      toast({ title: 'Erro ao buscar CNPJ', description: 'Tente novamente', variant: 'destructive' })
+    } finally {
+      setBuscandoCnpj(false)
+    }
+  }
+
+  function handleCnpjChange(value: string) {
+    const formatted = formatCnpj(value)
+    setCnpj(formatted)
+
+    const digits = value.replace(/\D/g, '')
+    if (digits.length === 14) {
+      buscarCnpj(digits)
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -31,7 +75,6 @@ export default function CriarEmpresa() {
 
     try {
       if (isMaster && gerenteEmail) {
-        // Master criando empresa com gerente
         if (!gerenteSenha || gerenteSenha.length < 6) {
           setError('A senha do gerente deve ter pelo menos 6 caracteres')
           setLoading(false)
@@ -40,7 +83,7 @@ export default function CriarEmpresa() {
 
         const { data: empresaId, error: rpcError } = await supabase.rpc('criar_empresa_com_gerente', {
           p_nome: nome,
-          p_cnpj: cnpj || null,
+          p_cnpj: cnpj.replace(/\D/g, '') || null,
           p_master_id: usuario.id,
           p_gerente_email: gerenteEmail,
           p_gerente_senha: gerenteSenha,
@@ -56,10 +99,9 @@ export default function CriarEmpresa() {
           navigate('/dashboard')
         }, 2000)
       } else {
-        // Fluxo normal (master sem gerente ou usuario comum)
         const { data: empresaId, error: rpcError } = await supabase.rpc('criar_empresa_completa', {
           p_nome: nome,
-          p_cnpj: cnpj || null,
+          p_cnpj: cnpj.replace(/\D/g, '') || null,
           p_usuario_id: usuario.id,
         })
 
@@ -84,8 +126,8 @@ export default function CriarEmpresa() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-slate-900 p-4">
+      <Card className="w-full max-w-md shadow-2xl shadow-black/20 border-0">
         <CardHeader>
           <button
             onClick={() => navigate(isMaster ? '/master' : '/selecionar-empresa')}
@@ -102,6 +144,24 @@ export default function CriarEmpresa() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="cnpj">CNPJ *</Label>
+              <div className="relative">
+                <Input
+                  id="cnpj"
+                  value={cnpj}
+                  onChange={(e) => handleCnpjChange(e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                  maxLength={18}
+                />
+                {buscandoCnpj && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">Digite o CNPJ para preencher o nome automaticamente</p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="nome">Nome da Empresa</Label>
               <Input
                 id="nome"
@@ -109,15 +169,6 @@ export default function CriarEmpresa() {
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Nome da empresa"
                 required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cnpj">CNPJ (opcional)</Label>
-              <Input
-                id="cnpj"
-                value={cnpj}
-                onChange={(e) => setCnpj(e.target.value)}
-                placeholder="00.000.000/0000-00"
               />
             </div>
 
@@ -163,7 +214,7 @@ export default function CriarEmpresa() {
             {error && <p className="text-sm text-destructive">{error}</p>}
             {success && <p className="text-sm text-green-600">{success}</p>}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11" disabled={loading || cnpj.replace(/\D/g, '').length !== 14}>
               {loading ? 'Criando...' : 'Criar Empresa'}
             </Button>
           </form>

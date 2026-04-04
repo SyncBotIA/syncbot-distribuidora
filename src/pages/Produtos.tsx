@@ -43,7 +43,7 @@ export default function Produtos() {
   async function fetchProdutos() {
     const { data } = await supabase
       .from('produtos')
-      .select('*, categorias(*)')
+      .select('*, categoria:categorias(*)')
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
       .order('nome')
@@ -149,6 +149,14 @@ export default function Produtos() {
     fetchCategorias()
   }
 
+  const unidadeLabels: Record<string, string> = {
+    un: 'Unidade',
+    kg: 'Kg',
+    lt: 'Litro',
+    cx: 'Caixa',
+    pct: 'Pacote',
+  }
+
   const filtered = produtos.filter((p) => {
     const q = search.toLowerCase()
     const matchSearch = p.nome.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
@@ -216,7 +224,7 @@ export default function Produtos() {
                     <TableCell className="font-medium">{p.nome}</TableCell>
                     <TableCell className="font-mono text-xs">{p.sku}</TableCell>
                     <TableCell>{(p.categoria as unknown as Categoria)?.nome ?? '—'}</TableCell>
-                    <TableCell>{p.unidade_medida}</TableCell>
+                    <TableCell>{unidadeLabels[p.unidade_medida] ?? p.unidade_medida}</TableCell>
                     <TableCell className="text-right">{formatCurrency(p.preco_custo)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(p.preco_venda)}</TableCell>
                     <TableCell>

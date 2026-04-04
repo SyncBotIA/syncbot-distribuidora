@@ -184,6 +184,8 @@ export interface Cliente {
   id: string
   empresa_id: string
   nome: string
+  cnpj: string | null
+  cep: string | null
   telefone: string | null
   endereco: string | null
   bairro: string | null

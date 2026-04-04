@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
 import type { Empresa, EmpresaUsuario, Hierarquia } from '@/types/database'
@@ -28,13 +28,15 @@ export function useEmpresa() {
 }
 
 export function EmpresaProvider({ children }: { children: ReactNode }) {
-  const { usuario } = useAuth()
+  const { usuario, isMaster, loading: authLoading } = useAuth()
   const [empresa, setEmpresa] = useState<Empresa | null>(null)
   const [empresaUsuario, setEmpresaUsuario] = useState<EmpresaUsuario | null>(null)
   const [hierarquiaOrdem, setHierarquiaOrdem] = useState<number | null>(null)
   const [empresas, setEmpresas] = useState<Empresa[]>([])
-  const [loading, setLoading] = useState(true)
-  const loadedRef = useRef(false)
+  const [empresaLoading, setEmpresaLoading] = useState(true)
+
+  // Loading é true enquanto auth OU empresa estiver carregando
+  const loading = authLoading || empresaLoading
 
   const loadEmpresaData = useCallback(async (empresaId: string, usuarioId: string) => {
     const { data: empData } = await supabase
@@ -52,82 +54,113 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       .eq('usuario_id', usuarioId)
       .single()
 
-    if (!euData) return false
-
     setEmpresa(empData)
-    setEmpresaUsuario(euData)
-    const hierarquia = euData.hierarquias as unknown as Hierarquia
-    setHierarquiaOrdem(hierarquia?.ordem ?? null)
+
+    if (euData) {
+      setEmpresaUsuario(euData)
+      const hierarquia = euData.hierarquias as unknown as Hierarquia
+      setHierarquiaOrdem(hierarquia?.ordem ?? null)
+    } else {
+      // Master sem vínculo direto - dar acesso total
+      setEmpresaUsuario(null)
+      setHierarquiaOrdem(1)
+    }
+
     localStorage.setItem(STORAGE_KEY, empresaId)
     return true
   }, [])
 
-  const refreshEmpresas = useCallback(async () => {
-    if (!usuario) {
-      setEmpresas([])
-      setLoading(false)
-      return
+  async function loadEmpresas(usuarioId: string, master: boolean): Promise<Empresa[]> {
+    if (master) {
+      const { data } = await supabase.from('empresas').select('*').order('nome')
+      return data ?? []
     }
 
     const { data: euData } = await supabase
       .from('empresa_usuarios')
       .select('empresa_id, empresas(*)')
-      .eq('usuario_id', usuario.id)
+      .eq('usuario_id', usuarioId)
       .eq('ativo', true)
 
-    const empresasList = euData
-      ? euData
-          .map((eu: Record<string, unknown>) => eu.empresas as Empresa)
-          .filter(Boolean)
+    const list = euData
+      ? euData.map((eu: Record<string, unknown>) => eu.empresas as Empresa).filter(Boolean)
       : []
 
-    // Deduplicate (mesmo empresa_id pode vir mais de uma vez)
     const uniqueMap = new Map<string, Empresa>()
-    for (const e of empresasList) {
-      uniqueMap.set(e.id, e)
-    }
-    const uniqueEmpresas = Array.from(uniqueMap.values())
-    setEmpresas(uniqueEmpresas)
+    for (const e of list) uniqueMap.set(e.id, e)
+    return Array.from(uniqueMap.values())
+  }
 
-    // Se já tem empresa carregada, não recarregar
-    if (empresa) {
-      setLoading(false)
+  const refreshEmpresas = useCallback(async () => {
+    if (!usuario) {
+      setEmpresas([])
+      setEmpresaLoading(false)
       return
     }
 
-    // Tentar restaurar do localStorage
-    const savedId = localStorage.getItem(STORAGE_KEY)
-    if (savedId) {
-      const found = uniqueEmpresas.find((e) => e.id === savedId)
-      if (found) {
-        await loadEmpresaData(savedId, usuario.id)
-        setLoading(false)
-        return
-      }
-    }
+    const list = await loadEmpresas(usuario.id, isMaster)
+    setEmpresas(list)
+    setEmpresaLoading(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuario, isMaster])
 
-    // Auto-selecionar se só tem 1
-    if (uniqueEmpresas.length === 1) {
-      await loadEmpresaData(uniqueEmpresas[0].id, usuario.id)
-    }
-
-    setLoading(false)
-  }, [usuario, empresa, loadEmpresaData])
-
+  // Efeito principal: restaurar empresa ao carregar
   useEffect(() => {
-    if (usuario && !loadedRef.current) {
-      loadedRef.current = true
-      refreshEmpresas()
-    }
+    // Esperar auth terminar de carregar
+    if (authLoading) return
+
     if (!usuario) {
-      loadedRef.current = false
       setEmpresa(null)
       setEmpresaUsuario(null)
       setHierarquiaOrdem(null)
       setEmpresas([])
-      setLoading(false)
+      setEmpresaLoading(false)
+      return
     }
-  }, [usuario])
+
+    let cancelled = false
+
+    async function init() {
+      setEmpresaLoading(true)
+
+      // 1. Tentar restaurar empresa do localStorage
+      const savedId = localStorage.getItem(STORAGE_KEY)
+      if (savedId) {
+        const success = await loadEmpresaData(savedId, usuario!.id)
+        if (success && !cancelled) {
+          // Restaurou! Carregar lista de empresas em background
+          const list = await loadEmpresas(usuario!.id, isMaster)
+          if (!cancelled) {
+            setEmpresas(list)
+            setEmpresaLoading(false)
+          }
+          return
+        }
+      }
+
+      if (cancelled) return
+
+      // 2. Não tinha savedId ou falhou - carregar lista
+      const list = await loadEmpresas(usuario!.id, isMaster)
+      if (cancelled) return
+
+      setEmpresas(list)
+
+      // 3. Auto-selecionar se só tem 1 empresa
+      if (list.length === 1) {
+        await loadEmpresaData(list[0].id, usuario!.id)
+      }
+
+      if (!cancelled) {
+        setEmpresaLoading(false)
+      }
+    }
+
+    init()
+
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuario, authLoading, isMaster])
 
   async function setEmpresaId(empresaId: string) {
     if (!usuario) return

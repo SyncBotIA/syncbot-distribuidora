@@ -11,11 +11,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Search, Phone, MapPin } from 'lucide-react'
+import { Plus, Pencil, Search, Phone, Trash2, Loader2 } from 'lucide-react'
 import type { Cliente, Usuario, EmpresaUsuario } from '@/types/database'
 
 export default function Clientes() {
-  const { usuario } = useAuth()
+  const { usuario, isMaster } = useAuth()
   const { empresa, isAdmin } = useEmpresa()
   const { toast } = useToast()
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -24,9 +24,11 @@ export default function Clientes() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Cliente | null>(null)
   const [search, setSearch] = useState('')
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false)
+  const [buscandoCep, setBuscandoCep] = useState(false)
 
   const [form, setForm] = useState({
-    nome: '', telefone: '', endereco: '', bairro: '', cidade: '', observacao: '', vendedor_id: '',
+    nome: '', cnpj: '', cep: '', telefone: '', endereco: '', bairro: '', cidade: '', observacao: '', vendedor_id: '',
   })
 
   useEffect(() => {
@@ -37,14 +39,12 @@ export default function Clientes() {
   }, [empresa])
 
   async function fetchClientes() {
-    let query = supabase
+    const query = supabase
       .from('clientes')
       .select('*, usuarios!clientes_vendedor_id_fkey(nome)')
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
       .order('nome')
-
-    // Non-admin vê todos os clientes da empresa (cliente pode ter vários vendedores)
 
     const { data } = await query
     setClientes(data ?? [])
@@ -61,10 +61,110 @@ export default function Clientes() {
     setVendedores(data ?? [])
   }
 
+  function formatCnpj(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 14)
+    return digits
+      .replace(/^(\d{2})(\d)/, '$1.$2')
+      .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/, '.$1/$2')
+      .replace(/(\d{4})(\d)/, '$1-$2')
+  }
+
+  async function buscarCnpj(cnpjRaw: string) {
+    const digits = cnpjRaw.replace(/\D/g, '')
+    if (digits.length !== 14) return
+
+    setBuscandoCnpj(true)
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
+      if (!res.ok) {
+        toast({ title: 'CNPJ nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
+        setBuscandoCnpj(false)
+        return
+      }
+      const data = await res.json()
+
+      setForm((prev) => ({
+        ...prev,
+        nome: data.razao_social || data.nome_fantasia || prev.nome,
+        telefone: data.ddd_telefone_1 ? `(${data.ddd_telefone_1.slice(0, 2)}) ${data.ddd_telefone_1.slice(2)}` : prev.telefone,
+        endereco: [data.logradouro, data.numero, data.complemento].filter(Boolean).join(', ') || prev.endereco,
+        bairro: data.bairro || prev.bairro,
+        cidade: data.municipio ? `${data.municipio}/${data.uf}` : prev.cidade,
+      }))
+
+      toast({ title: 'Dados preenchidos', description: `${data.razao_social || data.nome_fantasia}`, variant: 'success' })
+    } catch {
+      toast({ title: 'Erro ao buscar CNPJ', description: 'Tente novamente', variant: 'destructive' })
+    } finally {
+      setBuscandoCnpj(false)
+    }
+  }
+
+  function formatCep(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 8)
+    return digits.replace(/^(\d{5})(\d)/, '$1-$2')
+  }
+
+  async function buscarCep(cepRaw: string) {
+    const digits = cepRaw.replace(/\D/g, '')
+    if (digits.length !== 8) return
+
+    setBuscandoCep(true)
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
+      if (!res.ok) {
+        toast({ title: 'CEP nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
+        setBuscandoCep(false)
+        return
+      }
+      const data = await res.json()
+      if (data.erro) {
+        toast({ title: 'CEP nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
+        setBuscandoCep(false)
+        return
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        endereco: data.logradouro || prev.endereco,
+        bairro: data.bairro || prev.bairro,
+        cidade: data.localidade ? `${data.localidade}/${data.uf}` : prev.cidade,
+      }))
+
+      toast({ title: 'Endereco preenchido', description: `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`, variant: 'success' })
+    } catch {
+      toast({ title: 'Erro ao buscar CEP', description: 'Tente novamente', variant: 'destructive' })
+    } finally {
+      setBuscandoCep(false)
+    }
+  }
+
+  function handleCepChange(value: string) {
+    const formatted = formatCep(value)
+    setForm({ ...form, cep: formatted })
+
+    const digits = value.replace(/\D/g, '')
+    if (digits.length === 8) {
+      buscarCep(digits)
+    }
+  }
+
+  function handleCnpjChange(value: string) {
+    const formatted = formatCnpj(value)
+    setForm({ ...form, cnpj: formatted })
+
+    // Auto-buscar quando completar 14 digitos
+    const digits = value.replace(/\D/g, '')
+    if (digits.length === 14) {
+      buscarCnpj(digits)
+    }
+  }
+
   function openCreate() {
     setEditing(null)
     setForm({
-      nome: '', telefone: '', endereco: '', bairro: '', cidade: '', observacao: '',
+      nome: '', cnpj: '', cep: '', telefone: '', endereco: '', bairro: '', cidade: '', observacao: '',
       vendedor_id: isAdmin ? '' : (usuario?.id ?? ''),
     })
     setDialogOpen(true)
@@ -74,6 +174,8 @@ export default function Clientes() {
     setEditing(c)
     setForm({
       nome: c.nome,
+      cnpj: c.cnpj ?? '',
+      cep: (c as Record<string, unknown>).cep as string ?? '',
       telefone: c.telefone ?? '',
       endereco: c.endereco ?? '',
       bairro: c.bairro ?? '',
@@ -90,6 +192,8 @@ export default function Clientes() {
     const payload = {
       empresa_id: empresa.id,
       nome: form.nome,
+      cnpj: form.cnpj.replace(/\D/g, '') || null,
+      cep: form.cep.replace(/\D/g, '') || null,
       telefone: form.telefone || null,
       endereco: form.endereco || null,
       bairro: form.bairro || null,
@@ -112,10 +216,39 @@ export default function Clientes() {
     fetchClientes()
   }
 
+  function canDeleteClient() {
+    return isMaster || isAdmin
+  }
+
+  async function handleDelete(c: Cliente) {
+    if (!confirm(`Remover cliente "${c.nome}"?`)) return
+
+    try {
+      const { error } = await supabase
+        .from('clientes')
+        .update({ ativo: false })
+        .eq('id', c.id)
+      if (error) throw error
+      toast({ title: 'Cliente removido', variant: 'success' })
+      fetchClientes()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao remover'
+      toast({ title: 'Erro', description: message, variant: 'destructive' })
+    }
+  }
+
+  function formatCnpjDisplay(cnpj: string | null) {
+    if (!cnpj) return '—'
+    const d = cnpj.replace(/\D/g, '')
+    if (d.length !== 14) return cnpj
+    return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`
+  }
+
   const filtered = clientes.filter((c) => {
     const q = search.toLowerCase()
     return c.nome.toLowerCase().includes(q) ||
       (c.telefone?.toLowerCase().includes(q) ?? false) ||
+      (c.cnpj?.includes(q.replace(/\D/g, '')) ?? false) ||
       (c.cidade?.toLowerCase().includes(q) ?? false)
   })
 
@@ -131,7 +264,7 @@ export default function Clientes() {
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar por nome, telefone ou cidade..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <Input placeholder="Buscar por nome, CNPJ, telefone ou cidade..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
       </div>
 
       <Card>
@@ -143,11 +276,12 @@ export default function Clientes() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
+                  <TableHead>CNPJ</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Cidade</TableHead>
                   <TableHead>Bairro</TableHead>
                   {isAdmin && <TableHead>Vendedor</TableHead>}
-                  <TableHead className="w-16">Ações</TableHead>
+                  <TableHead className="w-16">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -156,6 +290,7 @@ export default function Clientes() {
                   return (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.nome}</TableCell>
+                      <TableCell className="font-mono text-xs">{formatCnpjDisplay(c.cnpj)}</TableCell>
                       <TableCell>
                         {c.telefone ? (
                           <span className="flex items-center gap-1">
@@ -171,17 +306,22 @@ export default function Clientes() {
                           <Badge variant="outline">{vendedorNome?.nome ?? '—'}</Badge>
                         </TableCell>
                       )}
-                      <TableCell>
+                      <TableCell className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
+                        {canDeleteClient() && (
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(c)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
                 })}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 6 : 5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={isAdmin ? 7 : 6} className="text-center text-muted-foreground">
                       Nenhum cliente encontrado
                     </TableCell>
                   </TableRow>
@@ -198,8 +338,46 @@ export default function Clientes() {
             <DialogTitle>{editing ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {/* CNPJ com busca automatica */}
             <div className="space-y-2">
-              <Label>Nome</Label>
+              <Label>CNPJ</Label>
+              <div className="relative">
+                <Input
+                  value={form.cnpj}
+                  onChange={(e) => handleCnpjChange(e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                  maxLength={18}
+                />
+                {buscandoCnpj && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">Digite o CNPJ para preencher automaticamente</p>
+            </div>
+
+            {/* CEP com busca automatica */}
+            <div className="space-y-2">
+              <Label>CEP</Label>
+              <div className="relative">
+                <Input
+                  value={form.cep}
+                  onChange={(e) => handleCepChange(e.target.value)}
+                  placeholder="00000-000"
+                  maxLength={9}
+                />
+                {buscandoCep && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">Digite o CEP para preencher endereco automaticamente</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nome / Razao Social</Label>
               <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome do cliente" />
             </div>
             <div className="space-y-2">
@@ -217,8 +395,8 @@ export default function Clientes() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Endereço</Label>
-              <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, número" />
+              <Label>Endereco</Label>
+              <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, numero" />
             </div>
             {isAdmin && (
               <div className="space-y-2">
@@ -234,7 +412,7 @@ export default function Clientes() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>Observação</Label>
+              <Label>Observacao</Label>
               <Input value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} />
             </div>
           </div>

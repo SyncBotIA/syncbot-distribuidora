@@ -11,11 +11,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Trash2 } from 'lucide-react'
 import type { EmpresaUsuario, Hierarquia } from '@/types/database'
 
 export default function Usuarios() {
-  const { usuario } = useAuth()
+  const { usuario, isMaster } = useAuth()
   const { empresa, empresaUsuario, hierarquiaOrdem, isAdmin } = useEmpresa()
   const { toast } = useToast()
   const [usuarios, setUsuarios] = useState<EmpresaUsuario[]>([])
@@ -116,6 +116,36 @@ export default function Usuarios() {
     }
   }
 
+  function canDelete(eu: EmpresaUsuario) {
+    // Nao pode excluir a si mesmo
+    if (eu.usuario_id === usuario?.id) return false
+    // Master exclui todos
+    if (isMaster) return true
+    // Gerente/admin exclui quem tem cargo inferior
+    const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+    if (hierarquiaOrdem !== null && h && h.ordem > hierarquiaOrdem) return true
+    return false
+  }
+
+  async function handleDelete(eu: EmpresaUsuario) {
+    const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+    if (!usuario) return
+    if (!confirm(`Remover "${u?.nome}" desta empresa?`)) return
+
+    try {
+      const { error } = await supabase.rpc('excluir_usuario_empresa', {
+        p_quem_exclui_id: usuario.id,
+        p_empresa_usuario_id: eu.id,
+      })
+      if (error) throw error
+      toast({ title: 'Usuario removido', variant: 'success' })
+      fetchUsuarios()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao remover'
+      toast({ title: 'Erro', description: message, variant: 'destructive' })
+    }
+  }
+
   const filtered = usuarios.filter((eu) => {
     const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
     if (!u) return false
@@ -159,6 +189,7 @@ export default function Usuarios() {
                   <TableHead>Telefone</TableHead>
                   <TableHead>Hierarquia</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-16">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -178,12 +209,19 @@ export default function Usuarios() {
                           {eu.ativo ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        {canDelete(eu) && (
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(eu)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   )
                 })}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
                       Nenhum usuario encontrado
                     </TableCell>
                   </TableRow>
