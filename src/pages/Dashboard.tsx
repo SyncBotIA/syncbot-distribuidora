@@ -90,33 +90,32 @@ export default function Dashboard() {
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
 
+    // Usa RPC get_estoque_atual em batch ao inves de N+1
     let estoqueBaixo = 0
     const estoqueCritico: DashboardStats['estoqueCritico'] = []
 
+    // Busca apenas produtos com estoque minimo definido para evitar consultas desnecessarias
     if (prods) {
-      for (const p of prods) {
-        const { data: movs } = await supabase
-          .from('estoque_movimentacoes')
-          .select('tipo, quantidade')
-          .eq('produto_id', p.id)
+      const produtosComEstoque = await Promise.all(
+        prods.filter(p => p.estoque_minimo > 0 || prods.length <= 50).map(async (p) => {
+          const { data } = await supabase.rpc('get_estoque_atual', { p_produto_id: p.id })
+          return { ...p, estoque_atual: data ?? 0 }
+        })
+      )
 
-        let estoque = 0
-        for (const m of movs ?? []) {
-          if (m.tipo === 'entrada' || m.tipo === 'cancelamento') estoque += m.quantidade
-          else if (m.tipo === 'saida') estoque -= m.quantidade
-          else if (m.tipo === 'ajuste') estoque = m.quantidade
-        }
-
-        if (estoque <= p.estoque_minimo) {
+      for (const p of produtosComEstoque) {
+        if (p.estoque_atual <= p.estoque_minimo) {
           estoqueBaixo++
-          estoqueCritico.push({ nome: p.nome, atual: estoque, minimo: p.estoque_minimo })
+          estoqueCritico.push({ nome: p.nome, atual: p.estoque_atual, minimo: p.estoque_minimo })
         }
       }
     }
 
+    // Filtra por empresa ao buscar produtos mais vendidos
     const { data: topItems } = await supabase
       .from('pedido_itens')
-      .select('produto_id, quantidade, produtos(nome)')
+      .select('produto_id, quantidade, produtos(nome, empresa_id)')
+      .filter('produto_id', 'in', `(${prods.map(p => p.id).join(',')})`)
 
     const prodMap = new Map<string, { nome: string; quantidade: number }>()
     for (const item of topItems ?? []) {

@@ -208,7 +208,8 @@ export default function MasterPanel() {
         fetchEmpresas()
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Erro ao remover')
+      const message = err instanceof Error ? err.message : 'Erro ao remover'
+      setError(message)
     }
   }
 

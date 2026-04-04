@@ -403,7 +403,7 @@ export default function Usuarios() {
               <Select value={formHierarquiaId} onChange={(e) => setFormHierarquiaId(e.target.value)}>
                 <option value="">Selecione...</option>
                 {availableHierarquias.map((h) => (
-                  <option key={h.id} value={h.id}>{h.nome} (ordem {h.ordem})</option>
+                  <option key={h.id} value={h.id}>{h.nome}</option>
                 ))}
               </Select>
             </div>
@@ -447,7 +447,7 @@ export default function Usuarios() {
                   <Select value={editHierarquiaId} onChange={(e) => setEditHierarquiaId(e.target.value)}>
                     <option value="">Selecione...</option>
                     {hierarquias.filter(h => hierarquiaOrdem !== null ? h.ordem >= hierarquiaOrdem : true).map((h) => (
-                      <option key={h.id} value={h.id}>{h.nome} (ordem {h.ordem})</option>
+                      <option key={h.id} value={h.id}>{h.nome}</option>
                     ))}
                   </Select>
                 </div>

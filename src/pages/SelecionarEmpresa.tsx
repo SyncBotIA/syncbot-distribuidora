@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { supabase } from '@/lib/supabase'
+import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Link } from 'react-router-dom'
@@ -10,13 +11,25 @@ import { Building2, Plus, LogOut, Trash2, Settings, Package, ArrowRight, Sparkle
 
 export default function SelecionarEmpresa() {
   const { usuario, signOut, isMaster } = useAuth()
-  const { empresas, setEmpresaId, refreshEmpresas, loading } = useEmpresa()
+  const { empresa, empresas, setEmpresaId, refreshEmpresas, loading } = useEmpresa()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  // Espera a empresa ser carregada e navega
+  const pendingId = useRef<string | null>(null)
+  useEffect(() => {
+    if (pendingId.current && empresa && empresa.id === pendingId.current && !loading) {
+      pendingId.current = null
+      navigate('/dashboard')
+    }
+  }, [empresa, loading, navigate])
 
   function handleSelect(empresaId: string) {
+    pendingId.current = empresaId
+    setSelectedId(empresaId)
     setEmpresaId(empresaId)
-    navigate('/dashboard')
   }
 
   async function handleDelete(empresaId: string, empresaNome: string) {
@@ -31,9 +44,10 @@ export default function SelecionarEmpresa() {
       })
       if (error) throw error
       await refreshEmpresas()
+      toast({ title: 'Empresa excluida', variant: 'success' })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao excluir empresa'
-      alert(message)
+      toast({ title: 'Erro', description: message, variant: 'destructive' })
     } finally {
       setDeleting(null)
     }

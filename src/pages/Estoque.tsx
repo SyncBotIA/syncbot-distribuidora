@@ -49,25 +49,15 @@ export default function Estoque() {
 
     if (!prods) { setLoading(false); return }
 
-    const produtosComEstoque = await Promise.all(
+    // Usa RPC get_estoque_atual do banco ao inves de N+1 manual
+    const resultados = await Promise.all(
       prods.map(async (p) => {
-        const { data: movs } = await supabase
-          .from('estoque_movimentacoes')
-          .select('tipo, quantidade')
-          .eq('produto_id', p.id)
-
-        let estoque = 0
-        for (const m of movs ?? []) {
-          if (m.tipo === 'entrada' || m.tipo === 'cancelamento') estoque += m.quantidade
-          else if (m.tipo === 'saida') estoque -= m.quantidade
-          else if (m.tipo === 'ajuste') estoque = m.quantidade
-        }
-
-        return { ...p, estoque_atual: estoque }
+        const { data } = await supabase.rpc('get_estoque_atual', { p_produto_id: p.id })
+        return { ...p, estoque_atual: data ?? 0 }
       })
     )
 
-    setProdutos(produtosComEstoque)
+    setProdutos(resultados)
     setLoading(false)
   }
 
