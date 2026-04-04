@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { supabase, createIsolatedClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { useToast } from '@/components/ui/toast'
@@ -121,32 +121,25 @@ export default function Usuarios() {
 
     setSaving(true)
     try {
-      // 1. Criar conta no Supabase Auth
-      const isolated = createIsolatedClient()
-      const { data: authData, error: authError } = await isolated.auth.signUp({
-        email: formEmail.toLowerCase(),
-        password: '123456',
-        options: { data: { nome: formNome } },
-      })
-
-      if (authError) throw authError
-      if (!authData?.user) throw new Error('Erro ao criar usuario')
-
-      // 2. Vincular a empresa via RPC
-      const { error: linkError } = await supabase.rpc('convidar_usuario_com_auth_id', {
+      const { error } = await supabase.rpc('convidar_usuario_v2', {
         p_empresa_id: empresa.id,
         p_nome: formNome,
         p_email: formEmail.toLowerCase(),
+        p_senha: '123456',
         p_telefone: formTelefone || null,
         p_hierarquia_id: formHierarquiaId,
         p_superior_id: formSuperiorId || null,
-        p_auth_id: authData.user.id,
       })
 
-      if (linkError) throw linkError
+      if (error) throw error
 
-      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisória: 123456`, variant: 'success' })
+      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisoria: 123456`, variant: 'success' })
       setDialogOpen(false)
+      setFormNome('')
+      setFormEmail('')
+      setFormTelefone('')
+      setFormHierarquiaId('')
+      setFormSuperiorId('')
       fetchUsuarios()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao convidar'

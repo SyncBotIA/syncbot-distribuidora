@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase, createIsolatedClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -109,36 +109,26 @@ export default function MasterPanel() {
     const emailUsuario = email.trim().toLowerCase()
 
     try {
-      // 1. Criar conta no Supabase Auth
-      const isolated = createIsolatedClient()
-      const { data: authData, error: authError } = await isolated.auth.signUp({
-        email: emailUsuario,
-        password: '123456',
-        options: { data: { nome: nomeUsuario } },
-      })
-
-      if (authError) throw authError
-      if (!authData?.user) throw new Error('Erro ao criar usuário')
-
-      // 2. Vincular a empresa via RPC
-      const { error: linkError } = await supabase.rpc('convidar_usuario_com_auth_id', {
+      const { error } = await supabase.rpc('convidar_usuario_v2', {
         p_empresa_id: selectedEmpresa.id,
         p_nome: nomeUsuario,
         p_email: emailUsuario,
+        p_senha: '123456',
+        p_telefone: null,
         p_hierarquia_id: selectedHierarquiaId,
-        p_auth_id: authData.user.id,
+        p_superior_id: null,
       })
 
-      if (linkError) throw linkError
+      if (error) throw error
 
-      setSuccess(`Usuário criado! Email: ${emailUsuario} / Senha provisória: 123456`)
+      setSuccess(`Usuario criado! Email: ${emailUsuario} / Senha provisoria: 123456`)
       setNome('')
       setEmail('')
       setShowAddForm(false)
       fetchUsuáriosEmpresa(selectedEmpresa.id)
       fetchEmpresas()
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao adicionar usuário'
+      const message = err instanceof Error ? err.message : 'Erro ao adicionar usuario'
       setError(message)
     } finally {
       setSaving(false)
