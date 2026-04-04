@@ -19,7 +19,6 @@ export default function CriarEmpresa() {
   const [cnpj, setCnpj] = useState('')
   const [gerenteNome, setGerenteNome] = useState('')
   const [gerenteEmail, setGerenteEmail] = useState('')
-  const [gerenteSenha, setGerenteSenha] = useState('')
   const [loading, setLoading] = useState(false)
   const [buscandoCnpj, setBuscandoCnpj] = useState(false)
   const [error, setError] = useState('')
@@ -75,24 +74,18 @@ export default function CriarEmpresa() {
 
     try {
       if (isMaster && gerenteEmail) {
-        if (!gerenteSenha || gerenteSenha.length < 6) {
-          setError('A senha do gerente deve ter pelo menos 6 caracteres')
-          setLoading(false)
-          return
-        }
-
         const { data: empresaId, error: rpcError } = await supabase.rpc('criar_empresa_com_gerente', {
           p_nome: nome,
           p_cnpj: cnpj.replace(/\D/g, '') || null,
           p_master_id: usuario.id,
           p_gerente_email: gerenteEmail,
-          p_gerente_senha: gerenteSenha,
+          p_gerente_senha: '123456',
           p_gerente_nome: gerenteNome || gerenteEmail.split('@')[0],
         })
 
         if (rpcError) throw rpcError
 
-        setSuccess(`Empresa criada! Gerente: ${gerenteEmail} / Senha: ${gerenteSenha}`)
+        setSuccess(`Empresa criada! Gerente: ${gerenteEmail} / Senha provisoria: 123456`)
         await refreshEmpresas()
         setTimeout(() => {
           setEmpresaId(empresaId)
@@ -208,17 +201,9 @@ export default function CriarEmpresa() {
                     className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-zinc-600 focus-visible:ring-blue-500/30 focus-visible:border-blue-500/50"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-zinc-400 text-xs font-medium">Senha provisoria</Label>
-                  <Input
-                    type="text"
-                    value={gerenteSenha}
-                    onChange={(e) => setGerenteSenha(e.target.value)}
-                    placeholder="Senha de acesso"
-                    required
-                    className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-zinc-600 focus-visible:ring-blue-500/30 focus-visible:border-blue-500/50"
-                  />
-                  <p className="text-[11px] text-zinc-600">O gerente pode alterar depois em Configuracoes</p>
+                <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
+                  <p className="text-xs text-blue-400">Senha provisoria: <span className="font-mono font-bold">123456</span></p>
+                  <p className="text-[11px] text-blue-400/60 mt-0.5">O gerente sera obrigado a redefinir no primeiro login</p>
                 </div>
               </>
             )}

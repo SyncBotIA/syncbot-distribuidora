@@ -93,6 +93,7 @@ export interface Usuario {
   email: string
   telefone: string | null
   is_master: boolean
+  senha_provisoria: boolean
   created_at: string
 }
 

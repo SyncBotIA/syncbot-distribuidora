@@ -9,9 +9,11 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   isMaster: boolean
+  needsPasswordReset: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signUp: (email: string, password: string, nome: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
+  clearPasswordReset: () => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -110,10 +112,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null)
   }
 
+  function clearPasswordReset() {
+    if (usuario) {
+      setUsuario({ ...usuario, senha_provisoria: false })
+    }
+  }
+
   const isMaster = usuario?.is_master ?? false
+  const needsPasswordReset = usuario?.senha_provisoria ?? false
 
   return (
-    <AuthContext value={{ user, usuario, session, loading, isMaster, signIn, signUp, signOut }}>
+    <AuthContext value={{ user, usuario, session, loading, isMaster, needsPasswordReset, signIn, signUp, signOut, clearPasswordReset }}>
       {children}
     </AuthContext>
   )

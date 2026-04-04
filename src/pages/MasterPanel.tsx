@@ -34,8 +34,9 @@ export default function MasterPanel() {
   const [hierarquias, setHierarquias] = useState<{ id: string; nome: string; ordem: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
-  const [selectedOrdem, setSelectedOrdem] = useState(2)
+  const [selectedHierarquiaId, setSelectedHierarquiaId] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -98,22 +99,24 @@ export default function MasterPanel() {
     setSuccess('')
 
     try {
-      const { data, error } = await supabase.rpc('vincular_usuario_empresa', {
-        p_master_id: usuario.id,
-        p_email: email.trim(),
+      const { error } = await supabase.rpc('convidar_usuario', {
         p_empresa_id: selectedEmpresa.id,
-        p_hierarquia_ordem: selectedOrdem,
+        p_nome: nome.trim() || email.trim().split('@')[0],
+        p_email: email.trim(),
+        p_senha: '123456',
+        p_hierarquia_id: selectedHierarquiaId,
       })
 
       if (error) throw error
 
-      setSuccess(data as string)
+      setSuccess(`Usuario criado! Email: ${email.trim()} / Senha provisoria: 123456`)
+      setNome('')
       setEmail('')
       setShowAddForm(false)
       fetchUsuariosEmpresa(selectedEmpresa.id)
       fetchEmpresas()
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao vincular usuário'
+      const message = err instanceof Error ? err.message : 'Erro ao adicionar usuario'
       setError(message)
     } finally {
       setSaving(false)
@@ -264,14 +267,23 @@ export default function MasterPanel() {
                   {showAddForm && (
                     <div className="border border-white/[0.08] rounded-xl p-4 bg-white/[0.02] space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-zinc-200 text-sm">Vincular Usuario</h3>
+                        <h3 className="font-medium text-zinc-200 text-sm">Adicionar Usuario</h3>
                         <button onClick={() => setShowAddForm(false)} className="cursor-pointer text-zinc-500 hover:text-zinc-300 transition-colors">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
                       <form onSubmit={handleAddUsuario} className="space-y-3">
                         <div>
-                          <Label className="text-zinc-400 text-xs">Email do usuario</Label>
+                          <Label className="text-zinc-400 text-xs">Nome</Label>
+                          <Input
+                            placeholder="Nome completo"
+                            value={nome}
+                            onChange={(e) => setNome(e.target.value)}
+                            className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-zinc-600 focus-visible:ring-blue-500/30 focus-visible:border-blue-500/50"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-zinc-400 text-xs">Email</Label>
                           <Input
                             type="email"
                             placeholder="email@exemplo.com"
@@ -280,21 +292,24 @@ export default function MasterPanel() {
                             required
                             className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-zinc-600 focus-visible:ring-blue-500/30 focus-visible:border-blue-500/50"
                           />
-                          <p className="text-[11px] text-zinc-600 mt-1">
-                            O usuario precisa ter criado uma conta antes
-                          </p>
                         </div>
                         <div>
                           <Label className="text-zinc-400 text-xs">Cargo</Label>
                           <select
-                            value={selectedOrdem}
-                            onChange={(e) => setSelectedOrdem(Number(e.target.value))}
+                            value={selectedHierarquiaId}
+                            onChange={(e) => setSelectedHierarquiaId(e.target.value)}
                             className="w-full h-10 rounded-xl border border-white/[0.08] bg-white/[0.06] px-3 text-sm text-white"
+                            required
                           >
+                            <option value="">Selecione...</option>
                             {hierarquias.map((h) => (
-                              <option key={h.id} value={h.ordem}>{h.nome}</option>
+                              <option key={h.id} value={h.id}>{h.nome}</option>
                             ))}
                           </select>
+                        </div>
+                        <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
+                          <p className="text-xs text-blue-400">Senha provisoria: <span className="font-mono font-bold">123456</span></p>
+                          <p className="text-[11px] text-blue-400/60 mt-0.5">O usuario sera obrigado a redefinir no primeiro login</p>
                         </div>
 
                         {error && (
@@ -309,8 +324,8 @@ export default function MasterPanel() {
                         )}
 
                         <div className="flex gap-2">
-                          <Button type="submit" disabled={saving} size="sm">
-                            {saving ? 'Vinculando...' : 'Vincular'}
+                          <Button type="submit" disabled={saving || !selectedHierarquiaId} size="sm">
+                            {saving ? 'Criando...' : 'Criar Usuario'}
                           </Button>
                           <Button type="button" variant="outline" size="sm" onClick={() => setShowAddForm(false)} className="border-white/[0.08] text-zinc-300 hover:bg-white/[0.04] hover:text-white">
                             Cancelar

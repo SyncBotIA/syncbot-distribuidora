@@ -27,7 +27,6 @@ export default function Usuarios() {
   // Form state
   const [formNome, setFormNome] = useState('')
   const [formEmail, setFormEmail] = useState('')
-  const [formSenha, setFormSenha] = useState('')
   const [formTelefone, setFormTelefone] = useState('')
   const [formHierarquiaId, setFormHierarquiaId] = useState('')
   const [formSuperiorId, setFormSuperiorId] = useState('')
@@ -86,10 +85,6 @@ export default function Usuarios() {
 
   async function handleInvite() {
     if (!empresa || !usuario) return
-    if (!formSenha || formSenha.length < 6) {
-      toast({ title: 'Erro', description: 'A senha deve ter pelo menos 6 caracteres', variant: 'destructive' })
-      return
-    }
 
     setSaving(true)
     try {
@@ -97,7 +92,7 @@ export default function Usuarios() {
         p_empresa_id: empresa.id,
         p_nome: formNome,
         p_email: formEmail,
-        p_senha: formSenha,
+        p_senha: '123456',
         p_telefone: formTelefone || null,
         p_hierarquia_id: formHierarquiaId,
         p_superior_id: formSuperiorId || null,
@@ -105,7 +100,7 @@ export default function Usuarios() {
 
       if (error) throw error
 
-      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha: ${formSenha}`, variant: 'success' })
+      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisoria: 123456`, variant: 'success' })
       setDialogOpen(false)
       fetchUsuarios()
     } catch (err: unknown) {
@@ -171,7 +166,7 @@ export default function Usuarios() {
         {availableHierarquias.length > 0 && (
           <Button onClick={() => {
             setDialogOpen(true)
-            setFormNome(''); setFormEmail(''); setFormSenha(''); setFormTelefone('')
+            setFormNome(''); setFormEmail(''); setFormTelefone('')
             setFormHierarquiaId(''); setFormSuperiorId('')
           }} className="gap-2">
             <UserPlus className="h-4 w-4" />
@@ -299,10 +294,9 @@ export default function Usuarios() {
               <Label>Email</Label>
               <Input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="email@exemplo.com" />
             </div>
-            <div className="space-y-2">
-              <Label>Senha de acesso</Label>
-              <Input type="text" value={formSenha} onChange={(e) => setFormSenha(e.target.value)} placeholder="Minimo 6 caracteres" />
-              <p className="text-xs text-muted-foreground">O usuario pode alterar depois em Configuracoes</p>
+            <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
+              <p className="text-xs text-blue-400">Senha provisoria: <span className="font-mono font-bold">123456</span></p>
+              <p className="text-[11px] text-blue-400/60 mt-0.5">O usuario sera obrigado a redefinir no primeiro login</p>
             </div>
             <div className="space-y-2">
               <Label>Telefone (opcional)</Label>
@@ -329,7 +323,7 @@ export default function Usuarios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formSenha || !formHierarquiaId || saving}>
+            <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formHierarquiaId || saving}>
               {saving ? 'Criando...' : 'Criar Usuario'}
             </Button>
           </DialogFooter>

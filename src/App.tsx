@@ -15,6 +15,7 @@ import Pedidos from '@/pages/Pedidos'
 import Clientes from '@/pages/Clientes'
 import MasterPanel from '@/pages/MasterPanel'
 import Configuracoes from '@/pages/Configuracoes'
+import RedefinirSenha from '@/pages/RedefinirSenha'
 import type { ReactNode } from 'react'
 
 function PrivateRoute({ children }: { children: ReactNode }) {
@@ -22,8 +23,11 @@ function PrivateRoute({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Carregando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-zinc-500 text-sm">Carregando...</p>
+        </div>
       </div>
     )
   }
@@ -32,13 +36,25 @@ function PrivateRoute({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function PasswordGuard({ children }: { children: ReactNode }) {
+  const { needsPasswordReset, loading } = useAuth()
+
+  if (loading) return null
+
+  if (needsPasswordReset) return <Navigate to="/redefinir-senha" replace />
+  return <>{children}</>
+}
+
 function EmpresaRoute({ children }: { children: ReactNode }) {
   const { empresa, loading } = useEmpresa()
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Carregando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-zinc-500 text-sm">Carregando...</p>
+        </div>
       </div>
     )
   }
@@ -52,23 +68,29 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
 
+      <Route path="/redefinir-senha" element={
+        <PrivateRoute><RedefinirSenha /></PrivateRoute>
+      } />
+
       <Route path="/selecionar-empresa" element={
-        <PrivateRoute><SelecionarEmpresa /></PrivateRoute>
+        <PrivateRoute><PasswordGuard><SelecionarEmpresa /></PasswordGuard></PrivateRoute>
       } />
 
       <Route path="/criar-empresa" element={
-        <PrivateRoute><CriarEmpresa /></PrivateRoute>
+        <PrivateRoute><PasswordGuard><CriarEmpresa /></PasswordGuard></PrivateRoute>
       } />
 
       <Route path="/master" element={
-        <PrivateRoute><MasterPanel /></PrivateRoute>
+        <PrivateRoute><PasswordGuard><MasterPanel /></PasswordGuard></PrivateRoute>
       } />
 
       <Route element={
         <PrivateRoute>
-          <EmpresaRoute>
-            <MainLayout />
-          </EmpresaRoute>
+          <PasswordGuard>
+            <EmpresaRoute>
+              <MainLayout />
+            </EmpresaRoute>
+          </PasswordGuard>
         </PrivateRoute>
       }>
         <Route path="/dashboard" element={<Dashboard />} />
