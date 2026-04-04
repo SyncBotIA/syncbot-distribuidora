@@ -10,7 +10,7 @@ interface EmpresaContextType {
   empresas: Empresa[]
   loading: boolean
   empresaSelecionada: boolean
-  setEmpresaId: (id: string) => Promise<void>
+  setEmpresaId: (id: string) => Promise<boolean | undefined>
   clearEmpresa: () => void
   refreshEmpresas: () => Promise<void>
   isAdmin: boolean

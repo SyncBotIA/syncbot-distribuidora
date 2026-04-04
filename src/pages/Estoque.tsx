@@ -343,7 +343,7 @@ export default function Estoque() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleMovimentacao} disabled={!formProdutoId || !formQuantidade}>Registrar</Button>
+            <Button onClick={handleMovimentacao} disabled={!formProdutoId || !formQuantidade || !formTipo}>Registrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

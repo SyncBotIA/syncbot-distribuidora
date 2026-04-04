@@ -43,7 +43,7 @@ export default function Clientes() {
   async function fetchClientes() {
     const query = supabase
       .from('clientes')
-      .select('*, usuarios!clientes_vendedor_id_fkey(nome)')
+      .select('*, vendedor:usuarios!clientes_vendedor_id_fkey(nome)')
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
       .order('nome')
@@ -176,7 +176,7 @@ export default function Clientes() {
     setForm({
       nome: c.nome,
       cnpj: c.cnpj ?? '',
-      cep: (c as Record<string, unknown>).cep as string ?? '',
+      cep: c.cep ?? '',
       telefone: c.telefone ?? '',
       endereco: c.endereco ?? '',
       bairro: c.bairro ?? '',
@@ -337,9 +337,7 @@ export default function Clientes() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((c) => {
-                  const vendedorNome = (c as Record<string, unknown>).usuarios as { nome: string } | null
-                  return (
+                {filtered.map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="font-semibold">{c.nome}</TableCell>
                       <TableCell className="font-mono text-xs text-zinc-400">{formatCnpjDisplay(c.cnpj)}</TableCell>
@@ -355,7 +353,7 @@ export default function Clientes() {
                       <TableCell>{c.bairro ?? <span className="text-zinc-600">—</span>}</TableCell>
                       {isAdmin && (
                         <TableCell>
-                          <Badge variant="outline">{vendedorNome?.nome ?? '—'}</Badge>
+                          <Badge variant="outline">{(c.vendedor as Usuario)?.nome ?? '—'}</Badge>
                         </TableCell>
                       )}
                       <TableCell className="flex gap-1">
@@ -369,8 +367,7 @@ export default function Clientes() {
                         )}
                       </TableCell>
                     </TableRow>
-                  )
-                })}
+                ))}
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={isAdmin ? 7 : 6}>

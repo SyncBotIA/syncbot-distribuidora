@@ -109,26 +109,31 @@ export default function MasterPanel() {
     const emailUsuario = email.trim().toLowerCase()
 
     try {
-      const { error } = await supabase.rpc('convidar_usuario_v2', {
+      const { data, error } = await supabase.rpc('convidar_usuario_v2', {
         p_empresa_id: selectedEmpresa.id,
         p_nome: nomeUsuario,
         p_email: emailUsuario,
-        p_senha: '123456',
-        p_telefone: null,
         p_hierarquia_id: selectedHierarquiaId,
+        p_telefone: null,
         p_superior_id: null,
       })
 
       if (error) throw error
 
-      setSuccess(`Usuario criado! Email: ${emailUsuario} / Senha provisoria: 123456`)
+      const reutilizado = data?.reutilizado ?? false
+      setSuccess(
+        reutilizado
+          ? `Usuario re-ativado: ${emailUsuario}`
+          : `Usuario criado! Email: ${emailUsuario} / Senha provisoria: 123456`
+      )
       setNome('')
       setEmail('')
       setShowAddForm(false)
       fetchUsuáriosEmpresa(selectedEmpresa.id)
       fetchEmpresas()
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao adicionar usuario'
+      const e = err as { message?: string; code?: string; details?: string; hint?: string }
+      const message = e.details ?? e.hint ?? e.message ?? 'Erro ao adicionar usuario'
       setError(message)
     } finally {
       setSaving(false)

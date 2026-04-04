@@ -272,7 +272,7 @@ export default function Produtos() {
                   <TableRow key={p.id}>
                     <TableCell className="font-semibold">{p.nome}</TableCell>
                     <TableCell className="font-mono text-xs text-zinc-400">{p.sku}</TableCell>
-                    <TableCell>{(p.categoria as unknown as Categoria)?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
+                    <TableCell>{p.categoria?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
                     <TableCell>{unidadeLabels[p.unidade_medida] ?? p.unidade_medida}</TableCell>
                     <TableCell className="text-right text-zinc-400">{formatCurrency(p.preco_custo)}</TableCell>
                     <TableCell className="text-right font-semibold text-white">{formatCurrency(p.preco_venda)}</TableCell>

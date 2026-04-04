@@ -121,19 +121,23 @@ export default function Usuarios() {
 
     setSaving(true)
     try {
-      const { error } = await supabase.rpc('convidar_usuario_v2', {
+      const { data, error } = await supabase.rpc('convidar_usuario_v2', {
         p_empresa_id: empresa.id,
         p_nome: formNome,
         p_email: formEmail.toLowerCase(),
-        p_senha: '123456',
-        p_telefone: formTelefone || null,
         p_hierarquia_id: formHierarquiaId,
+        p_telefone: formTelefone || null,
         p_superior_id: formSuperiorId || null,
       })
 
       if (error) throw error
 
-      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisoria: 123456`, variant: 'success' })
+      const email = data?.email ?? formEmail.toLowerCase()
+      const reutilizado = data?.reutilizado ?? false
+      const msg = reutilizado
+        ? `Usuario re-ativado: ${email}`
+        : `Usuario criado! ${email} / Senha provisoria: 123456`
+      toast({ title: reutilizado ? 'Usuario re-ativado' : 'Usuario criado com sucesso', description: msg, variant: 'success' })
       setDialogOpen(false)
       setFormNome('')
       setFormEmail('')
@@ -142,7 +146,8 @@ export default function Usuarios() {
       setFormSuperiorId('')
       fetchUsuarios()
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao convidar'
+      const e = err as { message?: string; code?: string; details?: string; hint?: string }
+      const message = e.message ?? e.details ?? e.hint ?? (typeof err === 'string' ? err : 'Erro desconhecido')
       toast({ title: 'Erro', description: message, variant: 'destructive' })
     } finally {
       setSaving(false)
@@ -478,9 +483,12 @@ export default function Usuarios() {
               <Label>Superior direto (opcional)</Label>
               <Select value={formSuperiorId} onChange={(e) => setFormSuperiorId(e.target.value)}>
                 <option value="">Nenhum</option>
-                {availableSuperiors.map((eu) => (
-                  <option key={eu.id} value={eu.id}>{eu.usuario?.nome}</option>
-                ))}
+                {availableSuperiors.map((eu) => {
+                  const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+                  return (
+                    <option key={eu.id} value={eu.id}>{u?.nome ?? 'Sem nome'}</option>
+                  )
+                })}
               </Select>
             </div>
           </div>

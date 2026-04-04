@@ -60,7 +60,7 @@ export default function Pedidos() {
   async function fetchPedidos() {
     const { data } = await supabase
       .from('pedidos')
-      .select('*, usuarios(nome), clientes(nome)')
+      .select('*, usuario:usuarios(nome), cliente:clientes(nome)')
       .eq('empresa_id', empresa!.id)
       .order('created_at', { ascending: false })
 
@@ -107,7 +107,7 @@ export default function Pedidos() {
 
     const { data } = await supabase
       .from('empresa_usuarios')
-      .select('*, usuarios(id, nome), hierarquias(nome, ordem)')
+      .select('*, usuario:usuarios(id, nome), hierarquias(nome, ordem)')
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
 
@@ -267,6 +267,10 @@ export default function Pedidos() {
     cancelado: { label: 'Cancelado', variant: 'destructive' },
   }
 
+  function getStatusConfig(status: string) {
+    return statusConfig[status] ?? { label: status, variant: 'secondary' as const }
+  }
+
   function canCancel(pedido: Pedido) {
     if (pedido.status === 'cancelado' || pedido.status === 'entregue') return false
     if (pedido.usuario_id === usuario?.id) return true
@@ -283,7 +287,7 @@ export default function Pedidos() {
     const q = search.toLowerCase()
     const matchSearch = !q ||
       (p.usuario as unknown as Usuario)?.nome?.toLowerCase().includes(q) ||
-      ((p.clientes as unknown as Cliente)?.nome ?? (p.cliente as unknown as Cliente)?.nome ?? '').toLowerCase().includes(q)
+      ((p.cliente as unknown as Cliente)?.nome ?? '').toLowerCase().includes(q)
     return matchStatus && matchSearch
   })
 
@@ -401,7 +405,7 @@ export default function Pedidos() {
                         </div>
                       </TableCell>
                       <TableCell className="font-semibold">{(p.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
-                      <TableCell>{(p.clientes as unknown as Cliente)?.nome ?? (p.cliente as unknown as Cliente)?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
+                      <TableCell>{(p.cliente as unknown as Cliente)?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
                       <TableCell>
                         <Badge variant={sc.variant}>{sc.label}</Badge>
                       </TableCell>
