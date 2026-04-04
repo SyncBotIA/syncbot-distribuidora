@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Select } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
-import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp, Trophy, BarChart3 } from 'lucide-react'
+import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp, Trophy, BarChart3, Calendar } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import type { Pedido, Produto } from '@/types/database'
 
@@ -174,13 +175,26 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="h-10 w-10 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-            <div className="absolute inset-0 h-10 w-10 border-2 border-transparent border-b-blue-400/20 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-4 w-40 mt-2" />
           </div>
-          <p className="text-sm text-zinc-500 font-medium">Carregando dashboard...</p>
+          <Skeleton className="h-9 w-40 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="rounded-xl border border-white/[0.06] p-6">
+            <Skeleton className="h-5 w-40 mb-6" />
+            <Skeleton className="h-64 w-full rounded-lg" />
+          </div>
+          <div className="rounded-xl border border-white/[0.06] p-6">
+            <Skeleton className="h-5 w-40 mb-6" />
+            <Skeleton className="h-64 w-full rounded-lg" />
+          </div>
         </div>
       </div>
     )
@@ -256,7 +270,7 @@ export default function Dashboard() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
         {kpis.map((kpi) => (
-          <Card key={kpi.label} className={`relative overflow-hidden group border-${kpi.borderColor}`}>
+          <Card key={kpi.label} className={`relative overflow-hidden group ${kpi.borderColor}`}>
             <CardContent className="p-5">
               <div className="flex items-start justify-between mb-3">
                 <div className={`p-2.5 rounded-xl ${kpi.iconBg} transition-transform duration-300 group-hover:scale-110`}>

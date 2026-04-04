@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -250,8 +251,8 @@ export default function Usuarios() {
             <Users className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Usuarios</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Equipe e permissoes de acesso</p>
+            <h1 className="text-2xl font-bold text-white">Usuarios</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">Equipe e permissoes de acesso</p>
           </div>
         </div>
         {availableHierarquias.length > 0 && (
@@ -293,7 +294,7 @@ export default function Usuarios() {
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
         <Input
           placeholder="Buscar por nome ou email..."
           value={search}
@@ -305,11 +306,8 @@ export default function Usuarios() {
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Carregando usuarios...</p>
-              </div>
+            <div className="py-8 space-y-3">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
             <Table>

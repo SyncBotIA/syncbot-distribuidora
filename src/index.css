@@ -303,3 +303,19 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* ============================================
+   CARD HOVER — Subtle lift on hover
+   ============================================ */
+.group\/card-hover:hover {
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   PROGRESS BAR FOR TOAST
+   ============================================ */
+@keyframes shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+

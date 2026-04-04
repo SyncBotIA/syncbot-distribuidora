@@ -8,11 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText } from 'lucide-react'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText, Search, Filter } from 'lucide-react'
+import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/utils'
 import type { Pedido, Produto, PedidoItem, Usuario, Cliente, EmpresaUsuario, Hierarquia } from '@/types/database'
 
 interface PedidoItemForm {
@@ -42,6 +43,8 @@ export default function Pedidos() {
   const [formObs, setFormObs] = useState('')
   const [addProdutoId, setAddProdutoId] = useState('')
   const [addQtd, setAddQtd] = useState('1')
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   const canAssignToOther = hierarquiaOrdem !== null && hierarquiaOrdem <= 2
 
@@ -272,6 +275,15 @@ export default function Pedidos() {
   const pedidosRascunho = pedidos.filter(p => p.status === 'rascunho').length
   const valorTotalPedidos = pedidos.filter(p => p.status !== 'cancelado').reduce((sum, p) => sum + (p.valor_total || 0), 0)
 
+  const filteredPedidos = pedidos.filter((p) => {
+    const matchStatus = !statusFilter || p.status === statusFilter
+    const q = search.toLowerCase()
+    const matchSearch = !q ||
+      (p.usuario as unknown as Usuario)?.nome?.toLowerCase().includes(q) ||
+      ((p.clientes as unknown as Cliente)?.nome ?? (p.cliente as unknown as Cliente)?.nome ?? '').toLowerCase().includes(q)
+    return matchStatus && matchSearch
+  })
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
@@ -339,20 +351,34 @@ export default function Pedidos() {
         </Card>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Input placeholder="Buscar por vendedor ou cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+        </div>
+        <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="max-w-[180px]">
+          <option value="">Todos os status</option>
+          <option value="rascunho">Rascunho</option>
+          <option value="confirmado">Confirmado</option>
+          <option value="entregue">Entregue</option>
+          <option value="cancelado">Cancelado</option>
+        </Select>
+      </div>
+
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="flex flex-col items-center gap-4">
-                <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                <p className="text-sm text-zinc-500 font-medium">Carregando pedidos...</p>
-              </div>
+            <div className="py-8 space-y-3">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
+                  <TableHead>Data
+                  <span className="text-[10px] font-normal normal-case tracking-normal block text-zinc-600">Relativo</span>
+                </TableHead>
                   <TableHead>Vendedor</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Status</TableHead>
@@ -361,17 +387,22 @@ export default function Pedidos() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pedidos.map((p) => {
+                {filteredPedidos.map((p) => {
                   const sc = statusConfig[p.status]
                   return (
                     <TableRow key={p.id}>
-                      <TableCell className="text-zinc-400">{formatDate(p.created_at)}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="text-zinc-300">{formatDate(p.created_at)}</p>
+                          <p className="text-[10px] text-zinc-500">{formatRelativeDate(p.created_at)}</p>
+                        </div>
+                      </TableCell>
                       <TableCell className="font-semibold">{(p.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
                       <TableCell>{(p.clientes as unknown as Cliente)?.nome ?? (p.cliente as unknown as Cliente)?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
                       <TableCell>
                         <Badge variant={sc.variant}>{sc.label}</Badge>
                       </TableCell>
-                      <TableCell className="text-right font-bold text-white">{formatCurrency(p.valor_total)}</TableCell>
+                      <TableCell className="text-right font-bold text-white">{formatCurrency(p.valor_total ?? 0)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => viewDetail(p)} title="Detalhes">
@@ -397,15 +428,15 @@ export default function Pedidos() {
                     </TableRow>
                   )
                 })}
-                {pedidos.length === 0 && (
+                {filteredPedidos.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6}>
                       <div className="flex flex-col items-center justify-center py-14">
                         <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
                           <ShoppingCart className="h-7 w-7 text-zinc-600" />
                         </div>
-                        <p className="text-sm font-semibold text-zinc-400">Nenhum pedido registrado</p>
-                        <p className="text-xs text-zinc-600 mt-1">Crie seu primeiro pedido</p>
+                        <p className="text-sm font-semibold text-zinc-400">{pedidos.length === 0 ? 'Nenhum pedido registrado' : 'Nenhum pedido encontrado'}</p>
+                        <p className="text-xs text-zinc-600 mt-1">{pedidos.length === 0 ? 'Crie seu primeiro pedido' : 'Tente ajustar seus filtros'}</p>
                       </div>
                     </TableCell>
                   </TableRow>

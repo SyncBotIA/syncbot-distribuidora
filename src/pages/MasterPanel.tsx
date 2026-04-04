@@ -215,7 +215,10 @@ export default function MasterPanel() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Carregando...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+          <p className="text-zinc-500 text-sm font-medium">Carregando...</p>
+        </div>
       </div>
     )
   }

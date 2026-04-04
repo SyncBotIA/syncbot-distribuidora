@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -248,11 +250,8 @@ export default function Produtos() {
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="flex flex-col items-center gap-4">
-                <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                <p className="text-sm text-zinc-500 font-medium">Carregando produtos...</p>
-              </div>
+            <div className="py-8 space-y-3">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
             <Table>
@@ -334,7 +333,7 @@ export default function Produtos() {
             </div>
             <div className="space-y-2">
               <Label>Descricao</Label>
-              <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+              <Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Descricao do produto" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

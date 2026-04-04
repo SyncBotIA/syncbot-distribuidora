@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -214,11 +215,8 @@ export default function Estoque() {
         <Card>
           <CardContent className="pt-6">
             {loading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                  <p className="text-sm text-zinc-500 font-medium">Carregando estoque...</p>
-                </div>
+              <div className="py-8 space-y-3">
+                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
               </div>
             ) : (
               <Table>
@@ -253,6 +251,19 @@ export default function Estoque() {
                       </TableRow>
                     )
                   })}
+                  {filteredProdutos.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5}>
+                        <div className="flex flex-col items-center justify-center py-14">
+                          <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                            <Warehouse className="h-7 w-7 text-zinc-600" />
+                          </div>
+                          <p className="text-sm font-semibold text-zinc-400">Nenhum produto encontrado</p>
+                          <p className="text-xs text-zinc-600 mt-1">{search ? 'Tente ajustar sua busca' : 'Nenhum produto cadastrado'}</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             )}
@@ -288,6 +299,19 @@ export default function Estoque() {
                     <TableCell className="text-zinc-500 max-w-[200px] truncate">{m.observacao ?? '—'}</TableCell>
                   </TableRow>
                 ))}
+                {movimentacoes.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <div className="flex flex-col items-center justify-center py-14">
+                        <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                          <Warehouse className="h-7 w-7 text-zinc-600" />
+                        </div>
+                        <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentacao registrada</p>
+                        <p className="text-xs text-zinc-600 mt-1">Registre sua primeira movimentacao de estoque</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
