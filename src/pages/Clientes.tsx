@@ -80,7 +80,7 @@ export default function Clientes() {
     try {
       const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
       if (!res.ok) {
-        toast({ title: 'CNPJ nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
+        toast({ title: 'CNPJ não encontrado', description: 'Verifique o número e tente novamente', variant: 'destructive' })
         setBuscandoCnpj(false)
         return
       }
@@ -116,13 +116,13 @@ export default function Clientes() {
     try {
       const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
       if (!res.ok) {
-        toast({ title: 'CEP nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
+        toast({ title: 'CEP não encontrado', description: 'Verifique o número e tente novamente', variant: 'destructive' })
         setBuscandoCep(false)
         return
       }
       const data = await res.json()
       if (data.erro) {
-        toast({ title: 'CEP nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
+        toast({ title: 'CEP não encontrado', description: 'Verifique o número e tente novamente', variant: 'destructive' })
         setBuscandoCep(false)
         return
       }
@@ -134,7 +134,7 @@ export default function Clientes() {
         cidade: data.localidade ? `${data.localidade}/${data.uf}` : prev.cidade,
       }))
 
-      toast({ title: 'Endereco preenchido', description: `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`, variant: 'success' })
+      toast({ title: 'Endereço preenchido', description: `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`, variant: 'success' })
     } catch {
       toast({ title: 'Erro ao buscar CEP', description: 'Tente novamente', variant: 'destructive' })
     } finally {
@@ -333,7 +333,7 @@ export default function Clientes() {
                   <TableHead>Cidade</TableHead>
                   <TableHead>Bairro</TableHead>
                   {isAdmin && <TableHead>Vendedor</TableHead>}
-                  <TableHead className="w-16">Acoes</TableHead>
+                  <TableHead className="w-16">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -431,11 +431,11 @@ export default function Clientes() {
                   </div>
                 )}
               </div>
-              <p className="text-[10px] text-zinc-500">Digite o CEP para preencher endereco automaticamente</p>
+              <p className="text-[10px] text-zinc-500">Digite o CEP para preencher endereço automaticamente</p>
             </div>
 
             <div className="space-y-2">
-              <Label>Nome / Razao Social</Label>
+              <Label>Nome / Razão Social</Label>
               <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome do cliente" />
             </div>
             <div className="space-y-2">
@@ -453,8 +453,8 @@ export default function Clientes() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Endereco</Label>
-              <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, numero" />
+              <Label>Endereço</Label>
+              <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, número" />
             </div>
             {isAdmin && (
               <div className="space-y-2">
@@ -470,8 +470,8 @@ export default function Clientes() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>Observacao</Label>
-              <Textarea value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} placeholder="Observacoes sobre o cliente" />
+              <Label>Observação</Label>
+              <Textarea value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} placeholder="Observações sobre o cliente" />
             </div>
           </div>
           <DialogFooter>

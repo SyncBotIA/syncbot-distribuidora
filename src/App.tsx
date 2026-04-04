@@ -49,6 +49,8 @@ function EmpresaRoute({ children }: { children: ReactNode }) {
   const { empresa, loading } = useEmpresa()
 
   if (loading) {
+    // If user just selected empresa and localStorage has it, render children
+    if (localStorage.getItem('distribuidora_empresa_id')) return <>{children}</>
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#030712]">
         <div className="flex flex-col items-center gap-3">

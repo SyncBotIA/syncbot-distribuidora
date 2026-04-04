@@ -26,12 +26,12 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
     { to: '/hierarquias', label: 'Hierarquias', icon: ShieldCheck, show: isAdmin },
-    { to: '/usuarios', label: 'Usuarios', icon: Users, show: true },
+    { to: '/usuarios', label: 'Usuários', icon: Users, show: true },
     { to: '/clientes', label: 'Clientes', icon: UserCheck, show: true },
     { to: '/produtos', label: 'Produtos', icon: Package, show: true },
     { to: '/estoque', label: 'Estoque', icon: Warehouse, show: canManageProducts },
     { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart, show: true },
-    { to: '/configuracoes', label: 'Configuracoes', icon: Settings, show: true },
+    { to: '/configuracoes', label: 'Configurações', icon: Settings, show: true },
   ]
 
   return (
@@ -57,7 +57,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             </div>
             <div>
               <h2 className="font-bold text-[13px] leading-tight text-white tracking-tight">{empresa?.nome ?? 'Distribuidora'}</h2>
-              <p className="text-[10px] text-zinc-500 font-medium mt-0.5">Sistema de Gestao</p>
+              <p className="text-[10px] text-zinc-500 font-medium mt-0.5">Sistema de Gestão</p>
             </div>
           </div>
           <button onClick={onClose} className="lg:hidden cursor-pointer p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all">
@@ -111,7 +111,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <Zap className="h-3.5 w-3.5 text-blue-400" />
               <p className="text-[11px] text-blue-300 font-semibold">Suporte</p>
             </div>
-            <p className="text-[10px] text-zinc-500 leading-relaxed">Entre em contato para qualquer duvida.</p>
+            <p className="text-[10px] text-zinc-500 leading-relaxed">Entre em contato para qualquer dúvida.</p>
           </div>
           <div className="px-3 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">

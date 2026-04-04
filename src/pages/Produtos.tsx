@@ -109,14 +109,14 @@ export default function Produtos() {
   }
 
   async function handleDelete(p: Produto) {
-    if (!confirm(`Excluir o produto "${p.nome}"? Ele sera desativado.`)) return
+    if (!confirm(`Excluir o produto "${p.nome}"? Ele será desativado.`)) return
 
     const { error } = await supabase.from('produtos').update({ ativo: false }).eq('id', p.id)
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' })
       return
     }
-    toast({ title: 'Produto excluido', variant: 'success' })
+    toast({ title: 'Produto excluído', variant: 'success' })
     fetchProdutos()
   }
 
@@ -143,10 +143,10 @@ export default function Produtos() {
 
     const { error } = await supabase.from('categorias').delete().eq('id', catId)
     if (error) {
-      toast({ title: 'Erro', description: 'Nao e possivel excluir: existem produtos nesta categoria', variant: 'destructive' })
+      toast({ title: 'Erro', description: 'Não é possível excluir: existem produtos nesta categoria', variant: 'destructive' })
       return
     }
-    toast({ title: 'Categoria excluida', variant: 'success' })
+    toast({ title: 'Categoria excluída', variant: 'success' })
     fetchCategorias()
   }
 
@@ -179,7 +179,7 @@ export default function Produtos() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Produtos</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Catalogo de produtos e precos</p>
+            <p className="text-sm text-zinc-500 mt-0.5">Catálogo de produtos e preços</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -229,7 +229,7 @@ export default function Produtos() {
             </div>
             <div>
               <p className="text-lg font-bold text-emerald-300">{margemMedia.toFixed(1)}%</p>
-              <p className="text-[11px] text-zinc-500 font-medium">Margem Media</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Margem Média</p>
             </div>
           </CardContent>
         </Card>
@@ -264,7 +264,7 @@ export default function Produtos() {
                   <TableHead className="text-right">Custo</TableHead>
                   <TableHead className="text-right">Venda</TableHead>
                   <TableHead>Status</TableHead>
-                  {canManageProducts && <TableHead className="w-24">Acoes</TableHead>}
+                  {canManageProducts && <TableHead className="w-24">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -332,8 +332,8 @@ export default function Produtos() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Descricao</Label>
-              <Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Descricao do produto" />
+              <Label>Descrição</Label>
+              <Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Descrição do produto" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -356,11 +356,11 @@ export default function Produtos() {
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
-                <Label>Preco Custo</Label>
+                <Label>Preço Custo</Label>
                 <Input type="number" step="0.01" value={form.preco_custo} onChange={(e) => setForm({ ...form, preco_custo: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label>Preco Venda</Label>
+                <Label>Preço Venda</Label>
                 <Input type="number" step="0.01" value={form.preco_venda} onChange={(e) => setForm({ ...form, preco_venda: e.target.value })} />
               </div>
               <div className="space-y-2">

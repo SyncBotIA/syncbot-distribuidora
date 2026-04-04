@@ -28,12 +28,12 @@ export default function RedefinirSenha() {
     }
 
     if (novaSenha === '123456') {
-      setError('Escolha uma senha diferente da provisoria')
+      setError('Escolha uma senha diferente da provisória')
       return
     }
 
     if (novaSenha !== confirmarSenha) {
-      setError('As senhas nao coincidem')
+      setError('As senhas não coincidem')
       return
     }
 
@@ -81,7 +81,7 @@ export default function RedefinirSenha() {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Redefinir Senha</h1>
-          <p className="text-zinc-500 mt-2 text-sm">Sua senha e provisoria e precisa ser alterada</p>
+          <p className="text-zinc-500 mt-2 text-sm">Sua senha é provisória e precisa ser alterada</p>
         </div>
 
         {/* Alert */}
@@ -90,9 +90,9 @@ export default function RedefinirSenha() {
             <AlertTriangle className="h-4 w-4 text-amber-400" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-amber-300">Senha provisoria detectada</p>
+            <p className="text-sm font-semibold text-amber-300">Senha provisória detectada</p>
             <p className="text-xs text-amber-400/60 mt-1 leading-relaxed">
-              Por seguranca, crie uma nova senha antes de acessar o sistema. A nova senha deve ser diferente de "123456".
+              Por segurança, crie uma nova senha antes de acessar o sistema. A nova senha deve ser diferente de "123456".
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function RedefinirSenha() {
                     type={showPassword ? 'text' : 'password'}
                     value={novaSenha}
                     onChange={(e) => setNovaSenha(e.target.value)}
-                    placeholder="Minimo 6 caracteres"
+                    placeholder="Mínimo 6 caracteres"
                     required
                     minLength={6}
                     className="pr-10"

@@ -89,7 +89,7 @@ export default function Estoque() {
       return
     }
 
-    toast({ title: 'Movimentacao registrada', variant: 'success' })
+    toast({ title: 'Movimentação registrada', variant: 'success' })
     setDialogOpen(false)
     fetchEstoque()
     fetchMovimentacoes()
@@ -97,12 +97,12 @@ export default function Estoque() {
 
   const filteredProdutos = produtos.filter((p) => {
     const q = search.toLowerCase()
-    return p.nome.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
+    return p.nome.toLowerCase().includes(q) || (p.sku ?? '').toLowerCase().includes(q)
   })
 
   const tipoLabel: Record<string, string> = {
     entrada: 'Entrada',
-    saida: 'Saida',
+    saida: 'Saída',
     ajuste: 'Ajuste',
     cancelamento: 'Cancelamento',
   }
@@ -128,13 +128,13 @@ export default function Estoque() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Estoque</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Controle de estoque e movimentacoes</p>
+            <p className="text-sm text-zinc-500 mt-0.5">Controle de estoque e movimentações</p>
           </div>
         </div>
         {canManageStock && (
           <Button onClick={() => { setDialogOpen(true); setFormProdutoId(''); setFormTipo('entrada'); setFormQuantidade(''); setFormObs('') }} className="gap-2 self-start">
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nova Movimentacao</span>
+            <span className="hidden sm:inline">Nova Movimentação</span>
           </Button>
         )}
       </div>
@@ -192,7 +192,7 @@ export default function Estoque() {
             tab === 'historico' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          Historico
+          Histórico
         </button>
       </div>
 
@@ -215,7 +215,7 @@ export default function Estoque() {
                     <TableHead>Produto</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead className="text-right">Estoque Atual</TableHead>
-                    <TableHead className="text-right">Minimo</TableHead>
+                    <TableHead className="text-right">Mínimo</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -262,7 +262,7 @@ export default function Estoque() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Historico de Movimentacoes</CardTitle>
+            <CardTitle className="text-base">Histórico de Movimentações</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -272,8 +272,8 @@ export default function Estoque() {
                   <TableHead>Produto</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-right">Quantidade</TableHead>
-                  <TableHead>Responsavel</TableHead>
-                  <TableHead>Observacao</TableHead>
+                  <TableHead>Responsável</TableHead>
+                  <TableHead>Observação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -296,8 +296,8 @@ export default function Estoque() {
                         <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
                           <Warehouse className="h-7 w-7 text-zinc-600" />
                         </div>
-                        <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentacao registrada</p>
-                        <p className="text-xs text-zinc-600 mt-1">Registre sua primeira movimentacao de estoque</p>
+                        <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentação registrada</p>
+                        <p className="text-xs text-zinc-600 mt-1">Registre sua primeira movimentação de estoque</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -311,7 +311,7 @@ export default function Estoque() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
-            <DialogTitle>Nova Movimentacao</DialogTitle>
+            <DialogTitle>Nova Movimentação</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -328,7 +328,7 @@ export default function Estoque() {
               <Select value={formTipo} onChange={(e) => setFormTipo(e.target.value as 'entrada' | 'saida' | 'ajuste')}>
                 <option value="">Selecione o tipo...</option>
                 <option value="entrada">Entrada (adicionar ao estoque)</option>
-                <option value="saida">Saida (retirar do estoque)</option>
+                <option value="saida">Saída (retirar do estoque)</option>
                 <option value="ajuste">Ajuste (definir quantidade total)</option>
               </Select>
             </div>
@@ -337,7 +337,7 @@ export default function Estoque() {
               <Input type="number" min="0" value={formQuantidade} onChange={(e) => setFormQuantidade(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Observacao (opcional)</Label>
+              <Label>Observação (opcional)</Label>
               <Input value={formObs} onChange={(e) => setFormObs(e.target.value)} />
             </div>
           </div>

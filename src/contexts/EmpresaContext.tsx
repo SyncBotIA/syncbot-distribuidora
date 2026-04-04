@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
 import type { Empresa, EmpresaUsuario, Hierarquia } from '@/types/database'
@@ -9,6 +9,7 @@ interface EmpresaContextType {
   hierarquiaOrdem: number | null
   empresas: Empresa[]
   loading: boolean
+  empresaSelecionada: boolean
   setEmpresaId: (id: string) => Promise<void>
   clearEmpresa: () => void
   refreshEmpresas: () => Promise<void>
@@ -34,8 +35,9 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   const [hierarquiaOrdem, setHierarquiaOrdem] = useState<number | null>(null)
   const [empresas, setEmpresas] = useState<Empresa[]>([])
   const [empresaLoading, setEmpresaLoading] = useState(true)
+  const [empresaSelecionada, setEmpresaSelecionada] = useState(false)
 
-  // Loading é true enquanto auth OU empresa estiver carregando
+  // Loading é true enquanto auth OU empresa estiver carregando (e se ainda não tem empresa)
   const loading = authLoading || empresaLoading
 
   const loadEmpresaData = useCallback(async (empresaId: string, usuarioId: string) => {
@@ -105,6 +107,10 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   }, [usuario, isMaster])
 
   // Efeito principal: restaurar empresa ao carregar
+  // Só executa uma vez por sessão para evitar re-fetch em navegações
+  const initializedRef = useRef(false)
+  const initEmpresaCalledRef = useRef(false)
+
   useEffect(() => {
     // Esperar auth terminar de carregar
     if (authLoading) return
@@ -115,12 +121,20 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       setHierarquiaOrdem(null)
       setEmpresas([])
       setEmpresaLoading(false)
+      initializedRef.current = false
       return
     }
+
+    if (initializedRef.current) return
+    initializedRef.current = true
+    initEmpresaCalledRef.current = true
 
     let cancelled = false
 
     async function init() {
+      if (initEmpresaCalledRef.current) {
+        initEmpresaCalledRef.current = false
+      }
       setEmpresaLoading(true)
 
       // 1. Tentar restaurar empresa do localStorage
@@ -160,11 +174,16 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
 
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usuario, authLoading, isMaster])
+  }, [usuario?.id, authLoading, isMaster])
 
   async function setEmpresaId(empresaId: string) {
     if (!usuario) return
-    await loadEmpresaData(empresaId, usuario.id)
+    const success = await loadEmpresaData(empresaId, usuario.id)
+    if (success) {
+      setEmpresaSelecionada(true)
+      setEmpresaLoading(false)
+    }
+    return success
   }
 
   function clearEmpresa() {
@@ -179,7 +198,7 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   const canManageStock = hierarquiaOrdem !== null && hierarquiaOrdem <= 2
 
   return (
-    <EmpresaContext value={{
+    <EmpresaContext.Provider value={{
       empresa,
       empresaUsuario,
       hierarquiaOrdem,
@@ -193,6 +212,6 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       canManageStock,
     }}>
       {children}
-    </EmpresaContext>
+    </EmpresaContext.Provider>
   )
 }

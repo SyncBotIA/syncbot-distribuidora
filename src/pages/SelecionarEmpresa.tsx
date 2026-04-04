@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
@@ -7,29 +7,27 @@ import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Link } from 'react-router-dom'
-import { Building2, Plus, LogOut, Trash2, Settings, Package, ArrowRight, Sparkles } from 'lucide-react'
+import { Building2, Plus, LogOut, Trash2, Settings, Package, ArrowRight } from 'lucide-react'
 
 export default function SelecionarEmpresa() {
   const { usuario, signOut, isMaster } = useAuth()
-  const { empresa, empresas, setEmpresaId, refreshEmpresas, loading } = useEmpresa()
+  const { empresas, setEmpresaId, refreshEmpresas, loading } = useEmpresa()
   const { toast } = useToast()
   const navigate = useNavigate()
   const [deleting, setDeleting] = useState<string | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectingId, setSelectingId] = useState<string | null>(null)
 
-  // Espera a empresa ser carregada e navega
-  const pendingId = useRef<string | null>(null)
-  useEffect(() => {
-    if (pendingId.current && empresa && empresa.id === pendingId.current && !loading) {
-      pendingId.current = null
-      navigate('/dashboard')
+  async function handleSelect(empresaId: string) {
+    if (selectingId) return
+    setSelectingId(empresaId)
+    try {
+      const success = await setEmpresaId(empresaId)
+      if (success) {
+        navigate('/dashboard')
+      }
+    } finally {
+      setSelectingId(null)
     }
-  }, [empresa, loading, navigate])
-
-  function handleSelect(empresaId: string) {
-    pendingId.current = empresaId
-    setSelectedId(empresaId)
-    setEmpresaId(empresaId)
   }
 
   async function handleDelete(empresaId: string, empresaNome: string) {
@@ -96,7 +94,7 @@ export default function SelecionarEmpresa() {
                 <p className="text-zinc-500 text-sm">
                   {isMaster
                     ? 'Nenhuma empresa cadastrada. Crie a primeira!'
-                    : 'Voce ainda nao pertence a nenhuma empresa.'}
+                    : 'Você ainda não pertence a nenhuma empresa.'}
                 </p>
               </div>
             )}

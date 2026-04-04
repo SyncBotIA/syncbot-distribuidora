@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase, createIsolatedClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
@@ -15,13 +15,22 @@ import { Badge } from '@/components/ui/badge'
 import { UserPlus, Trash2, Users, Search, ShieldCheck, Pencil } from 'lucide-react'
 import type { EmpresaUsuario, Hierarquia } from '@/types/database'
 
+const cachedUsuarios = { data: null as EmpresaUsuario[] | null, hierarquias: null as Hierarquia[] | null, empresaId: null as string | null }
+
 export default function Usuarios() {
   const { usuario, isMaster } = useAuth()
   const { empresa, empresaUsuario, hierarquiaOrdem, isAdmin } = useEmpresa()
   const { toast } = useToast()
-  const [usuarios, setUsuarios] = useState<EmpresaUsuario[]>([])
-  const [hierarquias, setHierarquias] = useState<Hierarquia[]>([])
-  const [loading, setLoading] = useState(true)
+  const initializedRef = useRef(false)
+  const [usuarios, setUsuarios] = useState<EmpresaUsuario[]>(() => {
+    if (cachedUsuarios.empresaId && cachedUsuarios.data) return cachedUsuarios.data
+    return []
+  })
+  const [hierarquias, setHierarquias] = useState<Hierarquia[]>(() => {
+    if (cachedUsuarios.empresaId && cachedUsuarios.hierarquias) return cachedUsuarios.hierarquias
+    return []
+  })
+  const [loading, setLoading] = useState(() => !cachedUsuarios.empresaId)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [search, setSearch] = useState('')
 
@@ -42,11 +51,22 @@ export default function Usuarios() {
   const [editSuperiorId, setEditSuperiorId] = useState('')
   const [editSaving, setEditSaving] = useState(false)
 
+  const empresaIdRef = useRef<string | null>(null)
+
   useEffect(() => {
-    if (empresa) {
+    if (empresa && empresa.id !== empresaIdRef.current) {
+      empresaIdRef.current = empresa.id
+      initializedRef.current = true
+      if (cachedUsuarios.empresaId === empresa.id && cachedUsuarios.data) {
+        setUsuarios(cachedUsuarios.data)
+        if (cachedUsuarios.hierarquias) setHierarquias(cachedUsuarios.hierarquias)
+        setLoading(false)
+        return
+      }
       fetchUsuarios()
       fetchHierarquias()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [empresa])
 
   async function fetchUsuarios() {
@@ -66,6 +86,8 @@ export default function Usuarios() {
       result = result.filter((eu) => subIds.has(eu.id))
     }
 
+    cachedUsuarios.data = result
+    cachedUsuarios.empresaId = empresa!.id
     setUsuarios(result)
     setLoading(false)
   }
@@ -78,6 +100,7 @@ export default function Usuarios() {
       .eq('ativo', true)
       .order('ordem')
 
+    cachedUsuarios.hierarquias = data ?? []
     setHierarquias(data ?? [])
   }
 
@@ -98,21 +121,8 @@ export default function Usuarios() {
 
     setSaving(true)
     try {
-      // 1. Criar usuario no Supabase Auth usando client isolado
-      const isolated = createIsolatedClient()
-      const { data: authData, error: authError } = await isolated.auth.signUp({
-        email: formEmail.toLowerCase(),
-        password: '123456',
-        options: {
-          data: { nome: formNome },
-        },
-      })
-
-      if (authError) throw authError
-      if (!authData.user) throw new Error('Erro ao criar usuario')
-
-      // 2. Vincular na tabela usuarios e empresa_usuarios
-      const { error } = await supabase.rpc('convidar_usuario', {
+      // 1. Tentar RPC que cria tudo de uma vez (sem rate limit)
+      let result = await supabase.rpc('criar_usuario_interno', {
         p_empresa_id: empresa.id,
         p_nome: formNome,
         p_email: formEmail.toLowerCase(),
@@ -122,9 +132,54 @@ export default function Usuarios() {
         p_superior_id: formSuperiorId || null,
       })
 
-      if (error) throw error
+      if (!result.error && result.data) {
+        toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisória: 123456`, variant: 'success' })
+        setDialogOpen(false)
+        fetchUsuarios()
+        return
+      }
 
-      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisoria: 123456`, variant: 'success' })
+      // Fallback: metodo antigo com signUp + wait
+      const isolated = createIsolatedClient()
+      const { data: authData, error: authError } = await isolated.auth.signUp({
+        email: formEmail.toLowerCase(),
+        password: '123456',
+        options: { data: { nome: formNome } },
+      })
+
+      if (authError) throw authError
+      if (!authData?.user) throw new Error('Erro ao criar usuario')
+
+      // Aguardar commit do auth
+      await new Promise(r => setTimeout(r, 1500))
+
+      // Tentar RPC com auth_id direto
+      result = await supabase.rpc('convidar_usuario_com_auth_id', {
+        p_empresa_id: empresa.id,
+        p_nome: formNome,
+        p_email: formEmail.toLowerCase(),
+        p_telefone: formTelefone || null,
+        p_hierarquia_id: formHierarquiaId,
+        p_superior_id: formSuperiorId || null,
+        p_auth_id: authData.user.id,
+      })
+
+      if (result.error) {
+        // Ultimo fallback: RPC antigo
+        result = await supabase.rpc('convidar_usuario', {
+          p_empresa_id: empresa.id,
+          p_nome: formNome,
+          p_email: formEmail.toLowerCase(),
+          p_senha: '123456',
+          p_telefone: formTelefone || null,
+          p_hierarquia_id: formHierarquiaId,
+          p_superior_id: formSuperiorId || null,
+        })
+      }
+
+      if (result.error) throw result.error
+
+      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail} / Senha provisória: 123456`, variant: 'success' })
       setDialogOpen(false)
       fetchUsuarios()
     } catch (err: unknown) {
@@ -251,8 +306,8 @@ export default function Usuarios() {
             <Users className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Usuarios</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Equipe e permissoes de acesso</p>
+            <h1 className="text-2xl font-bold text-white">Usuários</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">Equipe e permissões de acesso</p>
           </div>
         </div>
         {availableHierarquias.length > 0 && (
@@ -273,21 +328,21 @@ export default function Usuarios() {
           <Users className="h-5 w-5 text-cyan-400" />
           <div>
             <p className="text-lg font-bold text-cyan-300">{totalAtivos}</p>
-            <p className="text-[11px] text-cyan-400/70 font-medium">Usuarios Ativos</p>
+            <p className="text-[11px] text-cyan-400/70 font-medium">Usuários Ativos</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
           <ShieldCheck className="h-5 w-5 text-blue-400" />
           <div>
             <p className="text-lg font-bold text-blue-300">{hierarquias.length}</p>
-            <p className="text-[11px] text-blue-400/70 font-medium">Niveis de Hierarquia</p>
+            <p className="text-[11px] text-blue-400/70 font-medium">Níveis de Hierarquia</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20 hidden sm:flex">
           <UserPlus className="h-5 w-5 text-violet-400" />
           <div>
             <p className="text-lg font-bold text-violet-300">{availableHierarquias.length}</p>
-            <p className="text-[11px] text-violet-400/70 font-medium">Cargos Disponiveis</p>
+            <p className="text-[11px] text-violet-400/70 font-medium">Cargos Disponíveis</p>
           </div>
         </div>
       </div>
@@ -310,68 +365,121 @@ export default function Usuarios() {
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Hierarquia</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-16">Acoes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Telefone</TableHead>
+                      <TableHead>Hierarquia</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-16">Acoes</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((eu) => {
+                      const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+                      const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+                      return (
+                        <TableRow key={eu.id}>
+                          <TableCell className="font-medium">{u?.nome ?? '—'}</TableCell>
+                          <TableCell>{u?.email ?? '—'}</TableCell>
+                          <TableCell>{u?.telefone ?? '—'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{h?.nome ?? '—'}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={eu.ativo ? 'success' : 'secondary'}>
+                              {eu.ativo ? 'Ativo' : 'Inativo'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {canEdit(eu) && (
+                                <Button variant="ghost" size="icon" onClick={() => openEditDialog(eu)} title="Editar">
+                                  <Pencil className="h-4 w-4 text-blue-400" />
+                                </Button>
+                              )}
+                              {canDelete(eu) && (
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(eu)} title="Remover">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                    {filtered.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <div className="flex flex-col items-center justify-center py-10">
+                            <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
+                              <Users className="h-6 w-6 text-muted-foreground/50" />
+                            </div>
+                            <p className="text-sm font-medium text-muted-foreground">Nenhum usuário encontrado</p>
+                            <p className="text-xs text-muted-foreground/60 mt-1">
+                              {search ? 'Tente ajustar sua busca' : 'Convide membros para a equipe'}
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-2">
                 {filtered.map((eu) => {
                   const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
                   const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
                   return (
-                    <TableRow key={eu.id}>
-                      <TableCell className="font-medium">{u?.nome ?? '—'}</TableCell>
-                      <TableCell>{u?.email ?? '—'}</TableCell>
-                      <TableCell>{u?.telefone ?? '—'}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{h?.nome ?? '—'}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={eu.ativo ? 'success' : 'secondary'}>
-                          {eu.ativo ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
+                    <div key={eu.id} className="rounded-xl border border-white/[0.06] p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-white text-sm truncate">{u?.nome ?? '—'}</p>
+                          <p className="text-xs text-zinc-500 truncate mt-0.5">{u?.email ?? '—'}</p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
                           {canEdit(eu) && (
-                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(eu)} title="Editar">
+                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(eu)}>
                               <Pencil className="h-4 w-4 text-blue-400" />
                             </Button>
                           )}
                           {canDelete(eu) && (
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(eu)} title="Remover">
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(eu)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           )}
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {h && <Badge variant="outline">{h.nome}</Badge>}
+                        <Badge variant={eu.ativo ? 'success' : 'secondary'}>{eu.ativo ? 'Ativo' : 'Inativo'}</Badge>
+                      </div>
+                      {u?.telefone && (
+                        <p className="text-xs text-zinc-500 font-mono">{u.telefone}</p>
+                      )}
+                    </div>
                   )
                 })}
                 {filtered.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6}>
-                      <div className="flex flex-col items-center justify-center py-10">
-                        <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
-                          <Users className="h-6 w-6 text-muted-foreground/50" />
-                        </div>
-                        <p className="text-sm font-medium text-muted-foreground">Nenhum usuario encontrado</p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">
-                          {search ? 'Tente ajustar sua busca' : 'Convide membros para a equipe'}
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <div className="flex flex-col items-center justify-center py-10">
+                    <div className="h-12 w-12 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-3">
+                      <Users className="h-6 w-6 text-zinc-600" />
+                    </div>
+                    <p className="text-sm font-medium text-zinc-400">Nenhum usuário encontrado</p>
+                    <p className="text-xs text-zinc-600 mt-1">
+                      {search ? 'Tente ajustar sua busca' : 'Convide membros para a equipe'}
+                    </p>
+                  </div>
                 )}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -379,7 +487,7 @@ export default function Usuarios() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
-            <DialogTitle>Convidar Usuario</DialogTitle>
+            <DialogTitle>Convidar Usuário</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -391,8 +499,8 @@ export default function Usuarios() {
               <Input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="email@exemplo.com" />
             </div>
             <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
-              <p className="text-xs text-blue-400">Senha provisoria: <span className="font-mono font-bold">123456</span></p>
-              <p className="text-[11px] text-blue-400/60 mt-0.5">O usuario sera obrigado a redefinir no primeiro login</p>
+              <p className="text-xs text-blue-400">Senha provisória: <span className="font-mono font-bold">123456</span></p>
+              <p className="text-[11px] text-blue-400/60 mt-0.5">O usuário será obrigado a redefinir no primeiro login</p>
             </div>
             <div className="space-y-2">
               <Label>Telefone (opcional)</Label>
@@ -420,7 +528,7 @@ export default function Usuarios() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formHierarquiaId || saving}>
-              {saving ? 'Criando...' : 'Criar Usuario'}
+              {saving ? 'Criando...' : 'Criar Usuário'}
             </Button>
           </DialogFooter>
         </DialogContent>

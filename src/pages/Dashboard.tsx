@@ -40,7 +40,7 @@ function getStartDate(periodo: Periodo): Date {
 const periodoLabels: Record<Periodo, string> = {
   dia: 'Hoje',
   semana: 'Esta Semana',
-  mes: 'Este Mes',
+  mes: 'Este Mês',
   ano: 'Este Ano',
 }
 
@@ -115,7 +115,7 @@ export default function Dashboard() {
     const { data: topItems } = await supabase
       .from('pedido_itens')
       .select('produto_id, quantidade, produtos(nome, empresa_id)')
-      .filter('produto_id', 'in', `(${(prods ?? []).map(p => p.id).join(',')})`)
+      .in('produto_id', (prods ?? []).map(p => p.id))
 
     const prodMap = new Map<string, { nome: string; quantidade: number }>()
     for (const item of topItems ?? []) {
@@ -252,7 +252,7 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard</h1>
-          <p className="text-sm text-zinc-500 mt-1">Visao geral do seu negocio</p>
+          <p className="text-sm text-zinc-500 mt-1">Visão geral do seu negócio</p>
         </div>
         <Select
           value={periodo}
@@ -261,7 +261,7 @@ export default function Dashboard() {
         >
           <option value="dia">Hoje</option>
           <option value="semana">Esta Semana</option>
-          <option value="mes">Este Mes</option>
+          <option value="mes">Este Mês</option>
           <option value="ano">Este Ano</option>
         </Select>
       </div>
@@ -293,7 +293,7 @@ export default function Dashboard() {
               <div className="p-1.5 rounded-lg bg-blue-500/10">
                 <TrendingUp className="h-4 w-4 text-blue-400" />
               </div>
-              Pedidos por Periodo
+              Pedidos por Período
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -328,8 +328,8 @@ export default function Dashboard() {
                 <div className="p-4 rounded-2xl bg-white/[0.03] mb-3">
                   <TrendingUp className="h-8 w-8 opacity-20" />
                 </div>
-                <p className="text-sm font-medium">Nenhum dado disponivel</p>
-                <p className="text-xs text-zinc-600 mt-1">Os dados aparecerao quando houver pedidos</p>
+                <p className="text-sm font-medium">Nenhum dado disponível</p>
+                <p className="text-xs text-zinc-600 mt-1">Os dados aparecerão quando houver pedidos</p>
               </div>
             )}
           </CardContent>
@@ -444,7 +444,7 @@ export default function Dashboard() {
               <div className="p-1.5 rounded-lg bg-red-500/10">
                 <AlertTriangle className="h-4 w-4 text-red-400" />
               </div>
-              Estoque Critico
+              Estoque Crítico
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -32,7 +32,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
           <div>
             <h1 className="text-sm font-bold text-white leading-tight tracking-tight">{empresa?.nome}</h1>
-            <p className="text-[10px] text-zinc-500 leading-tight hidden sm:block font-medium">Painel de Gestao</p>
+            <p className="text-[10px] text-zinc-500 leading-tight hidden sm:block font-medium">Painel de Gestão</p>
           </div>
         </div>
       </div>

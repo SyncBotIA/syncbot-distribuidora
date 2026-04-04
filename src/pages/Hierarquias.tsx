@@ -90,16 +90,16 @@ export default function Hierarquias() {
 
     if (error) {
       toast({
-        title: 'Nao e possivel excluir',
+        title: 'Não é possível excluir',
         description: error.message.includes('violates foreign key')
-          ? 'Existem usuarios vinculados a esta hierarquia.'
+          ? 'Existem usuários vinculados a esta hierarquia.'
           : error.message,
         variant: 'destructive',
       })
       return
     }
 
-    toast({ title: 'Hierarquia excluida', variant: 'success' })
+    toast({ title: 'Hierarquia excluída', variant: 'success' })
     fetchHierarquias()
   }
 
@@ -145,7 +145,7 @@ export default function Hierarquias() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Hierarquias</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Estrutura organizacional e niveis de acesso</p>
+            <p className="text-sm text-zinc-500 mt-0.5">Estrutura organizacional e níveis de acesso</p>
           </div>
         </div>
         <Button onClick={openCreate} className="gap-2 self-start">
@@ -163,7 +163,7 @@ export default function Hierarquias() {
             </div>
             <div>
               <p className="text-lg font-bold text-indigo-300">{hierarquias.length}</p>
-              <p className="text-[11px] text-zinc-500 font-medium">Niveis Cadastrados</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Níveis Cadastrados</p>
             </div>
           </CardContent>
         </Card>
@@ -174,7 +174,7 @@ export default function Hierarquias() {
             </div>
             <div>
               <p className="text-lg font-bold text-emerald-300">{hierarquias.filter(h => h.ativo).length}</p>
-              <p className="text-[11px] text-zinc-500 font-medium">Niveis Ativos</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Níveis Ativos</p>
             </div>
           </CardContent>
         </Card>
@@ -192,9 +192,9 @@ export default function Hierarquias() {
                 <TableRow>
                   <TableHead className="w-16">Ordem</TableHead>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Descricao</TableHead>
+                  <TableHead>Descrição</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-40">Acoes</TableHead>
+                  <TableHead className="w-40">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -247,8 +247,8 @@ export default function Hierarquias() {
               <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Gerente" />
             </div>
             <div className="space-y-2">
-              <Label>Descricao (opcional)</Label>
-              <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descricao do nivel" />
+              <Label>Descrição (opcional)</Label>
+              <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descrição do nível" />
             </div>
           </div>
           <DialogFooter>

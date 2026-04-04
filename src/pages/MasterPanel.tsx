@@ -30,7 +30,7 @@ export default function MasterPanel() {
   const navigate = useNavigate()
   const [empresas, setEmpresas] = useState<EmpresaResumo[]>([])
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaResumo | null>(null)
-  const [usuarios, setUsuarios] = useState<UsuarioEmpresa[]>([])
+  const [usuarios, setUsuários] = useState<UsuarioEmpresa[]>([])
   const [hierarquias, setHierarquias] = useState<{ id: string; nome: string; ordem: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -67,7 +67,7 @@ export default function MasterPanel() {
     fetchEmpresas()
   }, [isMaster, navigate, fetchEmpresas])
 
-  async function fetchUsuariosEmpresa(empresaId: string) {
+  async function fetchUsuáriosEmpresa(empresaId: string) {
     const { data } = await supabase
       .from('empresa_usuarios')
       .select('id, usuario_id, ativo, usuarios(id, nome, email), hierarquias(id, nome, ordem)')
@@ -75,7 +75,7 @@ export default function MasterPanel() {
       .order('created_at')
 
     if (data) {
-      setUsuarios(data as unknown as UsuarioEmpresa[])
+      setUsuários(data as unknown as UsuarioEmpresa[])
     }
 
     const { data: hierData } = await supabase
@@ -94,7 +94,7 @@ export default function MasterPanel() {
     setShowAddForm(false)
     setError('')
     setSuccess('')
-    fetchUsuariosEmpresa(emp.id)
+    fetchUsuáriosEmpresa(emp.id)
   }
 
   async function handleAddUsuario(e: React.FormEvent) {
@@ -109,21 +109,8 @@ export default function MasterPanel() {
     const emailUsuario = email.trim().toLowerCase()
 
     try {
-      // 1. Criar usuario no Supabase Auth usando client isolado (nao afeta sessao do master)
-      const isolated = createIsolatedClient()
-      const { data: authData, error: authError } = await isolated.auth.signUp({
-        email: emailUsuario,
-        password: '123456',
-        options: {
-          data: { nome: nomeUsuario },
-        },
-      })
-
-      if (authError) throw authError
-      if (!authData.user) throw new Error('Erro ao criar usuario')
-
-      // 2. Criar registro na tabela usuarios e vincular a empresa
-      const { error: rpcError } = await supabase.rpc('convidar_usuario', {
+      // Tenta RPC que cria tudo de uma vez (sem rate limit de email)
+      let result = await supabase.rpc('criar_usuario_interno', {
         p_empresa_id: selectedEmpresa.id,
         p_nome: nomeUsuario,
         p_email: emailUsuario,
@@ -131,16 +118,47 @@ export default function MasterPanel() {
         p_hierarquia_id: selectedHierarquiaId,
       })
 
-      if (rpcError) throw rpcError
+      // Fallback: usar metodo antigo com signUp
+      if (result.error) {
+        const isolated = createIsolatedClient()
+        const { data: authData, error: authError } = await isolated.auth.signUp({
+          email: emailUsuario,
+          password: '123456',
+          options: { data: { nome: nomeUsuario } },
+        })
 
-      setSuccess(`Usuario criado! Email: ${emailUsuario} / Senha provisoria: 123456`)
+        if (authError) throw authError
+        if (!authData?.user) throw new Error('Erro ao criar usuário')
+
+        result = await supabase.rpc('convidar_usuario_com_auth_id', {
+          p_empresa_id: selectedEmpresa.id,
+          p_nome: nomeUsuario,
+          p_email: emailUsuario,
+          p_hierarquia_id: selectedHierarquiaId,
+          p_auth_id: authData.user.id,
+        })
+
+        if (result.error) {
+          result = await supabase.rpc('convidar_usuario', {
+            p_empresa_id: selectedEmpresa.id,
+            p_nome: nomeUsuario,
+            p_email: emailUsuario,
+            p_senha: '123456',
+            p_hierarquia_id: selectedHierarquiaId,
+          })
+        }
+      }
+
+      if (result.error) throw result.error
+
+      setSuccess(`Usuário criado! Email: ${emailUsuario} / Senha provisória: 123456`)
       setNome('')
       setEmail('')
       setShowAddForm(false)
-      fetchUsuariosEmpresa(selectedEmpresa.id)
+      fetchUsuáriosEmpresa(selectedEmpresa.id)
       fetchEmpresas()
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao adicionar usuario'
+      const message = err instanceof Error ? err.message : 'Erro ao adicionar usuário'
       setError(message)
     } finally {
       setSaving(false)
@@ -185,7 +203,7 @@ export default function MasterPanel() {
       }
 
       cancelEdit()
-      if (selectedEmpresa) fetchUsuariosEmpresa(selectedEmpresa.id)
+      if (selectedEmpresa) fetchUsuáriosEmpresa(selectedEmpresa.id)
     } catch {
       setError('Erro ao salvar alteracoes')
     } finally {
@@ -204,7 +222,7 @@ export default function MasterPanel() {
       })
       if (error) throw error
       if (selectedEmpresa) {
-        fetchUsuariosEmpresa(selectedEmpresa.id)
+        fetchUsuáriosEmpresa(selectedEmpresa.id)
         fetchEmpresas()
       }
     } catch (err: unknown) {
@@ -241,7 +259,7 @@ export default function MasterPanel() {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-white">Painel Master</h1>
-              <p className="text-zinc-500 text-sm mt-0.5">Gerencie empresas e seus usuarios</p>
+              <p className="text-zinc-500 text-sm mt-0.5">Gerencie empresas e seus usuários</p>
             </div>
           </div>
           <Badge variant="secondary" className="text-sm px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20">
@@ -332,7 +350,7 @@ export default function MasterPanel() {
                       size="sm"
                     >
                       <UserPlus className="h-4 w-4" />
-                      Adicionar Usuario
+                      Adicionar Usuário
                     </Button>
                   </div>
                 </CardHeader>
@@ -341,7 +359,7 @@ export default function MasterPanel() {
                   {showAddForm && (
                     <div className="border border-white/[0.08] rounded-xl p-4 bg-white/[0.02] space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-zinc-200 text-sm">Adicionar Usuario</h3>
+                        <h3 className="font-medium text-zinc-200 text-sm">Adicionar Usuário</h3>
                         <button onClick={() => setShowAddForm(false)} className="cursor-pointer text-zinc-500 hover:text-zinc-300 transition-colors">
                           <X className="h-4 w-4" />
                         </button>
@@ -383,8 +401,8 @@ export default function MasterPanel() {
                           </select>
                         </div>
                         <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
-                          <p className="text-xs text-blue-400">Senha provisoria: <span className="font-mono font-bold">123456</span></p>
-                          <p className="text-[11px] text-blue-400/60 mt-0.5">O usuario sera obrigado a redefinir no primeiro login</p>
+                          <p className="text-xs text-blue-400">Senha provisória: <span className="font-mono font-bold">123456</span></p>
+                          <p className="text-[11px] text-blue-400/60 mt-0.5">O usuário será obrigado a redefinir no primeiro login</p>
                         </div>
 
                         {error && (
@@ -400,7 +418,7 @@ export default function MasterPanel() {
 
                         <div className="flex gap-2">
                           <Button type="submit" disabled={saving || !selectedHierarquiaId} size="sm">
-                            {saving ? 'Criando...' : 'Criar Usuario'}
+                            {saving ? 'Criando...' : 'Criar Usuário'}
                           </Button>
                           <Button type="button" variant="outline" size="sm" onClick={() => setShowAddForm(false)} className="border-white/[0.08] text-zinc-300 hover:bg-white/[0.04] hover:text-white">
                             Cancelar
@@ -414,7 +432,7 @@ export default function MasterPanel() {
                   <div>
                     <h3 className="font-medium text-sm mb-3 flex items-center gap-2 text-zinc-300">
                       <Users className="h-4 w-4 text-blue-400" />
-                      Usuarios ({usuarios.length})
+                      Usuários ({usuarios.length})
                     </h3>
 
                     {usuarios.length === 0 ? (
@@ -423,7 +441,7 @@ export default function MasterPanel() {
                           <Users className="h-5 w-5 text-zinc-600" />
                         </div>
                         <p className="text-sm text-zinc-500 text-center">
-                          Nenhum usuario vinculado
+                          Nenhum usuário vinculado
                         </p>
                       </div>
                     ) : (

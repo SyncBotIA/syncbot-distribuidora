@@ -122,8 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const needsPasswordReset = usuario?.senha_provisoria ?? false
 
   return (
-    <AuthContext value={{ user, usuario, session, loading, isMaster, needsPasswordReset, signIn, signUp, signOut, clearPasswordReset }}>
+    <AuthContext.Provider value={{ user, usuario, session, loading, isMaster, needsPasswordReset, signIn, signUp, signOut, clearPasswordReset }}>
       {children}
-    </AuthContext>
+    </AuthContext.Provider>
   )
 }

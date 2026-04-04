@@ -25,18 +25,24 @@ export default function Configuracoes() {
       return
     }
     if (novaSenha !== confirmarSenha) {
-      toast({ title: 'Erro', description: 'As senhas nao coincidem', variant: 'destructive' })
+      toast({ title: 'Erro', description: 'As senhas não coincidem', variant: 'destructive' })
       return
     }
 
     setLoading(true)
     try {
-      const { error } = await supabase.rpc('alterar_senha', {
-        p_auth_id: user!.id,
-        p_nova_senha: novaSenha,
+      const { error: authError } = await supabase.auth.updateUser({
+        password: novaSenha,
       })
+      if (authError) throw authError
 
-      if (error) throw error
+      // Reset provisional flag if it was set
+      if (usuario) {
+        await supabase
+          .from('usuarios')
+          .update({ senha_provisoria: false })
+          .eq('id', usuario.id)
+      }
 
       toast({ title: 'Senha alterada com sucesso', variant: 'success' })
       setNovaSenha('')
@@ -78,8 +84,8 @@ export default function Configuracoes() {
           <Settings className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Configuracoes</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Gerencie seu perfil e seguranca</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Configurações</h1>
+          <p className="text-sm text-zinc-500 mt-0.5">Gerencie seu perfil e segurança</p>
         </div>
       </div>
 
@@ -92,7 +98,7 @@ export default function Configuracoes() {
             </div>
             Meu Perfil
           </CardTitle>
-          <CardDescription>Atualize suas informacoes pessoais</CardDescription>
+          <CardDescription>Atualize suas informações pessoais</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -147,7 +153,7 @@ export default function Configuracoes() {
                 type="password"
                 value={novaSenha}
                 onChange={(e) => setNovaSenha(e.target.value)}
-                placeholder="Minimo 6 caracteres"
+                placeholder="Mínimo 6 caracteres"
                 required
               />
             </div>

@@ -131,11 +131,12 @@ export default function Pedidos() {
   function addItem() {
     const prod = produtos.find((p) => p.id === addProdutoId)
     if (!prod) return
+    const qtd = parseInt(addQtd) || 1
     const exists = itens.find((i) => i.produto_id === prod.id)
     if (exists) {
-      setItens(itens.map((i) => i.produto_id === prod.id ? { ...i, quantidade: i.quantidade + parseInt(addQtd) } : i))
+      setItens(itens.map((i) => i.produto_id === prod.id ? { ...i, quantidade: i.quantidade + qtd } : i))
     } else {
-      setItens([...itens, { produto_id: prod.id, produto_nome: prod.nome, quantidade: parseInt(addQtd) || 1, preco_unitario: prod.preco_venda }])
+      setItens([...itens, { produto_id: prod.id, produto_nome: prod.nome, quantidade: qtd, preco_unitario: prod.preco_venda }])
     }
     setAddProdutoId('')
     setAddQtd('1')
@@ -209,7 +210,7 @@ export default function Pedidos() {
           .eq('pedido_id', pedido.id)
 
         for (const item of items ?? []) {
-          await supabase.from('estoque_movimentacoes').insert({
+          const { error: movError } = await supabase.from('estoque_movimentacoes').insert({
             produto_id: item.produto_id,
             empresa_id: empresa!.id,
             tipo: 'saida',
@@ -218,6 +219,7 @@ export default function Pedidos() {
             usuario_id: usuario!.id,
             observacao: 'Pedido confirmado',
           })
+          if (movError) throw movError
         }
       } else if (newStatus === 'cancelado' && pedido.status === 'confirmado') {
         const { data: items } = await supabase
@@ -226,7 +228,7 @@ export default function Pedidos() {
           .eq('pedido_id', pedido.id)
 
         for (const item of items ?? []) {
-          await supabase.from('estoque_movimentacoes').insert({
+          const { error: movError } = await supabase.from('estoque_movimentacoes').insert({
             produto_id: item.produto_id,
             empresa_id: empresa!.id,
             tipo: 'cancelamento',
@@ -235,6 +237,7 @@ export default function Pedidos() {
             usuario_id: usuario!.id,
             observacao: 'Pedido cancelado - estoque revertido',
           })
+          if (movError) throw movError
         }
       }
 
@@ -383,7 +386,7 @@ export default function Pedidos() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Valor Total</TableHead>
-                  <TableHead>Acoes</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -419,7 +422,7 @@ export default function Pedidos() {
                             </Button>
                           )}
                           {canCancel(p) && p.status !== 'cancelado' && p.status !== 'entregue' && (
-                            <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'cancelado')} title="Cancelar">
+                            <Button variant="ghost" size="icon" onClick={() => { if (confirm('Cancelar este pedido?')) handleStatusChange(p, 'cancelado') }} title="Cancelar">
                               <XCircle className="h-4 w-4 text-destructive" />
                             </Button>
                           )}
@@ -468,7 +471,7 @@ export default function Pedidos() {
                     )
                   })}
                 </Select>
-                <p className="text-[10px] text-zinc-500">Voce pode lancar o pedido no nome de um subordinado</p>
+                <p className="text-[10px] text-zinc-500">Você pode lancar o pedido no nome de um subordinado</p>
               </div>
             )}
 
@@ -500,7 +503,7 @@ export default function Pedidos() {
                     <TableRow>
                       <TableHead>Produto</TableHead>
                       <TableHead className="text-right">Qtd</TableHead>
-                      <TableHead className="text-right">Preco Un.</TableHead>
+                      <TableHead className="text-right">Preço Un.</TableHead>
                       <TableHead className="text-right">Subtotal</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
@@ -530,7 +533,7 @@ export default function Pedidos() {
             )}
 
             <div className="space-y-2">
-              <Label>Observacao (opcional)</Label>
+              <Label>Observação (opcional)</Label>
               <Input value={formObs} onChange={(e) => setFormObs(e.target.value)} />
             </div>
           </div>
@@ -576,7 +579,7 @@ export default function Pedidos() {
                   <TableRow>
                     <TableHead>Produto</TableHead>
                     <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead className="text-right">Preco Un.</TableHead>
+                    <TableHead className="text-right">Preço Un.</TableHead>
                     <TableHead className="text-right">Subtotal</TableHead>
                   </TableRow>
                 </TableHeader>

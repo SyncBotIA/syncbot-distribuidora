@@ -76,7 +76,7 @@ export default function Login() {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Distribuidora</h1>
-          <p className="text-zinc-500 mt-2 text-sm">Sistema de Gestao Empresarial</p>
+          <p className="text-zinc-500 mt-2 text-sm">Sistema de Gestão Empresarial</p>
         </div>
 
         <Card className="shadow-2xl shadow-black/50 border-white/[0.06] backdrop-blur-xl">
@@ -87,7 +87,7 @@ export default function Login() {
             </div>
 
             <h2 className="text-lg font-bold text-center mb-6 text-white">
-              {isLogin ? 'Bem-vindo de volta' : 'Criar nova conta'}
+              {isLogin ? 'Acessar sistema' : 'Criar nova conta'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -185,7 +185,7 @@ export default function Login() {
         </Card>
 
         <p className="text-center text-[10px] text-zinc-600 mt-6">
-          Distribuidora v1.0 — Sistema de Gestao
+          Distribuidora v1.0 — Sistema de Gestão
         </p>
       </div>
     </div>

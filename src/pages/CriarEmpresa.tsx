@@ -41,7 +41,7 @@ export default function CriarEmpresa() {
     try {
       const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
       if (!res.ok) {
-        toast({ title: 'CNPJ nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
+        toast({ title: 'CNPJ não encontrado', description: 'Verifique o número e tente novamente', variant: 'destructive' })
         setBuscandoCnpj(false)
         return
       }
@@ -98,7 +98,7 @@ export default function CriarEmpresa() {
 
         if (rpcError) throw rpcError
 
-        setSuccess(`Empresa criada! Gerente: ${gerenteEmail} / Senha provisoria: 123456`)
+        setSuccess(`Empresa criada! Gerente: ${gerenteEmail} / Senha provisória: 123456`)
         await refreshEmpresas()
         setTimeout(() => {
           setEmpresaId(empresaId)
@@ -120,9 +120,9 @@ export default function CriarEmpresa() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao criar empresa'
       if (message.includes('CNPJ')) {
-        setError('Ja existe uma empresa cadastrada com este CNPJ.')
+        setError('Já existe uma empresa cadastrada com este CNPJ.')
       } else if (message.includes('email')) {
-        setError('Ja existe um usuario com este email.')
+        setError('Já existe um usuário com este email.')
       } else {
         setError(message)
       }
@@ -215,8 +215,8 @@ export default function CriarEmpresa() {
                   />
                 </div>
                 <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
-                  <p className="text-xs text-blue-400">Senha provisoria: <span className="font-mono font-bold">123456</span></p>
-                  <p className="text-[11px] text-blue-400/60 mt-0.5">O gerente sera obrigado a redefinir no primeiro login</p>
+                  <p className="text-xs text-blue-400">Senha provisória: <span className="font-mono font-bold">123456</span></p>
+                  <p className="text-[11px] text-blue-400/60 mt-0.5">O gerente será obrigado a redefinir no primeiro login</p>
                 </div>
               </>
             )}
