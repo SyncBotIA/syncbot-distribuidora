@@ -154,7 +154,6 @@ export default function Clientes() {
     const formatted = formatCnpj(value)
     setForm({ ...form, cnpj: formatted })
 
-    // Auto-buscar quando completar 14 digitos
     const digits = value.replace(/\D/g, '')
     if (digits.length === 14) {
       buscarCnpj(digits)
@@ -259,58 +258,70 @@ export default function Clientes() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/20">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/20">
             <UserCheck className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Gerencie sua base de clientes</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Clientes</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">Gerencie sua base de clientes</p>
           </div>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="h-4 w-4" />
-          Novo Cliente
+          <span className="hidden sm:inline">Novo Cliente</span>
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
-          <UserCheck className="h-5 w-5 text-blue-400" />
-          <div>
-            <p className="text-lg font-bold text-blue-300">{clientes.length}</p>
-            <p className="text-[11px] text-blue-400/70 font-medium">Total de Clientes</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
-          <MapPin className="h-5 w-5 text-violet-400" />
-          <div>
-            <p className="text-lg font-bold text-violet-300">{totalCidades}</p>
-            <p className="text-[11px] text-violet-400/70 font-medium">Cidades</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hidden sm:flex">
-          <Building className="h-5 w-5 text-emerald-400" />
-          <div>
-            <p className="text-lg font-bold text-emerald-300">{clientes.filter(c => c.cnpj).length}</p>
-            <p className="text-[11px] text-emerald-400/70 font-medium">Com CNPJ</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 stagger-children">
+        <Card className="border-cyan-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-cyan-500/10">
+              <UserCheck className="h-5 w-5 text-cyan-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-cyan-300">{clientes.length}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Total de Clientes</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-violet-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-violet-500/10">
+              <MapPin className="h-5 w-5 text-violet-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-violet-300">{totalCidades}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Cidades</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-emerald-500/10 hidden sm:block">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-emerald-500/10">
+              <Building className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-emerald-300">{clientes.filter(c => c.cnpj).length}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Com CNPJ</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar por nome, CNPJ, telefone ou cidade..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+        <Input placeholder="Buscar por nome, CNPJ, telefone ou cidade..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
       </div>
 
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Carregando clientes...</p>
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                <p className="text-sm text-zinc-500 font-medium">Carregando clientes...</p>
               </div>
             </div>
           ) : (
@@ -331,18 +342,18 @@ export default function Clientes() {
                   const vendedorNome = (c as Record<string, unknown>).usuarios as { nome: string } | null
                   return (
                     <TableRow key={c.id}>
-                      <TableCell className="font-medium">{c.nome}</TableCell>
-                      <TableCell className="font-mono text-xs">{formatCnpjDisplay(c.cnpj)}</TableCell>
+                      <TableCell className="font-semibold">{c.nome}</TableCell>
+                      <TableCell className="font-mono text-xs text-zinc-400">{formatCnpjDisplay(c.cnpj)}</TableCell>
                       <TableCell>
                         {c.telefone ? (
-                          <span className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
+                          <span className="flex items-center gap-1.5 text-zinc-300">
+                            <Phone className="h-3 w-3 text-zinc-500" />
                             {c.telefone}
                           </span>
-                        ) : '—'}
+                        ) : <span className="text-zinc-600">—</span>}
                       </TableCell>
-                      <TableCell>{c.cidade ?? '—'}</TableCell>
-                      <TableCell>{c.bairro ?? '—'}</TableCell>
+                      <TableCell>{c.cidade ?? <span className="text-zinc-600">—</span>}</TableCell>
+                      <TableCell>{c.bairro ?? <span className="text-zinc-600">—</span>}</TableCell>
                       {isAdmin && (
                         <TableCell>
                           <Badge variant="outline">{vendedorNome?.nome ?? '—'}</Badge>
@@ -364,12 +375,12 @@ export default function Clientes() {
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={isAdmin ? 7 : 6}>
-                      <div className="flex flex-col items-center justify-center py-10">
-                        <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
-                          <UserCheck className="h-6 w-6 text-muted-foreground/50" />
+                      <div className="flex flex-col items-center justify-center py-14">
+                        <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                          <UserCheck className="h-7 w-7 text-zinc-600" />
                         </div>
-                        <p className="text-sm font-medium text-muted-foreground">Nenhum cliente encontrado</p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">
+                        <p className="text-sm font-semibold text-zinc-400">Nenhum cliente encontrado</p>
+                        <p className="text-xs text-zinc-600 mt-1">
                           {search ? 'Tente ajustar sua busca' : 'Adicione seu primeiro cliente'}
                         </p>
                       </div>
@@ -387,8 +398,7 @@ export default function Clientes() {
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {/* CNPJ com busca automatica */}
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
             <div className="space-y-2">
               <Label>CNPJ</Label>
               <div className="relative">
@@ -400,14 +410,13 @@ export default function Clientes() {
                 />
                 {buscandoCnpj && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
                   </div>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">Digite o CNPJ para preencher automaticamente</p>
+              <p className="text-[10px] text-zinc-500">Digite o CNPJ para preencher automaticamente</p>
             </div>
 
-            {/* CEP com busca automatica */}
             <div className="space-y-2">
               <Label>CEP</Label>
               <div className="relative">
@@ -419,11 +428,11 @@ export default function Clientes() {
                 />
                 {buscandoCep && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
                   </div>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">Digite o CEP para preencher endereco automaticamente</p>
+              <p className="text-[10px] text-zinc-500">Digite o CEP para preencher endereco automaticamente</p>
             </div>
 
             <div className="space-y-2">
@@ -434,7 +443,7 @@ export default function Clientes() {
               <Label>Telefone</Label>
               <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(00) 00000-0000" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Cidade</Label>
                 <Input value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />

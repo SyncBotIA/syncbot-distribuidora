@@ -26,7 +26,6 @@ export default function Estoque() {
   const [tab, setTab] = useState<'estoque' | 'historico'>('estoque')
   const [search, setSearch] = useState('')
 
-  // Form
   const [formProdutoId, setFormProdutoId] = useState('')
   const [formTipo, setFormTipo] = useState<'entrada' | 'saida' | 'ajuste'>('entrada')
   const [formQuantidade, setFormQuantidade] = useState('')
@@ -49,7 +48,6 @@ export default function Estoque() {
 
     if (!prods) { setLoading(false); return }
 
-    // Calculate stock for each product
     const produtosComEstoque = await Promise.all(
       prods.map(async (p) => {
         const { data: movs } = await supabase
@@ -100,7 +98,7 @@ export default function Estoque() {
       return
     }
 
-    toast({ title: 'Movimentação registrada', variant: 'success' })
+    toast({ title: 'Movimentacao registrada', variant: 'success' })
     setDialogOpen(false)
     fetchEstoque()
     fetchMovimentacoes()
@@ -113,7 +111,7 @@ export default function Estoque() {
 
   const tipoLabel: Record<string, string> = {
     entrada: 'Entrada',
-    saida: 'Saída',
+    saida: 'Saida',
     ajuste: 'Ajuste',
     cancelamento: 'Cancelamento',
   }
@@ -138,66 +136,88 @@ export default function Estoque() {
             <Warehouse className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Estoque</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Controle de estoque e movimentacoes</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Estoque</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">Controle de estoque e movimentacoes</p>
           </div>
         </div>
         {canManageStock && (
           <Button onClick={() => { setDialogOpen(true); setFormProdutoId(''); setFormTipo('entrada'); setFormQuantidade(''); setFormObs('') }} className="gap-2">
             <Plus className="h-4 w-4" />
-            Nova Movimentacao
+            <span className="hidden sm:inline">Nova Movimentacao</span>
           </Button>
         )}
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
-          <Warehouse className="h-5 w-5 text-blue-400" />
-          <div>
-            <p className="text-lg font-bold text-blue-300">{totalEstoque}</p>
-            <p className="text-[11px] text-blue-400/70 font-medium">Itens em Estoque</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-          <PackageCheck className="h-5 w-5 text-emerald-400" />
-          <div>
-            <p className="text-lg font-bold text-emerald-300">{produtosOk}</p>
-            <p className="text-[11px] text-emerald-400/70 font-medium">Estoque Normal</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 hidden sm:flex">
-          <PackageMinus className="h-5 w-5 text-red-400" />
-          <div>
-            <p className="text-lg font-bold text-red-400">{produtosBaixo}</p>
-            <p className="text-[11px] text-red-400/60 font-medium">Estoque Baixo</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 stagger-children">
+        <Card className="border-blue-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-blue-500/10">
+              <Warehouse className="h-5 w-5 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-blue-300">{totalEstoque}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Itens em Estoque</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-emerald-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-emerald-500/10">
+              <PackageCheck className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-emerald-300">{produtosOk}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Estoque Normal</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-red-500/10 hidden sm:block">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-red-500/10">
+              <PackageMinus className="h-5 w-5 text-red-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-red-400">{produtosBaixo}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Estoque Baixo</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2">
-        <Button variant={tab === 'estoque' ? 'default' : 'outline'} onClick={() => setTab('estoque')}>
+      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] w-fit">
+        <button
+          onClick={() => setTab('estoque')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+            tab === 'estoque' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
           Estoque Atual
-        </Button>
-        <Button variant={tab === 'historico' ? 'default' : 'outline'} onClick={() => setTab('historico')}>
+        </button>
+        <button
+          onClick={() => setTab('historico')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+            tab === 'historico' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
           Historico
-        </Button>
+        </button>
       </div>
 
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+        <Input placeholder="Buscar produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
       </div>
 
       {tab === 'estoque' ? (
         <Card>
           <CardContent className="pt-6">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm text-muted-foreground">Carregando estoque...</p>
+              <div className="flex items-center justify-center py-16">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                  <p className="text-sm text-zinc-500 font-medium">Carregando estoque...</p>
                 </div>
               </div>
             ) : (
@@ -207,7 +227,7 @@ export default function Estoque() {
                     <TableHead>Produto</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead className="text-right">Estoque Atual</TableHead>
-                    <TableHead className="text-right">Mínimo</TableHead>
+                    <TableHead className="text-right">Minimo</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -216,10 +236,10 @@ export default function Estoque() {
                     const baixo = p.estoque_atual <= p.estoque_minimo
                     return (
                       <TableRow key={p.id}>
-                        <TableCell className="font-medium">{p.nome}</TableCell>
-                        <TableCell className="font-mono text-xs">{p.sku}</TableCell>
-                        <TableCell className="text-right font-semibold">{p.estoque_atual}</TableCell>
-                        <TableCell className="text-right text-muted-foreground">{p.estoque_minimo}</TableCell>
+                        <TableCell className="font-semibold">{p.nome}</TableCell>
+                        <TableCell className="font-mono text-xs text-zinc-400">{p.sku}</TableCell>
+                        <TableCell className={`text-right font-bold ${baixo ? 'text-red-400' : 'text-white'}`}>{p.estoque_atual}</TableCell>
+                        <TableCell className="text-right text-zinc-500">{p.estoque_minimo}</TableCell>
                         <TableCell>
                           {baixo ? (
                             <Badge variant="destructive" className="gap-1">
@@ -241,7 +261,7 @@ export default function Estoque() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Histórico de Movimentações</CardTitle>
+            <CardTitle className="text-base">Historico de Movimentacoes</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -251,21 +271,21 @@ export default function Estoque() {
                   <TableHead>Produto</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-right">Quantidade</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Observação</TableHead>
+                  <TableHead>Responsavel</TableHead>
+                  <TableHead>Observacao</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {movimentacoes.map((m) => (
                   <TableRow key={m.id}>
-                    <TableCell>{formatDate(m.created_at)}</TableCell>
-                    <TableCell>{(m.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
+                    <TableCell className="text-zinc-400">{formatDate(m.created_at)}</TableCell>
+                    <TableCell className="font-semibold">{(m.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
                     <TableCell>
                       <Badge variant={tipoVariant[m.tipo]}>{tipoLabel[m.tipo]}</Badge>
                     </TableCell>
-                    <TableCell className="text-right font-mono">{m.quantidade}</TableCell>
+                    <TableCell className="text-right font-mono font-semibold">{m.quantidade}</TableCell>
                     <TableCell>{(m.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
-                    <TableCell className="text-muted-foreground">{m.observacao ?? '—'}</TableCell>
+                    <TableCell className="text-zinc-500 max-w-[200px] truncate">{m.observacao ?? '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -277,7 +297,7 @@ export default function Estoque() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
-            <DialogTitle>Nova Movimentação</DialogTitle>
+            <DialogTitle>Nova Movimentacao</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -303,7 +323,7 @@ export default function Estoque() {
               <Input type="number" min="0" value={formQuantidade} onChange={(e) => setFormQuantidade(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Observação (opcional)</Label>
+              <Label>Observacao (opcional)</Label>
               <Input value={formObs} onChange={(e) => setFormObs(e.target.value)} />
             </div>
           </div>

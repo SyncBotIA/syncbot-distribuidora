@@ -36,7 +36,6 @@ export default function Pedidos() {
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null)
   const [pedidoItens, setPedidoItens] = useState<PedidoItem[]>([])
 
-  // Form
   const [itens, setItens] = useState<PedidoItemForm[]>([])
   const [formClienteId, setFormClienteId] = useState('')
   const [formVendedorId, setFormVendedorId] = useState('')
@@ -44,7 +43,6 @@ export default function Pedidos() {
   const [addProdutoId, setAddProdutoId] = useState('')
   const [addQtd, setAddQtd] = useState('1')
 
-  // Pode lançar pedido no nome de outro? (hierarquia >= gerente)
   const canAssignToOther = hierarquiaOrdem !== null && hierarquiaOrdem <= 2
 
   useEffect(() => {
@@ -104,7 +102,6 @@ export default function Pedidos() {
   async function fetchSubordinados() {
     if (!empresaUsuario) return
 
-    // Buscar todos usuarios da empresa com hierarquia
     const { data } = await supabase
       .from('empresa_usuarios')
       .select('*, usuarios(id, nome), hierarquias(nome, ordem)')
@@ -112,7 +109,6 @@ export default function Pedidos() {
       .eq('ativo', true)
 
     if (data) {
-      // Filtrar: apenas subordinados (ordem maior que a minha)
       const meus = data.filter((eu) => {
         const h = eu.hierarquias as unknown as Hierarquia
         return h && hierarquiaOrdem !== null && h.ordem >= hierarquiaOrdem
@@ -151,7 +147,6 @@ export default function Pedidos() {
   async function handleCreatePedido() {
     if (!empresa || !usuario || itens.length === 0) return
 
-    // O pedido vai no nome do vendedor selecionado (ou do proprio usuario)
     const vendedorId = canAssignToOther && formVendedorId ? formVendedorId : usuario.id
 
     try {
@@ -286,55 +281,71 @@ export default function Pedidos() {
             <ShoppingCart className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Pedidos</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Gerenciamento de vendas e pedidos</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Pedidos</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">Gerenciamento de vendas e pedidos</p>
           </div>
         </div>
         <Button onClick={openCreateDialog} className="gap-2">
           <Plus className="h-4 w-4" />
-          Novo Pedido
+          <span className="hidden sm:inline">Novo Pedido</span>
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
-          <FileText className="h-5 w-5 text-blue-400" />
-          <div>
-            <p className="text-lg font-bold text-blue-300">{pedidos.length}</p>
-            <p className="text-[11px] text-blue-400/70 font-medium">Total</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-          <FileText className="h-5 w-5 text-amber-400" />
-          <div>
-            <p className="text-lg font-bold text-amber-300">{pedidosRascunho}</p>
-            <p className="text-[11px] text-amber-400/70 font-medium">Rascunhos</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-          <Check className="h-5 w-5 text-emerald-400" />
-          <div>
-            <p className="text-lg font-bold text-emerald-300">{pedidosConfirmados}</p>
-            <p className="text-[11px] text-emerald-400/70 font-medium">Confirmados</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
-          <ShoppingCart className="h-5 w-5 text-violet-400" />
-          <div>
-            <p className="text-lg font-bold text-violet-300">{formatCurrency(valorTotalPedidos)}</p>
-            <p className="text-[11px] text-violet-400/70 font-medium">Valor Total</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
+        <Card className="border-blue-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-blue-500/10">
+              <FileText className="h-5 w-5 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-blue-300">{pedidos.length}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Total</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-amber-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/10">
+              <FileText className="h-5 w-5 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-amber-300">{pedidosRascunho}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Rascunhos</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-emerald-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-emerald-500/10">
+              <Check className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-emerald-300">{pedidosConfirmados}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Confirmados</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-violet-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-violet-500/10">
+              <ShoppingCart className="h-5 w-5 text-violet-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-violet-300">{formatCurrency(valorTotalPedidos)}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Valor Total</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Carregando pedidos...</p>
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                <p className="text-sm text-zinc-500 font-medium">Carregando pedidos...</p>
               </div>
             </div>
           ) : (
@@ -354,13 +365,13 @@ export default function Pedidos() {
                   const sc = statusConfig[p.status]
                   return (
                     <TableRow key={p.id}>
-                      <TableCell>{formatDate(p.created_at)}</TableCell>
-                      <TableCell>{(p.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
-                      <TableCell>{(p.clientes as unknown as Cliente)?.nome ?? (p.cliente as unknown as Cliente)?.nome ?? '—'}</TableCell>
+                      <TableCell className="text-zinc-400">{formatDate(p.created_at)}</TableCell>
+                      <TableCell className="font-semibold">{(p.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
+                      <TableCell>{(p.clientes as unknown as Cliente)?.nome ?? (p.cliente as unknown as Cliente)?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
                       <TableCell>
                         <Badge variant={sc.variant}>{sc.label}</Badge>
                       </TableCell>
-                      <TableCell className="text-right font-semibold">{formatCurrency(p.valor_total)}</TableCell>
+                      <TableCell className="text-right font-bold text-white">{formatCurrency(p.valor_total)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => viewDetail(p)} title="Detalhes">
@@ -389,12 +400,12 @@ export default function Pedidos() {
                 {pedidos.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6}>
-                      <div className="flex flex-col items-center justify-center py-10">
-                        <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
-                          <ShoppingCart className="h-6 w-6 text-muted-foreground/50" />
+                      <div className="flex flex-col items-center justify-center py-14">
+                        <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                          <ShoppingCart className="h-7 w-7 text-zinc-600" />
                         </div>
-                        <p className="text-sm font-medium text-muted-foreground">Nenhum pedido registrado</p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">Crie seu primeiro pedido</p>
+                        <p className="text-sm font-semibold text-zinc-400">Nenhum pedido registrado</p>
+                        <p className="text-xs text-zinc-600 mt-1">Crie seu primeiro pedido</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -412,7 +423,6 @@ export default function Pedidos() {
             <DialogTitle>Novo Pedido</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Vendedor selector - apenas se hierarquia permite */}
             {canAssignToOther && (
               <div className="space-y-2">
                 <Label>Vendedor responsavel</Label>
@@ -427,7 +437,7 @@ export default function Pedidos() {
                     )
                   })}
                 </Select>
-                <p className="text-xs text-muted-foreground">Voce pode lancar o pedido no nome de um subordinado</p>
+                <p className="text-[10px] text-zinc-500">Voce pode lancar o pedido no nome de um subordinado</p>
               </div>
             )}
 
@@ -440,6 +450,7 @@ export default function Pedidos() {
                 ))}
               </Select>
             </div>
+
             <div className="flex gap-2">
               <Select value={addProdutoId} onChange={(e) => setAddProdutoId(e.target.value)} className="flex-1">
                 <option value="">Selecione um produto...</option>
@@ -452,37 +463,39 @@ export default function Pedidos() {
             </div>
 
             {itens.length > 0 && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produto</TableHead>
-                    <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead className="text-right">Preco Un.</TableHead>
-                    <TableHead className="text-right">Subtotal</TableHead>
-                    <TableHead className="w-16"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {itens.map((i) => (
-                    <TableRow key={i.produto_id}>
-                      <TableCell>{i.produto_nome}</TableCell>
-                      <TableCell className="text-right">{i.quantidade}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(i.preco_unitario)}</TableCell>
-                      <TableCell className="text-right font-semibold">{formatCurrency(i.quantidade * i.preco_unitario)}</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => removeItem(i.produto_id)}>
-                          <XCircle className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TableCell>
+              <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produto</TableHead>
+                      <TableHead className="text-right">Qtd</TableHead>
+                      <TableHead className="text-right">Preco Un.</TableHead>
+                      <TableHead className="text-right">Subtotal</TableHead>
+                      <TableHead className="w-12"></TableHead>
                     </TableRow>
-                  ))}
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-right font-bold">Total:</TableCell>
-                    <TableCell className="text-right font-bold text-lg">{formatCurrency(valorTotal)}</TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {itens.map((i) => (
+                      <TableRow key={i.produto_id}>
+                        <TableCell className="font-semibold">{i.produto_nome}</TableCell>
+                        <TableCell className="text-right">{i.quantidade}</TableCell>
+                        <TableCell className="text-right text-zinc-400">{formatCurrency(i.preco_unitario)}</TableCell>
+                        <TableCell className="text-right font-bold">{formatCurrency(i.quantidade * i.preco_unitario)}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => removeItem(i.produto_id)}>
+                            <XCircle className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-white/[0.02]">
+                      <TableCell colSpan={3} className="text-right font-bold text-zinc-400">Total:</TableCell>
+                      <TableCell className="text-right font-bold text-lg text-white">{formatCurrency(valorTotal)}</TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             )}
 
             <div className="space-y-2">
@@ -504,26 +517,26 @@ export default function Pedidos() {
             <DialogTitle>Detalhes do Pedido</DialogTitle>
           </DialogHeader>
           {selectedPedido && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Status</p>
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Status</p>
                   <Badge variant={statusConfig[selectedPedido.status].variant}>
                     {statusConfig[selectedPedido.status].label}
                   </Badge>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Data</p>
-                  <p>{formatDate(selectedPedido.created_at)}</p>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Data</p>
+                  <p className="text-sm font-medium">{formatDate(selectedPedido.created_at)}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Valor Total</p>
-                  <p className="font-bold">{formatCurrency(selectedPedido.valor_total)}</p>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Valor Total</p>
+                  <p className="text-sm font-bold text-emerald-400">{formatCurrency(selectedPedido.valor_total)}</p>
                 </div>
                 {selectedPedido.observacao && (
-                  <div>
-                    <p className="text-muted-foreground">Observacao</p>
-                    <p>{selectedPedido.observacao}</p>
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Observacao</p>
+                    <p className="text-sm">{selectedPedido.observacao}</p>
                   </div>
                 )}
               </div>
@@ -539,10 +552,10 @@ export default function Pedidos() {
                 <TableBody>
                   {pedidoItens.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>{(item.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
+                      <TableCell className="font-semibold">{(item.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
                       <TableCell className="text-right">{item.quantidade}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.preco_unitario)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.subtotal)}</TableCell>
+                      <TableCell className="text-right text-zinc-400">{formatCurrency(item.preco_unitario)}</TableCell>
+                      <TableCell className="text-right font-bold">{formatCurrency(item.subtotal)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

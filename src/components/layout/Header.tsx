@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ArrowLeft, Building2, ChevronDown } from 'lucide-react'
+import { Menu, LogOut, ArrowLeft, Building2, Bell } from 'lucide-react'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -21,18 +21,18 @@ export default function Header({ onMenuClick }: HeaderProps) {
     .toUpperCase() ?? '?'
 
   return (
-    <header className="h-16 border-b border-white/[0.06] bg-[#060a14]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 sticky top-0 z-30">
+    <header className="h-16 border-b border-white/[0.06] bg-[#060a14]/90 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 sticky top-0 z-30">
       <div className="flex items-center gap-4">
-        <button onClick={onMenuClick} className="lg:hidden cursor-pointer p-2 rounded-lg hover:bg-white/[0.06] transition-colors">
+        <button onClick={onMenuClick} className="lg:hidden cursor-pointer p-2 rounded-xl hover:bg-white/[0.06] transition-all">
           <Menu className="h-5 w-5 text-zinc-400" />
         </button>
-        <div className="flex items-center gap-2.5">
-          <div className="hidden sm:flex h-8 w-8 rounded-lg bg-blue-500/10 items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-600/10 items-center justify-center border border-blue-500/10">
             <Building2 className="h-4 w-4 text-blue-400" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold text-white leading-tight">{empresa?.nome}</h1>
-            <p className="text-[11px] text-zinc-500 leading-tight hidden sm:block">Painel de Gestao</p>
+            <h1 className="text-sm font-bold text-white leading-tight tracking-tight">{empresa?.nome}</h1>
+            <p className="text-[10px] text-zinc-500 leading-tight hidden sm:block font-medium">Painel de Gestao</p>
           </div>
         </div>
       </div>
@@ -43,10 +43,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
             variant="outline"
             size="sm"
             onClick={() => { clearEmpresa(); navigate('/master') }}
-            className="gap-1.5 text-xs h-8 border-dashed"
+            className="gap-1.5 text-xs h-8 border-dashed border-blue-500/20 text-blue-400 hover:text-blue-300 hover:bg-blue-500/5 hover:border-blue-500/30"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Painel Master</span>
+            <span className="hidden sm:inline">Master</span>
           </Button>
         )}
         {!isMaster && empresas.length > 1 && (
@@ -57,7 +57,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
             className="gap-1.5 text-xs h-8"
           >
             <Building2 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Trocar Empresa</span>
+            <span className="hidden sm:inline">Trocar</span>
           </Button>
         )}
 
@@ -65,13 +65,15 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
         <button
           onClick={signOut}
-          className="flex items-center gap-2.5 pl-1 pr-3 py-1.5 rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer group"
+          className="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer group"
         >
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold shadow-sm shadow-blue-500/20">
-            {initials}
+          <div className="relative">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-shadow">
+              {initials}
+            </div>
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-xs font-medium text-zinc-200 leading-tight">{usuario?.nome}</p>
+            <p className="text-xs font-semibold text-zinc-200 leading-tight">{usuario?.nome}</p>
             <p className="text-[10px] text-zinc-500 leading-tight flex items-center gap-0.5">
               Sair <LogOut className="h-2.5 w-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
             </p>

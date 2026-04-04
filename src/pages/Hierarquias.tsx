@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -89,16 +89,16 @@ export default function Hierarquias() {
 
     if (error) {
       toast({
-        title: 'Não é possível excluir',
+        title: 'Nao e possivel excluir',
         description: error.message.includes('violates foreign key')
-          ? 'Existem usuários vinculados a esta hierarquia.'
+          ? 'Existem usuarios vinculados a esta hierarquia.'
           : error.message,
         variant: 'destructive',
       })
       return
     }
 
-    toast({ title: 'Hierarquia excluída', variant: 'success' })
+    toast({ title: 'Hierarquia excluida', variant: 'success' })
     fetchHierarquias()
   }
 
@@ -110,7 +110,6 @@ export default function Hierarquias() {
     const other = hierarquias[swapIdx]
     const tempOrdem = -1
 
-    // Usar ordem temporária para evitar conflito de unique constraint
     const { error: e1 } = await supabase.from('hierarquias').update({ ordem: tempOrdem }).eq('id', h.id)
     if (e1) { toast({ title: 'Erro ao mover', description: e1.message, variant: 'destructive' }); return }
 
@@ -125,8 +124,12 @@ export default function Hierarquias() {
 
   if (!isAdmin) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        Apenas administradores podem gerenciar hierarquias.
+      <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
+        <div className="h-16 w-16 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+          <ShieldCheck className="h-8 w-8 text-zinc-600" />
+        </div>
+        <p className="text-zinc-400 font-medium">Acesso restrito</p>
+        <p className="text-zinc-600 text-sm mt-1">Apenas administradores podem gerenciar hierarquias.</p>
       </div>
     )
   }
@@ -140,41 +143,49 @@ export default function Hierarquias() {
             <ShieldCheck className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Hierarquias</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Estrutura organizacional e niveis de acesso</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Hierarquias</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">Estrutura organizacional e niveis de acesso</p>
           </div>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="h-4 w-4" />
-          Nova Hierarquia
+          <span className="hidden sm:inline">Nova Hierarquia</span>
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-          <Layers className="h-5 w-5 text-indigo-400" />
-          <div>
-            <p className="text-lg font-bold text-indigo-300">{hierarquias.length}</p>
-            <p className="text-[11px] text-indigo-400/70 font-medium">Niveis Cadastrados</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-          <ShieldCheck className="h-5 w-5 text-emerald-400" />
-          <div>
-            <p className="text-lg font-bold text-emerald-300">{hierarquias.filter(h => h.ativo).length}</p>
-            <p className="text-[11px] text-emerald-400/70 font-medium">Niveis Ativos</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-3 stagger-children">
+        <Card className="border-indigo-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-indigo-500/10">
+              <Layers className="h-5 w-5 text-indigo-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-indigo-300">{hierarquias.length}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Niveis Cadastrados</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-emerald-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-emerald-500/10">
+              <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-emerald-300">{hierarquias.filter(h => h.ativo).length}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Niveis Ativos</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Carregando hierarquias...</p>
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                <p className="text-sm text-zinc-500 font-medium">Carregando hierarquias...</p>
               </div>
             </div>
           ) : (
@@ -183,17 +194,21 @@ export default function Hierarquias() {
                 <TableRow>
                   <TableHead className="w-16">Ordem</TableHead>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Descrição</TableHead>
+                  <TableHead>Descricao</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-40">Ações</TableHead>
+                  <TableHead className="w-40">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {hierarquias.map((h, idx) => (
                   <TableRow key={h.id}>
-                    <TableCell className="font-mono">{h.ordem}</TableCell>
-                    <TableCell className="font-medium">{h.nome}</TableCell>
-                    <TableCell className="text-muted-foreground">{h.descricao ?? '—'}</TableCell>
+                    <TableCell>
+                      <div className="h-7 w-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-xs font-bold text-indigo-300">
+                        {h.ordem}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-semibold">{h.nome}</TableCell>
+                    <TableCell className="text-zinc-500">{h.descricao ?? <span className="text-zinc-600">—</span>}</TableCell>
                     <TableCell>
                       <Badge variant={h.ativo ? 'success' : 'secondary'}>
                         {h.ativo ? 'Ativo' : 'Inativo'}
@@ -201,22 +216,10 @@ export default function Hierarquias() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleMove(h, 'up')}
-                          disabled={idx === 0}
-                          title="Subir"
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => handleMove(h, 'up')} disabled={idx === 0} title="Subir">
                           <ArrowUp className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleMove(h, 'down')}
-                          disabled={idx === hierarquias.length - 1}
-                          title="Descer"
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => handleMove(h, 'down')} disabled={idx === hierarquias.length - 1} title="Descer">
                           <ArrowDown className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => openEdit(h)} title="Editar">
@@ -246,8 +249,8 @@ export default function Hierarquias() {
               <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Gerente" />
             </div>
             <div className="space-y-2">
-              <Label>Descrição (opcional)</Label>
-              <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descrição do nível" />
+              <Label>Descricao (opcional)</Label>
+              <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descricao do nivel" />
             </div>
           </div>
           <DialogFooter>

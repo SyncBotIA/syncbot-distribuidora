@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import { Shield, Eye, EyeOff, AlertTriangle, Lock } from 'lucide-react'
 
 export default function RedefinirSenha() {
   const { user, usuario, clearPasswordReset, signOut } = useAuth()
@@ -39,13 +39,11 @@ export default function RedefinirSenha() {
 
     setLoading(true)
     try {
-      // Alterar senha no Supabase Auth
       const { error: authError } = await supabase.auth.updateUser({
         password: novaSenha,
       })
       if (authError) throw authError
 
-      // Marcar senha_provisoria como false
       if (usuario) {
         const { error: dbError } = await supabase
           .from('usuarios')
@@ -65,36 +63,45 @@ export default function RedefinirSenha() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#030712] via-[#0a1628] to-[#0c1220] p-4 relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-amber-600/5 rounded-full blur-[100px] pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center bg-[#030712] p-4 relative overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-amber-600/5 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-700/5 rounded-full blur-[120px] pointer-events-none" />
+      </div>
 
       <div className="w-full max-w-[420px] relative z-10 animate-fade-in">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 mb-5 shadow-xl shadow-amber-500/25">
-            <Shield className="h-8 w-8 text-white" />
+          <div className="relative inline-flex">
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-2xl shadow-amber-500/25 mb-5">
+              <Shield className="h-8 w-8 text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center shadow-lg shadow-red-500/30">
+              <Lock className="h-3 w-3 text-white" />
+            </div>
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Redefinir Senha</h1>
-          <p className="text-zinc-500 mt-1.5 text-sm">Sua senha e provisoria e precisa ser alterada</p>
+          <p className="text-zinc-500 mt-2 text-sm">Sua senha e provisoria e precisa ser alterada</p>
         </div>
 
         {/* Alert */}
-        <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 mb-6 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="rounded-xl bg-amber-500/8 border border-amber-500/15 p-4 mb-6 flex items-start gap-3">
+          <div className="p-1.5 rounded-lg bg-amber-500/15 shrink-0">
+            <AlertTriangle className="h-4 w-4 text-amber-400" />
+          </div>
           <div>
-            <p className="text-sm font-medium text-amber-300">Senha provisoria detectada</p>
-            <p className="text-xs text-amber-400/70 mt-1">
-              Por seguranca, voce precisa criar uma nova senha antes de acessar o sistema. A nova senha deve ser diferente de "123456".
+            <p className="text-sm font-semibold text-amber-300">Senha provisoria detectada</p>
+            <p className="text-xs text-amber-400/60 mt-1 leading-relaxed">
+              Por seguranca, crie uma nova senha antes de acessar o sistema. A nova senha deve ser diferente de "123456".
             </p>
           </div>
         </div>
 
-        <Card className="shadow-2xl shadow-black/40 border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
+        <Card className="shadow-2xl shadow-black/50 border-white/[0.06] backdrop-blur-xl">
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs font-medium">Nova senha</Label>
+                <Label>Nova senha</Label>
                 <div className="relative">
                   <Input
                     type={showPassword ? 'text' : 'password'}
@@ -116,7 +123,7 @@ export default function RedefinirSenha() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs font-medium">Confirmar nova senha</Label>
+                <Label>Confirmar nova senha</Label>
                 <div className="relative">
                   <Input
                     type={showConfirm ? 'text' : 'password'}
@@ -137,8 +144,30 @@ export default function RedefinirSenha() {
                 </div>
               </div>
 
+              {/* Password strength indicator */}
+              {novaSenha.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4].map((level) => (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded-full transition-colors ${
+                          novaSenha.length >= level * 3
+                            ? novaSenha.length >= 12 ? 'bg-emerald-500' : novaSenha.length >= 8 ? 'bg-blue-500' : 'bg-amber-500'
+                            : 'bg-white/[0.06]'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-zinc-500">
+                    {novaSenha.length < 6 ? 'Muito curta' : novaSenha.length < 8 ? 'Razoavel' : novaSenha.length < 12 ? 'Boa' : 'Forte'}
+                  </p>
+                </div>
+              )}
+
               {error && (
-                <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3">
+                <div className="rounded-xl bg-red-500/8 border border-red-500/15 p-3.5 flex items-start gap-2.5">
+                  <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
                   <p className="text-sm text-red-400">{error}</p>
                 </div>
               )}

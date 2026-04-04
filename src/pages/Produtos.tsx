@@ -27,7 +27,6 @@ export default function Produtos() {
   const [filterCategoria, setFilterCategoria] = useState('')
   const [newCatNome, setNewCatNome] = useState('')
 
-  // Form
   const [form, setForm] = useState({
     nome: '', sku: '', descricao: '', categoria_id: '', unidade_medida: 'un',
     preco_custo: '', preco_venda: '', estoque_minimo: '0',
@@ -177,8 +176,8 @@ export default function Produtos() {
             <Package className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Produtos</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Catalogo de produtos e precos</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Produtos</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">Catalogo de produtos e precos</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -186,11 +185,11 @@ export default function Produtos() {
             <>
               <Button variant="outline" onClick={() => setCatDialogOpen(true)} className="gap-2">
                 <Tags className="h-4 w-4" />
-                Categorias
+                <span className="hidden sm:inline">Categorias</span>
               </Button>
               <Button onClick={openCreate} className="gap-2">
                 <Plus className="h-4 w-4" />
-                Novo Produto
+                <span className="hidden sm:inline">Novo Produto</span>
               </Button>
             </>
           )}
@@ -198,40 +197,47 @@ export default function Produtos() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
-          <Package className="h-5 w-5 text-violet-400" />
-          <div>
-            <p className="text-lg font-bold text-violet-300">{produtos.length}</p>
-            <p className="text-[11px] text-violet-400/70 font-medium">Produtos Ativos</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
-          <Tags className="h-5 w-5 text-blue-400" />
-          <div>
-            <p className="text-lg font-bold text-blue-300">{categorias.length}</p>
-            <p className="text-[11px] text-blue-400/70 font-medium">Categorias</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hidden sm:flex">
-          <BarChart3 className="h-5 w-5 text-emerald-400" />
-          <div>
-            <p className="text-lg font-bold text-emerald-300">{margemMedia.toFixed(1)}%</p>
-            <p className="text-[11px] text-emerald-400/70 font-medium">Margem Media</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 stagger-children">
+        <Card className="border-violet-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-violet-500/10">
+              <Package className="h-5 w-5 text-violet-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-violet-300">{produtos.length}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Produtos Ativos</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-blue-500/10">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-blue-500/10">
+              <Tags className="h-5 w-5 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-blue-300">{categorias.length}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Categorias</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-emerald-500/10 hidden sm:block">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-emerald-500/10">
+              <BarChart3 className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-emerald-300">{margemMedia.toFixed(1)}%</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Margem Media</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome ou SKU..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Input placeholder="Buscar por nome ou SKU..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
         </div>
         <Select value={filterCategoria} onChange={(e) => setFilterCategoria(e.target.value)} className="max-w-xs">
           <option value="">Todas categorias</option>
@@ -242,10 +248,10 @@ export default function Produtos() {
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Carregando produtos...</p>
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-8 w-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                <p className="text-sm text-zinc-500 font-medium">Carregando produtos...</p>
               </div>
             </div>
           ) : (
@@ -265,12 +271,12 @@ export default function Produtos() {
               <TableBody>
                 {filtered.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.nome}</TableCell>
-                    <TableCell className="font-mono text-xs">{p.sku}</TableCell>
-                    <TableCell>{(p.categoria as unknown as Categoria)?.nome ?? '—'}</TableCell>
+                    <TableCell className="font-semibold">{p.nome}</TableCell>
+                    <TableCell className="font-mono text-xs text-zinc-400">{p.sku}</TableCell>
+                    <TableCell>{(p.categoria as unknown as Categoria)?.nome ?? <span className="text-zinc-600">—</span>}</TableCell>
                     <TableCell>{unidadeLabels[p.unidade_medida] ?? p.unidade_medida}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(p.preco_custo)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(p.preco_venda)}</TableCell>
+                    <TableCell className="text-right text-zinc-400">{formatCurrency(p.preco_custo)}</TableCell>
+                    <TableCell className="text-right font-semibold text-white">{formatCurrency(p.preco_venda)}</TableCell>
                     <TableCell>
                       <Badge variant={p.ativo ? 'success' : 'secondary'}>{p.ativo ? 'Ativo' : 'Inativo'}</Badge>
                     </TableCell>
@@ -291,12 +297,12 @@ export default function Produtos() {
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8}>
-                      <div className="flex flex-col items-center justify-center py-10">
-                        <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
-                          <Package className="h-6 w-6 text-muted-foreground/50" />
+                      <div className="flex flex-col items-center justify-center py-14">
+                        <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                          <Package className="h-7 w-7 text-zinc-600" />
                         </div>
-                        <p className="text-sm font-medium text-muted-foreground">Nenhum produto encontrado</p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">
+                        <p className="text-sm font-semibold text-zinc-400">Nenhum produto encontrado</p>
+                        <p className="text-xs text-zinc-600 mt-1">
                           {search ? 'Tente ajustar sua busca' : 'Cadastre seu primeiro produto'}
                         </p>
                       </div>
@@ -315,8 +321,8 @@ export default function Produtos() {
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Nome</Label>
                 <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
@@ -330,7 +336,7 @@ export default function Produtos() {
               <Label>Descricao</Label>
               <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Categoria</Label>
                 <Select value={form.categoria_id} onChange={(e) => setForm({ ...form, categoria_id: e.target.value })}>
@@ -349,7 +355,7 @@ export default function Produtos() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label>Preco Custo</Label>
                 <Input type="number" step="0.01" value={form.preco_custo} onChange={(e) => setForm({ ...form, preco_custo: e.target.value })} />
@@ -391,11 +397,11 @@ export default function Produtos() {
             </div>
             <div className="space-y-2 max-h-[40vh] overflow-y-auto">
               {categorias.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">Nenhuma categoria cadastrada</p>
+                <p className="text-center text-zinc-500 py-6 text-sm">Nenhuma categoria cadastrada</p>
               ) : (
                 categorias.map((cat) => (
-                  <div key={cat.id} className="flex items-center justify-between p-2 rounded border">
-                    <span>{cat.nome}</span>
+                  <div key={cat.id} className="flex items-center justify-between p-3 rounded-xl border border-white/[0.06] hover:bg-white/[0.02] transition-colors">
+                    <span className="text-sm font-medium">{cat.nome}</span>
                     <Button variant="ghost" size="icon" onClick={() => handleDeleteCategoria(cat.id, cat.nome)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>

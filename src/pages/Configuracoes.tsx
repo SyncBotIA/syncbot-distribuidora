@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
-import { Settings, User, Lock, Mail, Phone } from 'lucide-react'
+import { Settings, User, Lock, Mail, Phone, Save, Shield } from 'lucide-react'
 
 export default function Configuracoes() {
   const { user, usuario } = useAuth()
@@ -74,18 +74,19 @@ export default function Configuracoes() {
     <div className="space-y-6 max-w-lg animate-fade-in">
       {/* Page Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 shadow-lg shadow-slate-500/20">
+        <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/20">
           <Settings className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Configuracoes</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Gerencie seu perfil e seguranca</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Configuracoes</h1>
+          <p className="text-sm text-zinc-500 mt-0.5">Gerencie seu perfil e seguranca</p>
         </div>
       </div>
 
+      {/* Profile Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-blue-500/10">
               <User className="h-4 w-4 text-blue-400" />
             </div>
@@ -96,38 +97,40 @@ export default function Configuracoes() {
         <CardContent>
           <form onSubmit={handleSaveProfile} className="space-y-4">
             <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label>
+                <Mail className="h-3.5 w-3.5 text-zinc-500" />
                 Email
               </Label>
-              <Input value={usuario?.email ?? ''} disabled className="bg-muted" />
+              <Input value={usuario?.email ?? ''} disabled className="bg-white/[0.02] opacity-60" />
             </div>
             <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label>
+                <User className="h-3.5 w-3.5 text-zinc-500" />
                 Nome
               </Label>
               <Input value={nomeEdit} onChange={(e) => setNomeEdit(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label>
+                <Phone className="h-3.5 w-3.5 text-zinc-500" />
                 Telefone
               </Label>
               <Input value={telefoneEdit} onChange={(e) => setTelefoneEdit(e.target.value)} placeholder="(00) 00000-0000" />
             </div>
-            <Button type="submit" disabled={savingProfile}>
+            <Button type="submit" disabled={savingProfile} className="gap-2">
+              <Save className="h-4 w-4" />
               {savingProfile ? 'Salvando...' : 'Salvar Perfil'}
             </Button>
           </form>
         </CardContent>
       </Card>
 
+      {/* Password Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-amber-500/10">
-              <Lock className="h-4 w-4 text-amber-400" />
+              <Shield className="h-4 w-4 text-amber-400" />
             </div>
             Alterar Senha
           </CardTitle>
@@ -136,8 +139,8 @@ export default function Configuracoes() {
         <CardContent>
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label>
+                <Lock className="h-3.5 w-3.5 text-zinc-500" />
                 Nova senha
               </Label>
               <Input
@@ -149,8 +152,8 @@ export default function Configuracoes() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label>
+                <Lock className="h-3.5 w-3.5 text-zinc-500" />
                 Confirmar senha
               </Label>
               <Input
@@ -161,7 +164,8 @@ export default function Configuracoes() {
                 required
               />
             </div>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="gap-2">
+              <Lock className="h-4 w-4" />
               {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
           </form>

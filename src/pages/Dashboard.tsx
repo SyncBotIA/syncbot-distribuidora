@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Select } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
-import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp, Trophy, ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
+import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp, Trophy, BarChart3 } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import type { Pedido, Produto } from '@/types/database'
 
 interface DashboardStats {
@@ -175,9 +175,12 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Carregando dashboard...</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="h-10 w-10 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+            <div className="absolute inset-0 h-10 w-10 border-2 border-transparent border-b-blue-400/20 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+          </div>
+          <p className="text-sm text-zinc-500 font-medium">Carregando dashboard...</p>
         </div>
       </div>
     )
@@ -185,36 +188,48 @@ export default function Dashboard() {
 
   const kpis = [
     {
-      label: `Pedidos (${periodoLabels[periodo]})`,
+      label: `Pedidos`,
+      sublabel: periodoLabels[periodo],
       value: stats.totalPedidos.toString(),
       icon: ShoppingCart,
-      color: 'from-blue-500 to-blue-600',
-      bgLight: 'bg-blue-500/10',
+      gradient: 'from-blue-500/15 to-blue-600/5',
+      iconBg: 'bg-blue-500/15',
       textColor: 'text-blue-400',
+      borderColor: 'border-blue-500/10',
+      barColor: 'from-blue-500 to-blue-400',
     },
     {
-      label: 'Valor Total',
+      label: 'Faturamento',
+      sublabel: periodoLabels[periodo],
       value: formatCurrency(stats.valorTotal),
       icon: DollarSign,
-      color: 'from-emerald-500 to-emerald-600',
-      bgLight: 'bg-emerald-500/10',
+      gradient: 'from-emerald-500/15 to-emerald-600/5',
+      iconBg: 'bg-emerald-500/15',
       textColor: 'text-emerald-400',
+      borderColor: 'border-emerald-500/10',
+      barColor: 'from-emerald-500 to-emerald-400',
     },
     {
-      label: 'Produtos Ativos',
+      label: 'Produtos',
+      sublabel: 'Ativos',
       value: stats.totalProdutos.toString(),
       icon: Package,
-      color: 'from-violet-500 to-violet-600',
-      bgLight: 'bg-violet-500/10',
+      gradient: 'from-violet-500/15 to-violet-600/5',
+      iconBg: 'bg-violet-500/15',
       textColor: 'text-violet-400',
+      borderColor: 'border-violet-500/10',
+      barColor: 'from-violet-500 to-violet-400',
     },
     {
-      label: 'Estoque Baixo',
+      label: 'Estoque',
+      sublabel: 'Baixo',
       value: stats.estoqueBaixo.toString(),
       icon: AlertTriangle,
-      color: 'from-red-500 to-red-600',
-      bgLight: 'bg-red-500/10',
+      gradient: 'from-red-500/15 to-red-600/5',
+      iconBg: 'bg-red-500/15',
       textColor: 'text-red-400',
+      borderColor: 'border-red-500/10',
+      barColor: 'from-red-500 to-red-400',
     },
   ]
 
@@ -223,8 +238,8 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Visao geral do seu negocio</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard</h1>
+          <p className="text-sm text-zinc-500 mt-1">Visao geral do seu negocio</p>
         </div>
         <Select
           value={periodo}
@@ -239,20 +254,19 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
         {kpis.map((kpi) => (
-          <Card key={kpi.label} className="relative overflow-hidden group hover:shadow-md">
+          <Card key={kpi.label} className={`relative overflow-hidden group border-${kpi.borderColor}`}>
             <CardContent className="p-5">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{kpi.label}</p>
-                  <p className="text-2xl font-bold tracking-tight">{kpi.value}</p>
-                </div>
-                <div className={`p-2.5 rounded-xl ${kpi.bgLight} transition-transform group-hover:scale-110`}>
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2.5 rounded-xl ${kpi.iconBg} transition-transform duration-300 group-hover:scale-110`}>
                   <kpi.icon className={`h-5 w-5 ${kpi.textColor}`} />
                 </div>
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">{kpi.sublabel}</span>
               </div>
-              <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${kpi.color} opacity-60`} />
+              <p className="text-2xl font-bold tracking-tight text-white">{kpi.value}</p>
+              <p className="text-xs font-medium text-zinc-500 mt-1">{kpi.label}</p>
+              <div className={`absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r ${kpi.barColor} opacity-50 group-hover:opacity-80 transition-opacity`} />
             </CardContent>
           </Card>
         ))}
@@ -261,8 +275,8 @@ export default function Dashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2.5 text-sm">
               <div className="p-1.5 rounded-lg bg-blue-500/10">
                 <TrendingUp className="h-4 w-4 text-blue-400" />
               </div>
@@ -275,34 +289,44 @@ export default function Dashboard() {
                 <AreaChart data={stats.pedidosPorMes}>
                   <defs>
                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2} />
                       <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 12, fill: '#64748b' }} stroke="#334155" />
-                  <YAxis tick={{ fontSize: 12, fill: '#64748b' }} stroke="#334155" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} stroke="transparent" />
+                  <YAxis tick={{ fontSize: 11, fill: '#64748b' }} stroke="transparent" />
                   <Tooltip
-                    contentStyle={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: '#0c1220', color: '#e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      background: 'rgba(12, 18, 32, 0.95)',
+                      color: '#e2e8f0',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                      backdropFilter: 'blur(12px)',
+                    }}
                     formatter={(value: number, name: string) => [name === 'valor' ? formatCurrency(value) : value, name === 'valor' ? 'Valor' : 'Pedidos']}
                   />
                   <Area type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2.5} fill="url(#colorTotal)" name="Pedidos" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <TrendingUp className="h-10 w-10 mb-2 opacity-20" />
-                <p className="text-sm">Nenhum dado disponivel</p>
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <div className="p-4 rounded-2xl bg-white/[0.03] mb-3">
+                  <TrendingUp className="h-8 w-8 opacity-20" />
+                </div>
+                <p className="text-sm font-medium">Nenhum dado disponivel</p>
+                <p className="text-xs text-zinc-600 mt-1">Os dados aparecerao quando houver pedidos</p>
               </div>
             )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2.5 text-sm">
               <div className="p-1.5 rounded-lg bg-violet-500/10">
-                <Package className="h-4 w-4 text-violet-400" />
+                <BarChart3 className="h-4 w-4 text-violet-400" />
               </div>
               Produtos Mais Vendidos
             </CardTitle>
@@ -317,8 +341,8 @@ export default function Dashboard() {
                     nameKey="nome"
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
+                    innerRadius={65}
+                    outerRadius={105}
                     paddingAngle={3}
                     label={({ nome, quantidade }) => `${nome}: ${quantidade}`}
                     labelLine={{ stroke: '#475569' }}
@@ -327,13 +351,22 @@ export default function Dashboard() {
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: '#0c1220', color: '#e2e8f0' }} />
+                  <Tooltip contentStyle={{
+                    borderRadius: 12,
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(12, 18, 32, 0.95)',
+                    color: '#e2e8f0',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                  }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <Package className="h-10 w-10 mb-2 opacity-20" />
-                <p className="text-sm">Nenhuma venda registrada</p>
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <div className="p-4 rounded-2xl bg-white/[0.03] mb-3">
+                  <Package className="h-8 w-8 opacity-20" />
+                </div>
+                <p className="text-sm font-medium">Nenhuma venda registrada</p>
+                <p className="text-xs text-zinc-600 mt-1">Crie pedidos para ver os dados aqui</p>
               </div>
             )}
           </CardContent>
@@ -343,8 +376,8 @@ export default function Dashboard() {
       {/* Ranking de Vendedores */}
       {isAdmin && stats.rankingVendedores.length > 0 && (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2.5 text-sm">
               <div className="p-1.5 rounded-lg bg-amber-500/10">
                 <Trophy className="h-4 w-4 text-amber-400" />
               </div>
@@ -367,9 +400,9 @@ export default function Dashboard() {
                     <TableCell>
                       {i < 3 ? (
                         <div className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          i === 0 ? 'bg-amber-500/10 text-amber-300' :
-                          i === 1 ? 'bg-slate-500/10 text-slate-400' :
-                          'bg-orange-500/10 text-orange-400'
+                          i === 0 ? 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20' :
+                          i === 1 ? 'bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20' :
+                          'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20'
                         }`}>
                           {i + 1}
                         </div>
@@ -377,11 +410,11 @@ export default function Dashboard() {
                         <span className="text-muted-foreground pl-2">{i + 1}</span>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium">{v.nome}</TableCell>
+                    <TableCell className="font-semibold">{v.nome}</TableCell>
                     <TableCell className="text-right">
                       <Badge variant="secondary">{v.pedidos}</Badge>
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-emerald-400">{formatCurrency(v.valor)}</TableCell>
+                    <TableCell className="text-right font-bold text-emerald-400">{formatCurrency(v.valor)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -392,9 +425,9 @@ export default function Dashboard() {
 
       {/* Estoque critico */}
       {isAdmin && stats.estoqueCritico.length > 0 && (
-        <Card className="border-red-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
+        <Card className="border-red-500/15">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2.5 text-sm">
               <div className="p-1.5 rounded-lg bg-red-500/10">
                 <AlertTriangle className="h-4 w-4 text-red-400" />
               </div>
@@ -404,16 +437,16 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-2">
               {stats.estoqueCritico.map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl bg-red-500/5 border border-red-500/20">
+                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/10 hover:border-red-500/20 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                    <div className="h-9 w-9 rounded-xl bg-red-500/10 flex items-center justify-center">
                       <Package className="h-4 w-4 text-red-400" />
                     </div>
-                    <span className="font-medium text-sm">{item.nome}</span>
+                    <span className="font-semibold text-sm">{item.nome}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge variant="destructive">{item.atual} un</Badge>
-                    <span className="text-xs text-muted-foreground">min: {item.minimo}</span>
+                    <span className="text-xs text-zinc-500">min: {item.minimo}</span>
                   </div>
                 </div>
               ))}

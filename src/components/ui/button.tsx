@@ -3,16 +3,22 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030712] disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-[0.98]',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030712] disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-[0.97]',
   {
     variants: {
       variant: {
-        default: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30',
-        destructive: 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-600/20',
-        outline: 'border border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] hover:text-white hover:border-white/[0.12] shadow-sm',
-        secondary: 'bg-white/[0.06] text-zinc-300 hover:bg-white/[0.10] hover:text-white',
-        ghost: 'text-zinc-400 hover:bg-white/[0.06] hover:text-white',
-        link: 'text-blue-400 underline-offset-4 hover:underline hover:text-blue-300',
+        default:
+          'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/25 hover:shadow-blue-500/40 hover:from-blue-500 hover:to-blue-400 border border-blue-500/20',
+        destructive:
+          'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-600/20 hover:shadow-red-500/30 hover:from-red-500 hover:to-red-400 border border-red-500/20',
+        outline:
+          'border border-white/[0.1] bg-white/[0.03] text-zinc-300 hover:bg-white/[0.07] hover:text-white hover:border-white/[0.15] shadow-sm backdrop-blur-sm',
+        secondary:
+          'bg-white/[0.06] text-zinc-300 hover:bg-white/[0.10] hover:text-white border border-white/[0.04]',
+        ghost:
+          'text-zinc-400 hover:bg-white/[0.06] hover:text-white',
+        link:
+          'text-blue-400 underline-offset-4 hover:underline hover:text-blue-300',
       },
       size: {
         default: 'h-10 px-5 py-2',
