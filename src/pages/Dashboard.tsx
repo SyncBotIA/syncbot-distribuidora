@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Select } from '@/components/ui/select'
@@ -115,7 +115,7 @@ export default function Dashboard() {
     const { data: topItems } = await supabase
       .from('pedido_itens')
       .select('produto_id, quantidade, produtos(nome, empresa_id)')
-      .filter('produto_id', 'in', `(${prods.map(p => p.id).join(',')})`)
+      .filter('produto_id', 'in', `(${(prods ?? []).map(p => p.id).join(',')})`)
 
     const prodMap = new Map<string, { nome: string; quantidade: number }>()
     for (const item of topItems ?? []) {
