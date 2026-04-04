@@ -21,8 +21,8 @@ interface UsuarioEmpresa {
   id: string
   usuario_id: string
   ativo: boolean
-  usuario: { id: string; nome: string; email: string }
-  hierarquia: { id: string; nome: string; ordem: number }
+  usuarios: { id: string; nome: string; email: string }
+  hierarquias: { id: string; nome: string; ordem: number }
 }
 
 export default function MasterPanel() {
@@ -315,12 +315,13 @@ export default function MasterPanel() {
                           <select
                             value={selectedHierarquiaId}
                             onChange={(e) => setSelectedHierarquiaId(e.target.value)}
-                            className="w-full h-10 rounded-xl border border-white/[0.08] bg-white/[0.06] px-3 text-sm text-white"
+                            className="w-full h-10 rounded-xl border border-white/[0.08] bg-[#0f1729] px-3 text-sm text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50"
                             required
+                            style={{ colorScheme: 'dark' }}
                           >
-                            <option value="">Selecione...</option>
+                            <option value="" className="bg-[#0f1729] text-zinc-400">Selecione...</option>
                             {hierarquias.map((h) => (
-                              <option key={h.id} value={h.id}>{h.nome}</option>
+                              <option key={h.id} value={h.id} className="bg-[#0f1729] text-white">{h.nome}</option>
                             ))}
                           </select>
                         </div>
@@ -376,18 +377,18 @@ export default function MasterPanel() {
                             className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.06] hover:bg-white/[0.02] transition-colors"
                           >
                             <div>
-                              <p className="font-medium text-sm text-zinc-200">{eu.usuario?.nome || 'Sem nome'}</p>
-                              <p className="text-xs text-zinc-500">{eu.usuario?.email}</p>
+                              <p className="font-medium text-sm text-zinc-200">{eu.usuarios?.nome || 'Sem nome'}</p>
+                              <p className="text-xs text-zinc-500">{eu.usuarios?.email}</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge
-                                variant={eu.hierarquia?.ordem === 1 ? 'default' : 'secondary'}
-                                className={eu.hierarquia?.ordem === 1 ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-white/[0.05] text-zinc-400 border-white/[0.08]'}
+                                variant={eu.hierarquias?.ordem === 1 ? 'default' : 'secondary'}
+                                className={eu.hierarquias?.ordem === 1 ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-white/[0.05] text-zinc-400 border-white/[0.08]'}
                               >
-                                {eu.hierarquia?.nome || 'Sem cargo'}
+                                {eu.hierarquias?.nome || 'Sem cargo'}
                               </Badge>
                               <button
-                                onClick={() => handleRemoveUsuario(eu.id, eu.usuario?.nome || '')}
+                                onClick={() => handleRemoveUsuario(eu.id, eu.usuarios?.nome || '')}
                                 className="p-2 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                                 title="Remover da empresa"
                               >
