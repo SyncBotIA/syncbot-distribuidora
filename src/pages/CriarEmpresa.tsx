@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
-import { supabase } from '@/lib/supabase'
+import { supabase, createIsolatedClient } from '@/lib/supabase'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -74,11 +74,24 @@ export default function CriarEmpresa() {
 
     try {
       if (isMaster && gerenteEmail) {
+        // 1. Criar usuario do gerente no Supabase Auth
+        const isolated = createIsolatedClient()
+        const { error: authError } = await isolated.auth.signUp({
+          email: gerenteEmail.toLowerCase(),
+          password: '123456',
+          options: {
+            data: { nome: gerenteNome || gerenteEmail.split('@')[0] },
+          },
+        })
+
+        if (authError && !authError.message.includes('already registered')) throw authError
+
+        // 2. Criar empresa com gerente via RPC
         const { data: empresaId, error: rpcError } = await supabase.rpc('criar_empresa_com_gerente', {
           p_nome: nome,
           p_cnpj: cnpj.replace(/\D/g, '') || null,
           p_master_id: usuario.id,
-          p_gerente_email: gerenteEmail,
+          p_gerente_email: gerenteEmail.toLowerCase(),
           p_gerente_senha: '123456',
           p_gerente_nome: gerenteNome || gerenteEmail.split('@')[0],
         })

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { supabase, createIsolatedClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -98,18 +98,35 @@ export default function MasterPanel() {
     setError('')
     setSuccess('')
 
+    const nomeUsuario = nome.trim() || email.trim().split('@')[0]
+    const emailUsuario = email.trim().toLowerCase()
+
     try {
-      const { error } = await supabase.rpc('convidar_usuario', {
+      // 1. Criar usuario no Supabase Auth usando client isolado (nao afeta sessao do master)
+      const isolated = createIsolatedClient()
+      const { data: authData, error: authError } = await isolated.auth.signUp({
+        email: emailUsuario,
+        password: '123456',
+        options: {
+          data: { nome: nomeUsuario },
+        },
+      })
+
+      if (authError) throw authError
+      if (!authData.user) throw new Error('Erro ao criar usuario')
+
+      // 2. Criar registro na tabela usuarios e vincular a empresa
+      const { error: rpcError } = await supabase.rpc('convidar_usuario', {
         p_empresa_id: selectedEmpresa.id,
-        p_nome: nome.trim() || email.trim().split('@')[0],
-        p_email: email.trim(),
+        p_nome: nomeUsuario,
+        p_email: emailUsuario,
         p_senha: '123456',
         p_hierarquia_id: selectedHierarquiaId,
       })
 
-      if (error) throw error
+      if (rpcError) throw rpcError
 
-      setSuccess(`Usuario criado! Email: ${email.trim()} / Senha provisoria: 123456`)
+      setSuccess(`Usuario criado! Email: ${emailUsuario} / Senha provisoria: 123456`)
       setNome('')
       setEmail('')
       setShowAddForm(false)

@@ -19,14 +19,14 @@ END $$;
 
 -- =============================================================================
 -- RPC: convidar_usuario
--- Cria um usuario via Supabase Auth e vincula a empresa com hierarquia
+-- Vincula usuario (ja criado via auth.signUp no frontend) a empresa
 -- Senha provisoria = true (usuario obrigado a redefinir no primeiro login)
 -- =============================================================================
 CREATE OR REPLACE FUNCTION convidar_usuario(
   p_empresa_id uuid,
   p_nome text,
   p_email text,
-  p_senha text,
+  p_senha text DEFAULT '123456',
   p_telefone text DEFAULT NULL,
   p_hierarquia_id uuid DEFAULT NULL,
   p_superior_id uuid DEFAULT NULL
@@ -38,26 +38,11 @@ DECLARE
   v_usuario_id uuid;
   v_eu_id uuid;
 BEGIN
-  -- Criar usuario no Supabase Auth
-  v_auth_id := (
-    SELECT id FROM auth.users WHERE email = LOWER(p_email)
-  );
+  -- Buscar auth_id do usuario ja criado via signUp
+  SELECT id INTO v_auth_id FROM auth.users WHERE email = LOWER(p_email);
 
   IF v_auth_id IS NULL THEN
-    -- Criar no auth.users via extensao
-    INSERT INTO auth.users (
-      instance_id, id, aud, role, email, encrypted_password,
-      email_confirmed_at, created_at, updated_at, confirmation_token,
-      raw_app_meta_data, raw_user_meta_data
-    ) VALUES (
-      '00000000-0000-0000-0000-000000000000',
-      gen_random_uuid(), 'authenticated', 'authenticated',
-      LOWER(p_email), crypt(p_senha, gen_salt('bf')),
-      now(), now(), now(), '',
-      '{"provider":"email","providers":["email"]}',
-      '{}'
-    )
-    RETURNING id INTO v_auth_id;
+    RAISE EXCEPTION 'Usuario com email "%" nao encontrado no auth. Crie primeiro via signUp.', p_email;
   END IF;
 
   -- Criar ou buscar na tabela usuarios
@@ -68,7 +53,6 @@ BEGIN
     VALUES (v_auth_id, p_nome, LOWER(p_email), p_telefone, true)
     RETURNING id INTO v_usuario_id;
   ELSE
-    -- Se ja existe, marcar senha como provisoria
     UPDATE usuarios SET senha_provisoria = true WHERE id = v_usuario_id;
   END IF;
 
@@ -85,15 +69,15 @@ $$;
 
 -- =============================================================================
 -- RPC: criar_empresa_com_gerente
--- Master cria empresa + gerente (com senha provisoria)
+-- Master cria empresa + gerente (auth ja criado via signUp no frontend)
 -- =============================================================================
 CREATE OR REPLACE FUNCTION criar_empresa_com_gerente(
   p_nome text,
   p_cnpj text,
   p_master_id uuid,
   p_gerente_email text,
-  p_gerente_senha text,
-  p_gerente_nome text
+  p_gerente_senha text DEFAULT '123456',
+  p_gerente_nome text DEFAULT ''
 )
 RETURNS uuid
 LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -109,12 +93,12 @@ BEGIN
   END IF;
 
   -- Verificar CNPJ duplicado
-  IF p_cnpj IS NOT NULL AND EXISTS (SELECT 1 FROM empresas WHERE cnpj = p_cnpj) THEN
+  IF p_cnpj IS NOT NULL AND p_cnpj != '' AND EXISTS (SELECT 1 FROM empresas WHERE cnpj = p_cnpj) THEN
     RAISE EXCEPTION 'CNPJ ja cadastrado';
   END IF;
 
   -- Criar empresa
-  INSERT INTO empresas (nome, cnpj) VALUES (p_nome, p_cnpj)
+  INSERT INTO empresas (nome, cnpj) VALUES (p_nome, NULLIF(p_cnpj, ''))
   RETURNING id INTO v_empresa_id;
 
   -- Criar hierarquia padrao (Gerente = ordem 1)
@@ -122,23 +106,11 @@ BEGIN
   VALUES (v_empresa_id, 'Gerente', 1, 'Gerente da empresa')
   RETURNING id INTO v_hierarquia_id;
 
-  -- Criar ou buscar usuario auth
+  -- Buscar auth_id do gerente (ja criado via signUp no frontend)
   SELECT id INTO v_auth_id FROM auth.users WHERE email = LOWER(p_gerente_email);
 
   IF v_auth_id IS NULL THEN
-    INSERT INTO auth.users (
-      instance_id, id, aud, role, email, encrypted_password,
-      email_confirmed_at, created_at, updated_at, confirmation_token,
-      raw_app_meta_data, raw_user_meta_data
-    ) VALUES (
-      '00000000-0000-0000-0000-000000000000',
-      gen_random_uuid(), 'authenticated', 'authenticated',
-      LOWER(p_gerente_email), crypt(p_gerente_senha, gen_salt('bf')),
-      now(), now(), now(), '',
-      '{"provider":"email","providers":["email"]}',
-      '{}'
-    )
-    RETURNING id INTO v_auth_id;
+    RAISE EXCEPTION 'Gerente com email "%" nao encontrado no auth.', p_gerente_email;
   END IF;
 
   -- Criar ou buscar na tabela usuarios

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, createIsolatedClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { useToast } from '@/components/ui/toast'
@@ -88,10 +88,24 @@ export default function Usuarios() {
 
     setSaving(true)
     try {
+      // 1. Criar usuario no Supabase Auth usando client isolado
+      const isolated = createIsolatedClient()
+      const { data: authData, error: authError } = await isolated.auth.signUp({
+        email: formEmail.toLowerCase(),
+        password: '123456',
+        options: {
+          data: { nome: formNome },
+        },
+      })
+
+      if (authError) throw authError
+      if (!authData.user) throw new Error('Erro ao criar usuario')
+
+      // 2. Vincular na tabela usuarios e empresa_usuarios
       const { error } = await supabase.rpc('convidar_usuario', {
         p_empresa_id: empresa.id,
         p_nome: formNome,
-        p_email: formEmail,
+        p_email: formEmail.toLowerCase(),
         p_senha: '123456',
         p_telefone: formTelefone || null,
         p_hierarquia_id: formHierarquiaId,
