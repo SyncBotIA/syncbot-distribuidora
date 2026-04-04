@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { supabase, createIsolatedClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -109,23 +109,30 @@ export default function MasterPanel() {
     const emailUsuario = email.trim().toLowerCase()
 
     try {
-      const { data, error } = await supabase.rpc('convidar_usuario_v2', {
+      // 1. Criar conta no Supabase Auth (com hash bcrypt correto)
+      const { data: authData, error: authError } = await createIsolatedClient().auth.signUp({
+        email: emailUsuario,
+        password: '123456',
+        options: { data: { nome: nomeUsuario } },
+      })
+
+      if (authError) throw authError
+      if (!authData?.user) throw new Error('Erro ao criar usuario')
+
+      // 2. Vincular a empresa via RPC
+      const { error: linkError } = await supabase.rpc('convidar_usuario_com_auth_id', {
         p_empresa_id: selectedEmpresa.id,
         p_nome: nomeUsuario,
         p_email: emailUsuario,
         p_hierarquia_id: selectedHierarquiaId,
         p_telefone: null,
         p_superior_id: null,
+        p_auth_id: authData.user.id,
       })
 
-      if (error) throw error
+      if (linkError) throw linkError
 
-      const reutilizado = data?.reutilizado ?? false
-      setSuccess(
-        reutilizado
-          ? `Usuario re-ativado: ${emailUsuario}`
-          : `Usuario criado! Email: ${emailUsuario} / Senha provisoria: 123456`
-      )
+      setSuccess(`Usuario criado! Email: ${emailUsuario} / Senha provisoria: 123456`)
       setNome('')
       setEmail('')
       setShowAddForm(false)

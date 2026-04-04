@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, createIsolatedClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { useToast } from '@/components/ui/toast'
@@ -121,23 +121,30 @@ export default function Usuarios() {
 
     setSaving(true)
     try {
-      const { data, error } = await supabase.rpc('convidar_usuario_v2', {
+      // 1. Criar conta no Supabase Auth (com hash bcrypt correto)
+      const { data: authData, error: authError } = await createIsolatedClient().auth.signUp({
+        email: formEmail.toLowerCase().trim(),
+        password: '123456',
+        options: { data: { nome: formNome } },
+      })
+
+      if (authError) throw authError
+      if (!authData?.user) throw new Error('Erro ao criar usuario')
+
+      // 2. Vincular a empresa via RPC
+      const { error: linkError } = await supabase.rpc('convidar_usuario_com_auth_id', {
         p_empresa_id: empresa.id,
         p_nome: formNome,
         p_email: formEmail.toLowerCase(),
-        p_hierarquia_id: formHierarquiaId,
         p_telefone: formTelefone || null,
+        p_hierarquia_id: formHierarquiaId,
         p_superior_id: formSuperiorId || null,
+        p_auth_id: authData.user.id,
       })
 
-      if (error) throw error
+      if (linkError) throw linkError
 
-      const email = data?.email ?? formEmail.toLowerCase()
-      const reutilizado = data?.reutilizado ?? false
-      const msg = reutilizado
-        ? `Usuario re-ativado: ${email}`
-        : `Usuario criado! ${email} / Senha provisoria: 123456`
-      toast({ title: reutilizado ? 'Usuario re-ativado' : 'Usuario criado com sucesso', description: msg, variant: 'success' })
+      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail.toLowerCase()} / Senha provisoria: 123456`, variant: 'success' })
       setDialogOpen(false)
       setFormNome('')
       setFormEmail('')
