@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Building2, Plus, Trash2, UserPlus, Users, X } from 'lucide-react'
+import { ArrowLeft, Building2, Plus, Trash2, UserPlus, Users, X, Pencil, Check } from 'lucide-react'
 
 interface EmpresaResumo {
   id: string
@@ -40,6 +40,13 @@ export default function MasterPanel() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editNome, setEditNome] = useState('')
+  const [editEmail, setEditEmail] = useState('')
+  const [editHierarquiaId, setEditHierarquiaId] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
 
   const fetchEmpresas = useCallback(async () => {
     if (!usuario) return
@@ -137,6 +144,52 @@ export default function MasterPanel() {
       setError(message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  function startEdit(eu: UsuarioEmpresa) {
+    setEditingId(eu.id)
+    setEditNome(eu.usuarios?.nome || '')
+    setEditEmail(eu.usuarios?.email || '')
+    setEditHierarquiaId(eu.hierarquias?.id || '')
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditNome('')
+    setEditEmail('')
+    setEditHierarquiaId('')
+  }
+
+  async function handleSaveEdit(eu: UsuarioEmpresa) {
+    if (!eu.usuarios) return
+    setEditSaving(true)
+
+    try {
+      // Atualizar nome na tabela usuarios
+      const { error: userError } = await supabase
+        .from('usuarios')
+        .update({ nome: editNome })
+        .eq('id', eu.usuarios.id)
+
+      if (userError) throw userError
+
+      // Atualizar hierarquia na empresa_usuarios
+      if (editHierarquiaId && editHierarquiaId !== eu.hierarquias?.id) {
+        const { error: euError } = await supabase
+          .from('empresa_usuarios')
+          .update({ hierarquia_id: editHierarquiaId })
+          .eq('id', eu.id)
+
+        if (euError) throw euError
+      }
+
+      cancelEdit()
+      if (selectedEmpresa) fetchUsuariosEmpresa(selectedEmpresa.id)
+    } catch {
+      setError('Erro ao salvar alteracoes')
+    } finally {
+      setEditSaving(false)
     }
   }
 
@@ -315,13 +368,13 @@ export default function MasterPanel() {
                           <select
                             value={selectedHierarquiaId}
                             onChange={(e) => setSelectedHierarquiaId(e.target.value)}
-                            className="w-full h-10 rounded-xl border border-white/[0.08] bg-[#0f1729] px-3 text-sm text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50"
+                            className="w-full h-10 rounded-xl border border-white/[0.08] bg-[#0c1225] px-3 text-sm text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 [&>option]:bg-[#0c1225] [&>option]:text-white"
                             required
                             style={{ colorScheme: 'dark' }}
                           >
-                            <option value="" className="bg-[#0f1729] text-zinc-400">Selecione...</option>
+                            <option value="">Selecione...</option>
                             {hierarquias.map((h) => (
-                              <option key={h.id} value={h.id} className="bg-[#0f1729] text-white">{h.nome}</option>
+                              <option key={h.id} value={h.id}>{h.nome}</option>
                             ))}
                           </select>
                         </div>
@@ -374,27 +427,78 @@ export default function MasterPanel() {
                         {usuarios.map((eu) => (
                           <div
                             key={eu.id}
-                            className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.06] hover:bg-white/[0.02] transition-colors"
+                            className="p-3.5 rounded-xl border border-white/[0.06] hover:bg-white/[0.02] transition-colors"
                           >
-                            <div>
-                              <p className="font-medium text-sm text-zinc-200">{eu.usuarios?.nome || 'Sem nome'}</p>
-                              <p className="text-xs text-zinc-500">{eu.usuarios?.email}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={eu.hierarquias?.ordem === 1 ? 'default' : 'secondary'}
-                                className={eu.hierarquias?.ordem === 1 ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-white/[0.05] text-zinc-400 border-white/[0.08]'}
-                              >
-                                {eu.hierarquias?.nome || 'Sem cargo'}
-                              </Badge>
-                              <button
-                                onClick={() => handleRemoveUsuario(eu.id, eu.usuarios?.nome || '')}
-                                className="p-2 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-                                title="Remover da empresa"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
+                            {editingId === eu.id ? (
+                              <div className="space-y-3">
+                                <div>
+                                  <Label className="text-zinc-400 text-xs">Nome</Label>
+                                  <Input
+                                    value={editNome}
+                                    onChange={(e) => setEditNome(e.target.value)}
+                                    className="bg-white/[0.06] border-white/[0.08] text-white h-9 text-sm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-zinc-400 text-xs">Cargo</Label>
+                                  <select
+                                    value={editHierarquiaId}
+                                    onChange={(e) => setEditHierarquiaId(e.target.value)}
+                                    className="w-full h-9 rounded-xl border border-white/[0.08] bg-[#0c1225] px-3 text-sm text-white appearance-none cursor-pointer [&>option]:bg-[#0c1225] [&>option]:text-white"
+                                    style={{ colorScheme: 'dark' }}
+                                  >
+                                    {hierarquias.map((h) => (
+                                      <option key={h.id} value={h.id}>{h.nome}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleSaveEdit(eu)}
+                                    disabled={editSaving || !editNome}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors cursor-pointer disabled:opacity-50"
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                    {editSaving ? 'Salvando...' : 'Salvar'}
+                                  </button>
+                                  <button
+                                    onClick={cancelEdit}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] transition-colors cursor-pointer"
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium text-sm text-zinc-200">{eu.usuarios?.nome || 'Sem nome'}</p>
+                                  <p className="text-xs text-zinc-500">{eu.usuarios?.email}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    variant={eu.hierarquias?.ordem === 1 ? 'default' : 'secondary'}
+                                    className={eu.hierarquias?.ordem === 1 ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-white/[0.05] text-zinc-400 border-white/[0.08]'}
+                                  >
+                                    {eu.hierarquias?.nome || 'Sem cargo'}
+                                  </Badge>
+                                  <button
+                                    onClick={() => startEdit(eu)}
+                                    className="p-2 rounded-lg text-blue-400/70 hover:text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                                    title="Editar usuario"
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveUsuario(eu.id, eu.usuarios?.nome || '')}
+                                    className="p-2 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                                    title="Remover da empresa"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
