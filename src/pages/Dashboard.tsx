@@ -189,32 +189,32 @@ export default function Dashboard() {
       value: stats.totalPedidos.toString(),
       icon: ShoppingCart,
       color: 'from-blue-500 to-blue-600',
-      bgLight: 'bg-blue-50',
-      textColor: 'text-blue-600',
+      bgLight: 'bg-blue-500/10',
+      textColor: 'text-blue-400',
     },
     {
       label: 'Valor Total',
       value: formatCurrency(stats.valorTotal),
       icon: DollarSign,
       color: 'from-emerald-500 to-emerald-600',
-      bgLight: 'bg-emerald-50',
-      textColor: 'text-emerald-600',
+      bgLight: 'bg-emerald-500/10',
+      textColor: 'text-emerald-400',
     },
     {
       label: 'Produtos Ativos',
       value: stats.totalProdutos.toString(),
       icon: Package,
       color: 'from-violet-500 to-violet-600',
-      bgLight: 'bg-violet-50',
-      textColor: 'text-violet-600',
+      bgLight: 'bg-violet-500/10',
+      textColor: 'text-violet-400',
     },
     {
       label: 'Estoque Baixo',
       value: stats.estoqueBaixo.toString(),
       icon: AlertTriangle,
       color: 'from-red-500 to-red-600',
-      bgLight: 'bg-red-50',
-      textColor: 'text-red-600',
+      bgLight: 'bg-red-500/10',
+      textColor: 'text-red-400',
     },
   ]
 
@@ -263,8 +263,8 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 rounded-lg bg-blue-50">
-                <TrendingUp className="h-4 w-4 text-blue-600" />
+              <div className="p-1.5 rounded-lg bg-blue-500/10">
+                <TrendingUp className="h-4 w-4 text-blue-400" />
               </div>
               Pedidos por Periodo
             </CardTitle>
@@ -279,11 +279,11 @@ export default function Dashboard() {
                       <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 12 }} stroke="#94a3b8" />
-                  <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 12, fill: '#64748b' }} stroke="#334155" />
+                  <YAxis tick={{ fontSize: 12, fill: '#64748b' }} stroke="#334155" />
                   <Tooltip
-                    contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    contentStyle={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: '#0c1220', color: '#e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
                     formatter={(value: number, name: string) => [name === 'valor' ? formatCurrency(value) : value, name === 'valor' ? 'Valor' : 'Pedidos']}
                   />
                   <Area type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2.5} fill="url(#colorTotal)" name="Pedidos" />
@@ -301,8 +301,8 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 rounded-lg bg-violet-50">
-                <Package className="h-4 w-4 text-violet-600" />
+              <div className="p-1.5 rounded-lg bg-violet-500/10">
+                <Package className="h-4 w-4 text-violet-400" />
               </div>
               Produtos Mais Vendidos
             </CardTitle>
@@ -321,12 +321,13 @@ export default function Dashboard() {
                     outerRadius={100}
                     paddingAngle={3}
                     label={({ nome, quantidade }) => `${nome}: ${quantidade}`}
+                    labelLine={{ stroke: '#475569' }}
                   >
                     {stats.produtosMaisVendidos.map((_, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0' }} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: '#0c1220', color: '#e2e8f0' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -344,8 +345,8 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 rounded-lg bg-amber-50">
-                <Trophy className="h-4 w-4 text-amber-600" />
+              <div className="p-1.5 rounded-lg bg-amber-500/10">
+                <Trophy className="h-4 w-4 text-amber-400" />
               </div>
               Ranking de Vendedores — {periodoLabels[periodo]}
             </CardTitle>
@@ -366,9 +367,9 @@ export default function Dashboard() {
                     <TableCell>
                       {i < 3 ? (
                         <div className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          i === 0 ? 'bg-amber-100 text-amber-700' :
-                          i === 1 ? 'bg-slate-100 text-slate-600' :
-                          'bg-orange-100 text-orange-700'
+                          i === 0 ? 'bg-amber-500/10 text-amber-300' :
+                          i === 1 ? 'bg-slate-500/10 text-slate-400' :
+                          'bg-orange-500/10 text-orange-400'
                         }`}>
                           {i + 1}
                         </div>
@@ -380,7 +381,7 @@ export default function Dashboard() {
                     <TableCell className="text-right">
                       <Badge variant="secondary">{v.pedidos}</Badge>
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-emerald-600">{formatCurrency(v.valor)}</TableCell>
+                    <TableCell className="text-right font-semibold text-emerald-400">{formatCurrency(v.valor)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -391,11 +392,11 @@ export default function Dashboard() {
 
       {/* Estoque critico */}
       {isAdmin && stats.estoqueCritico.length > 0 && (
-        <Card className="border-red-100">
+        <Card className="border-red-500/20">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 rounded-lg bg-red-50">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
+              <div className="p-1.5 rounded-lg bg-red-500/10">
+                <AlertTriangle className="h-4 w-4 text-red-400" />
               </div>
               Estoque Critico
             </CardTitle>
@@ -403,10 +404,10 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-2">
               {stats.estoqueCritico.map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl bg-red-50/50 border border-red-100">
+                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl bg-red-500/5 border border-red-500/20">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center">
-                      <Package className="h-4 w-4 text-red-500" />
+                    <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                      <Package className="h-4 w-4 text-red-400" />
                     </div>
                     <span className="font-medium text-sm">{item.nome}</span>
                   </div>

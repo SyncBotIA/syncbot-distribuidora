@@ -12,7 +12,7 @@ Table.displayName = 'Table'
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn('bg-gradient-to-r from-slate-50 to-muted/50 [&_tr]:border-b', className)} {...props} />
+    <thead ref={ref} className={cn('bg-white/[0.02] [&_tr]:border-b [&_tr]:border-white/[0.06]', className)} {...props} />
   )
 )
 TableHeader.displayName = 'TableHeader'
@@ -26,21 +26,21 @@ TableBody.displayName = 'TableBody'
 
 const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
   ({ className, ...props }, ref) => (
-    <tr ref={ref} className={cn('border-b transition-all duration-150 hover:bg-blue-50/40 data-[state=selected]:bg-blue-50', className)} {...props} />
+    <tr ref={ref} className={cn('border-b border-white/[0.04] transition-all duration-150 hover:bg-blue-500/[0.04] data-[state=selected]:bg-blue-500/[0.08]', className)} {...props} />
   )
 )
 TableRow.displayName = 'TableRow'
 
 const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <th ref={ref} className={cn('h-11 px-4 text-left align-middle text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 [&:has([role=checkbox])]:pr-0', className)} {...props} />
+    <th ref={ref} className={cn('h-11 px-4 text-left align-middle text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 [&:has([role=checkbox])]:pr-0', className)} {...props} />
   )
 )
 TableHead.displayName = 'TableHead'
 
 const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <td ref={ref} className={cn('px-4 py-3.5 align-middle text-sm text-slate-700 [&:has([role=checkbox])]:pr-0', className)} {...props} />
+    <td ref={ref} className={cn('px-4 py-3.5 align-middle text-sm text-zinc-300 [&:has([role=checkbox])]:pr-0', className)} {...props} />
   )
 )
 TableCell.displayName = 'TableCell'

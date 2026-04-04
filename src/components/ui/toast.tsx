@@ -37,9 +37,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const icons = {
-    default: <Info className="h-4 w-4 text-blue-500 shrink-0" />,
+    default: <Info className="h-4 w-4 text-blue-400 shrink-0" />,
     destructive: <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />,
-    success: <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />,
+    success: <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />,
   }
 
   return (
@@ -50,18 +50,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={cn(
-              'rounded-xl border p-4 shadow-xl bg-white text-foreground animate-slide-up',
-              t.variant === 'destructive' && 'border-red-200 bg-red-50',
-              t.variant === 'success' && 'border-emerald-200 bg-emerald-50'
+              'rounded-xl border p-4 shadow-xl animate-slide-up',
+              'border-white/[0.08] bg-[#0c1220] text-white',
+              t.variant === 'destructive' && 'border-red-500/20 bg-red-500/5',
+              t.variant === 'success' && 'border-emerald-500/20 bg-emerald-500/5'
             )}
           >
             <div className="flex items-start gap-3">
               {icons[t.variant ?? 'default']}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold">{t.title}</p>
-                {t.description && <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>}
+                <p className="text-sm font-semibold text-white">{t.title}</p>
+                {t.description && <p className="text-xs text-zinc-400 mt-0.5">{t.description}</p>}
               </div>
-              <button onClick={() => removeToast(t.id)} className="opacity-40 hover:opacity-100 cursor-pointer transition-opacity shrink-0">
+              <button onClick={() => removeToast(t.id)} className="opacity-40 hover:opacity-100 cursor-pointer transition-opacity shrink-0 text-zinc-400">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>

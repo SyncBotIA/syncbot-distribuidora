@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #f8fafc;
-  --color-foreground: #0f172a;
-  --color-muted: #f1f5f9;
+  --color-background: #030712;
+  --color-foreground: #f1f5f9;
+  --color-muted: #111827;
   --color-muted-foreground: #64748b;
-  --color-card: #ffffff;
-  --color-card-foreground: #0f172a;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #0f172a;
+  --color-card: #0a0f1a;
+  --color-card-foreground: #f1f5f9;
+  --color-popover: #0a0f1a;
+  --color-popover-foreground: #f1f5f9;
   --color-primary: #2563eb;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f1f5f9;
-  --color-secondary-foreground: #0f172a;
-  --color-accent: #eff6ff;
-  --color-accent-foreground: #1e40af;
+  --color-secondary: #111827;
+  --color-secondary-foreground: #e2e8f0;
+  --color-accent: #0f172a;
+  --color-accent-foreground: #60a5fa;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
+  --color-border: #1e293b;
+  --color-input: #1e293b;
   --color-ring: #2563eb;
   --color-sidebar: #0a0a0f;
   --color-sidebar-foreground: #e2e8f0;
@@ -58,11 +58,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #1e293b;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #334155;
 }
 
 /* Animations */
@@ -95,7 +95,7 @@ body {
 
 /* Glass effect */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(10, 15, 26, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -107,15 +107,15 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #111827 25%, #1e293b 50%, #111827 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
 /* Pulse glow for status indicators */
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  50% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0); }
 }
 
 .animate-pulse-glow {
@@ -124,6 +124,6 @@ body {
 
 /* Selection color */
 ::selection {
-  background: rgba(37, 99, 235, 0.15);
+  background: rgba(37, 99, 235, 0.3);
   color: inherit;
 }

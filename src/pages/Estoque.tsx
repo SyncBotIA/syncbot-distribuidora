@@ -152,25 +152,25 @@ export default function Estoque() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-50 border border-blue-100">
-          <Warehouse className="h-5 w-5 text-blue-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+          <Warehouse className="h-5 w-5 text-blue-400" />
           <div>
-            <p className="text-lg font-bold text-blue-700">{totalEstoque}</p>
-            <p className="text-[11px] text-blue-600/70 font-medium">Itens em Estoque</p>
+            <p className="text-lg font-bold text-blue-300">{totalEstoque}</p>
+            <p className="text-[11px] text-blue-400/70 font-medium">Itens em Estoque</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
-          <PackageCheck className="h-5 w-5 text-emerald-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <PackageCheck className="h-5 w-5 text-emerald-400" />
           <div>
-            <p className="text-lg font-bold text-emerald-700">{produtosOk}</p>
-            <p className="text-[11px] text-emerald-600/70 font-medium">Estoque Normal</p>
+            <p className="text-lg font-bold text-emerald-300">{produtosOk}</p>
+            <p className="text-[11px] text-emerald-400/70 font-medium">Estoque Normal</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-red-50 border border-red-100 hidden sm:flex">
-          <PackageMinus className="h-5 w-5 text-red-500" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 hidden sm:flex">
+          <PackageMinus className="h-5 w-5 text-red-400" />
           <div>
-            <p className="text-lg font-bold text-red-600">{produtosBaixo}</p>
-            <p className="text-[11px] text-red-500/70 font-medium">Estoque Baixo</p>
+            <p className="text-lg font-bold text-red-400">{produtosBaixo}</p>
+            <p className="text-[11px] text-red-400/60 font-medium">Estoque Baixo</p>
           </div>
         </div>
       </div>

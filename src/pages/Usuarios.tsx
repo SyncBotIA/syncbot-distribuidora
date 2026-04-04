@@ -182,25 +182,25 @@ export default function Usuarios() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-cyan-50 border border-cyan-100">
-          <Users className="h-5 w-5 text-cyan-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+          <Users className="h-5 w-5 text-cyan-400" />
           <div>
-            <p className="text-lg font-bold text-cyan-700">{totalAtivos}</p>
-            <p className="text-[11px] text-cyan-600/70 font-medium">Usuarios Ativos</p>
+            <p className="text-lg font-bold text-cyan-300">{totalAtivos}</p>
+            <p className="text-[11px] text-cyan-400/70 font-medium">Usuarios Ativos</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-50 border border-blue-100">
-          <ShieldCheck className="h-5 w-5 text-blue-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+          <ShieldCheck className="h-5 w-5 text-blue-400" />
           <div>
-            <p className="text-lg font-bold text-blue-700">{hierarquias.length}</p>
-            <p className="text-[11px] text-blue-600/70 font-medium">Niveis de Hierarquia</p>
+            <p className="text-lg font-bold text-blue-300">{hierarquias.length}</p>
+            <p className="text-[11px] text-blue-400/70 font-medium">Niveis de Hierarquia</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-50 border border-violet-100 hidden sm:flex">
-          <UserPlus className="h-5 w-5 text-violet-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20 hidden sm:flex">
+          <UserPlus className="h-5 w-5 text-violet-400" />
           <div>
-            <p className="text-lg font-bold text-violet-700">{availableHierarquias.length}</p>
-            <p className="text-[11px] text-violet-600/70 font-medium">Cargos Disponiveis</p>
+            <p className="text-lg font-bold text-violet-300">{availableHierarquias.length}</p>
+            <p className="text-[11px] text-violet-400/70 font-medium">Cargos Disponiveis</p>
           </div>
         </div>
       </div>

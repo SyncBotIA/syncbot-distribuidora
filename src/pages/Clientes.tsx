@@ -275,25 +275,25 @@ export default function Clientes() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-50 border border-blue-100">
-          <UserCheck className="h-5 w-5 text-blue-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+          <UserCheck className="h-5 w-5 text-blue-400" />
           <div>
-            <p className="text-lg font-bold text-blue-700">{clientes.length}</p>
-            <p className="text-[11px] text-blue-600/70 font-medium">Total de Clientes</p>
+            <p className="text-lg font-bold text-blue-300">{clientes.length}</p>
+            <p className="text-[11px] text-blue-400/70 font-medium">Total de Clientes</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-50 border border-violet-100">
-          <MapPin className="h-5 w-5 text-violet-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
+          <MapPin className="h-5 w-5 text-violet-400" />
           <div>
-            <p className="text-lg font-bold text-violet-700">{totalCidades}</p>
-            <p className="text-[11px] text-violet-600/70 font-medium">Cidades</p>
+            <p className="text-lg font-bold text-violet-300">{totalCidades}</p>
+            <p className="text-[11px] text-violet-400/70 font-medium">Cidades</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100 hidden sm:flex">
-          <Building className="h-5 w-5 text-emerald-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hidden sm:flex">
+          <Building className="h-5 w-5 text-emerald-400" />
           <div>
-            <p className="text-lg font-bold text-emerald-700">{clientes.filter(c => c.cnpj).length}</p>
-            <p className="text-[11px] text-emerald-600/70 font-medium">Com CNPJ</p>
+            <p className="text-lg font-bold text-emerald-300">{clientes.filter(c => c.cnpj).length}</p>
+            <p className="text-[11px] text-emerald-400/70 font-medium">Com CNPJ</p>
           </div>
         </div>
       </div>

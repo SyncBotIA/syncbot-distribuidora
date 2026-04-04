@@ -298,32 +298,32 @@ export default function Pedidos() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-50 border border-blue-100">
-          <FileText className="h-5 w-5 text-blue-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+          <FileText className="h-5 w-5 text-blue-400" />
           <div>
-            <p className="text-lg font-bold text-blue-700">{pedidos.length}</p>
-            <p className="text-[11px] text-blue-600/70 font-medium">Total</p>
+            <p className="text-lg font-bold text-blue-300">{pedidos.length}</p>
+            <p className="text-[11px] text-blue-400/70 font-medium">Total</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-100">
-          <FileText className="h-5 w-5 text-amber-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+          <FileText className="h-5 w-5 text-amber-400" />
           <div>
-            <p className="text-lg font-bold text-amber-700">{pedidosRascunho}</p>
-            <p className="text-[11px] text-amber-600/70 font-medium">Rascunhos</p>
+            <p className="text-lg font-bold text-amber-300">{pedidosRascunho}</p>
+            <p className="text-[11px] text-amber-400/70 font-medium">Rascunhos</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
-          <Check className="h-5 w-5 text-emerald-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <Check className="h-5 w-5 text-emerald-400" />
           <div>
-            <p className="text-lg font-bold text-emerald-700">{pedidosConfirmados}</p>
-            <p className="text-[11px] text-emerald-600/70 font-medium">Confirmados</p>
+            <p className="text-lg font-bold text-emerald-300">{pedidosConfirmados}</p>
+            <p className="text-[11px] text-emerald-400/70 font-medium">Confirmados</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-50 border border-violet-100">
-          <ShoppingCart className="h-5 w-5 text-violet-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
+          <ShoppingCart className="h-5 w-5 text-violet-400" />
           <div>
-            <p className="text-lg font-bold text-violet-700">{formatCurrency(valorTotalPedidos)}</p>
-            <p className="text-[11px] text-violet-600/70 font-medium">Valor Total</p>
+            <p className="text-lg font-bold text-violet-300">{formatCurrency(valorTotalPedidos)}</p>
+            <p className="text-[11px] text-violet-400/70 font-medium">Valor Total</p>
           </div>
         </div>
       </div>
@@ -368,12 +368,12 @@ export default function Pedidos() {
                           </Button>
                           {p.status === 'rascunho' && (
                             <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'confirmado')} title="Confirmar">
-                              <Check className="h-4 w-4 text-green-600" />
+                              <Check className="h-4 w-4 text-emerald-400" />
                             </Button>
                           )}
                           {p.status === 'confirmado' && (
                             <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'entregue')} title="Marcar entregue">
-                              <Truck className="h-4 w-4 text-blue-600" />
+                              <Truck className="h-4 w-4 text-blue-400" />
                             </Button>
                           )}
                           {canCancel(p) && p.status !== 'cancelado' && p.status !== 'entregue' && (

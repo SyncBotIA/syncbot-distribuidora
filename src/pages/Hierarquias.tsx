@@ -152,18 +152,18 @@ export default function Hierarquias() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-indigo-50 border border-indigo-100">
-          <Layers className="h-5 w-5 text-indigo-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+          <Layers className="h-5 w-5 text-indigo-400" />
           <div>
-            <p className="text-lg font-bold text-indigo-700">{hierarquias.length}</p>
-            <p className="text-[11px] text-indigo-600/70 font-medium">Niveis Cadastrados</p>
+            <p className="text-lg font-bold text-indigo-300">{hierarquias.length}</p>
+            <p className="text-[11px] text-indigo-400/70 font-medium">Niveis Cadastrados</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
-          <ShieldCheck className="h-5 w-5 text-emerald-600" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <ShieldCheck className="h-5 w-5 text-emerald-400" />
           <div>
-            <p className="text-lg font-bold text-emerald-700">{hierarquias.filter(h => h.ativo).length}</p>
-            <p className="text-[11px] text-emerald-600/70 font-medium">Niveis Ativos</p>
+            <p className="text-lg font-bold text-emerald-300">{hierarquias.filter(h => h.ativo).length}</p>
+            <p className="text-[11px] text-emerald-400/70 font-medium">Niveis Ativos</p>
           </div>
         </div>
       </div>

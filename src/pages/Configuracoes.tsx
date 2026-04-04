@@ -86,8 +86,8 @@ export default function Configuracoes() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-blue-50">
-              <User className="h-4 w-4 text-blue-600" />
+            <div className="p-1.5 rounded-lg bg-blue-500/10">
+              <User className="h-4 w-4 text-blue-400" />
             </div>
             Meu Perfil
           </CardTitle>
@@ -126,8 +126,8 @@ export default function Configuracoes() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-50">
-              <Lock className="h-4 w-4 text-amber-600" />
+            <div className="p-1.5 rounded-lg bg-amber-500/10">
+              <Lock className="h-4 w-4 text-amber-400" />
             </div>
             Alterar Senha
           </CardTitle>
