@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { UserPlus, Trash2 } from 'lucide-react'
+import { UserPlus, Trash2, Users, Search, ShieldCheck } from 'lucide-react'
 import type { EmpresaUsuario, Hierarquia } from '@/types/database'
 
 export default function Usuarios() {
@@ -153,10 +153,21 @@ export default function Usuarios() {
     return u.nome.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
   })
 
+  const totalAtivos = usuarios.filter(eu => eu.ativo).length
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Usuarios</h1>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/20">
+            <Users className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Usuarios</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Equipe e permissoes de acesso</p>
+          </div>
+        </div>
         {availableHierarquias.length > 0 && (
           <Button onClick={() => {
             setDialogOpen(true)
@@ -169,17 +180,51 @@ export default function Usuarios() {
         )}
       </div>
 
-      <Input
-        placeholder="Buscar por nome ou email..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-sm"
-      />
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-cyan-50 border border-cyan-100">
+          <Users className="h-5 w-5 text-cyan-600" />
+          <div>
+            <p className="text-lg font-bold text-cyan-700">{totalAtivos}</p>
+            <p className="text-[11px] text-cyan-600/70 font-medium">Usuarios Ativos</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-50 border border-blue-100">
+          <ShieldCheck className="h-5 w-5 text-blue-600" />
+          <div>
+            <p className="text-lg font-bold text-blue-700">{hierarquias.length}</p>
+            <p className="text-[11px] text-blue-600/70 font-medium">Niveis de Hierarquia</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-50 border border-violet-100 hidden sm:flex">
+          <UserPlus className="h-5 w-5 text-violet-600" />
+          <div>
+            <p className="text-lg font-bold text-violet-700">{availableHierarquias.length}</p>
+            <p className="text-[11px] text-violet-600/70 font-medium">Cargos Disponiveis</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por nome ou email..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <p className="text-muted-foreground">Carregando...</p>
+            <div className="flex items-center justify-center py-12">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground">Carregando usuarios...</p>
+              </div>
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -221,8 +266,16 @@ export default function Usuarios() {
                 })}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      Nenhum usuario encontrado
+                    <TableCell colSpan={6}>
+                      <div className="flex flex-col items-center justify-center py-10">
+                        <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
+                          <Users className="h-6 w-6 text-muted-foreground/50" />
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">Nenhum usuario encontrado</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">
+                          {search ? 'Tente ajustar sua busca' : 'Convide membros para a equipe'}
+                        </p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}

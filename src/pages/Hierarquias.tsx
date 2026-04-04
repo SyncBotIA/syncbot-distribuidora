@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, ArrowUp, ArrowDown, Pencil, Trash2 } from 'lucide-react'
+import { Plus, ArrowUp, ArrowDown, Pencil, Trash2, ShieldCheck, Layers } from 'lucide-react'
 import type { Hierarquia } from '@/types/database'
 
 export default function Hierarquias() {
@@ -132,22 +132,51 @@ export default function Hierarquias() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Hierarquias</h1>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/20">
+            <ShieldCheck className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Hierarquias</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Estrutura organizacional e niveis de acesso</p>
+          </div>
+        </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="h-4 w-4" />
           Nova Hierarquia
         </Button>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-indigo-50 border border-indigo-100">
+          <Layers className="h-5 w-5 text-indigo-600" />
+          <div>
+            <p className="text-lg font-bold text-indigo-700">{hierarquias.length}</p>
+            <p className="text-[11px] text-indigo-600/70 font-medium">Niveis Cadastrados</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
+          <ShieldCheck className="h-5 w-5 text-emerald-600" />
+          <div>
+            <p className="text-lg font-bold text-emerald-700">{hierarquias.filter(h => h.ativo).length}</p>
+            <p className="text-[11px] text-emerald-600/70 font-medium">Niveis Ativos</p>
+          </div>
+        </div>
+      </div>
+
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Níveis da empresa</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {loading ? (
-            <p className="text-muted-foreground">Carregando...</p>
+            <div className="flex items-center justify-center py-12">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground">Carregando hierarquias...</p>
+              </div>
+            </div>
           ) : (
             <Table>
               <TableHeader>

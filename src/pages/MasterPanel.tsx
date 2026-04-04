@@ -148,20 +148,26 @@ export default function MasterPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-muted p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-[#030712] via-[#0a1628] to-[#0c1220] p-4 md:p-8 relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/8 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-800/8 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto relative z-10 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => navigate('/selecionar-empresa')}>
+            <button
+              onClick={() => navigate('/selecionar-empresa')}
+              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 cursor-pointer transition-colors p-2 rounded-lg hover:bg-white/[0.04]"
+            >
               <ArrowLeft className="h-4 w-4" />
-            </Button>
+            </button>
             <div>
-              <h1 className="text-2xl font-bold">Painel Master</h1>
-              <p className="text-muted-foreground text-sm">Gerencie empresas e seus usuários</p>
+              <h1 className="text-2xl font-bold text-white">Painel Master</h1>
+              <p className="text-zinc-500 text-sm mt-0.5">Gerencie empresas e seus usuarios</p>
             </div>
           </div>
-          <Badge variant="secondary" className="text-sm px-3 py-1">
+          <Badge variant="secondary" className="text-sm px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20">
             Master
           </Badge>
         </div>
@@ -169,10 +175,10 @@ export default function MasterPanel() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Lista de Empresas */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="shadow-2xl shadow-black/40 border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
+                <CardTitle className="text-base flex items-center gap-2 text-white">
+                  <Building2 className="h-5 w-5 text-blue-400" />
                   Empresas ({empresas.length})
                 </CardTitle>
               </CardHeader>
@@ -181,18 +187,18 @@ export default function MasterPanel() {
                   <button
                     key={emp.id}
                     onClick={() => handleSelectEmpresa(emp)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors cursor-pointer ${
+                    className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 cursor-pointer ${
                       selectedEmpresa?.id === emp.id
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'hover:bg-accent'
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-500/50 shadow-lg shadow-blue-600/25'
+                        : 'border-white/[0.06] hover:bg-white/[0.04] hover:border-blue-500/20'
                     }`}
                   >
-                    <p className="font-medium">{emp.nome}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className={`text-xs ${selectedEmpresa?.id === emp.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                    <p className={`font-semibold text-sm ${selectedEmpresa?.id === emp.id ? 'text-white' : 'text-zinc-200'}`}>{emp.nome}</p>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className={`text-xs font-mono ${selectedEmpresa?.id === emp.id ? 'text-white/60' : 'text-zinc-500'}`}>
                         {emp.cnpj || 'Sem CNPJ'}
                       </span>
-                      <span className={`text-xs flex items-center gap-1 ${selectedEmpresa?.id === emp.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                      <span className={`text-xs flex items-center gap-1 ${selectedEmpresa?.id === emp.id ? 'text-white/60' : 'text-zinc-500'}`}>
                         <Users className="h-3 w-3" />
                         {emp.total_usuarios}
                       </span>
@@ -201,15 +207,20 @@ export default function MasterPanel() {
                 ))}
 
                 {empresas.length === 0 && (
-                  <p className="text-center text-muted-foreground py-4 text-sm">
-                    Nenhuma empresa cadastrada
-                  </p>
+                  <div className="flex flex-col items-center py-8">
+                    <div className="h-10 w-10 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3">
+                      <Building2 className="h-5 w-5 text-zinc-600" />
+                    </div>
+                    <p className="text-center text-zinc-500 text-sm">
+                      Nenhuma empresa cadastrada
+                    </p>
+                  </div>
                 )}
 
                 <Button
                   onClick={() => navigate('/criar-empresa')}
                   variant="outline"
-                  className="w-full gap-2 mt-2"
+                  className="w-full gap-2 mt-2 border-white/[0.08] text-zinc-300 hover:bg-white/[0.04] hover:text-white"
                 >
                   <Plus className="h-4 w-4" />
                   Nova Empresa
@@ -221,18 +232,22 @@ export default function MasterPanel() {
           {/* Detalhes da Empresa */}
           <div className="lg:col-span-2">
             {!selectedEmpresa ? (
-              <Card>
-                <CardContent className="flex items-center justify-center py-20">
-                  <p className="text-muted-foreground">Selecione uma empresa para gerenciar</p>
+              <Card className="shadow-2xl shadow-black/40 border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
+                <CardContent className="flex flex-col items-center justify-center py-20">
+                  <div className="h-14 w-14 rounded-2xl bg-white/[0.05] flex items-center justify-center mb-4">
+                    <Building2 className="h-7 w-7 text-zinc-600" />
+                  </div>
+                  <p className="text-zinc-400 font-medium">Selecione uma empresa</p>
+                  <p className="text-zinc-600 text-sm mt-1">Clique em uma empresa ao lado para gerenciar</p>
                 </CardContent>
               </Card>
             ) : (
-              <Card>
+              <Card className="shadow-2xl shadow-black/40 border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>{selectedEmpresa.nome}</CardTitle>
-                      <CardDescription>{selectedEmpresa.cnpj || 'Sem CNPJ'}</CardDescription>
+                      <CardTitle className="text-white">{selectedEmpresa.nome}</CardTitle>
+                      <CardDescription className="text-zinc-500 font-mono">{selectedEmpresa.cnpj || 'Sem CNPJ'}</CardDescription>
                     </div>
                     <Button
                       onClick={() => { setShowAddForm(true); setError(''); setSuccess('') }}
@@ -240,40 +255,41 @@ export default function MasterPanel() {
                       size="sm"
                     >
                       <UserPlus className="h-4 w-4" />
-                      Adicionar Usuário
+                      Adicionar Usuario
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Form adicionar */}
                   {showAddForm && (
-                    <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+                    <div className="border border-white/[0.08] rounded-xl p-4 bg-white/[0.02] space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium">Vincular Usuário</h3>
-                        <button onClick={() => setShowAddForm(false)} className="cursor-pointer">
+                        <h3 className="font-medium text-zinc-200 text-sm">Vincular Usuario</h3>
+                        <button onClick={() => setShowAddForm(false)} className="cursor-pointer text-zinc-500 hover:text-zinc-300 transition-colors">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
                       <form onSubmit={handleAddUsuario} className="space-y-3">
                         <div>
-                          <Label>Email do usuário</Label>
+                          <Label className="text-zinc-400 text-xs">Email do usuario</Label>
                           <Input
                             type="email"
                             placeholder="email@exemplo.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-zinc-600 focus-visible:ring-blue-500/30 focus-visible:border-blue-500/50"
                           />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            O usuário precisa ter criado uma conta antes
+                          <p className="text-[11px] text-zinc-600 mt-1">
+                            O usuario precisa ter criado uma conta antes
                           </p>
                         </div>
                         <div>
-                          <Label>Cargo</Label>
+                          <Label className="text-zinc-400 text-xs">Cargo</Label>
                           <select
                             value={selectedOrdem}
                             onChange={(e) => setSelectedOrdem(Number(e.target.value))}
-                            className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                            className="w-full h-10 rounded-xl border border-white/[0.08] bg-white/[0.06] px-3 text-sm text-white"
                           >
                             {hierarquias.map((h) => (
                               <option key={h.id} value={h.ordem}>{h.nome}</option>
@@ -281,14 +297,22 @@ export default function MasterPanel() {
                           </select>
                         </div>
 
-                        {error && <p className="text-sm text-destructive">{error}</p>}
-                        {success && <p className="text-sm text-green-600">{success}</p>}
+                        {error && (
+                          <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3">
+                            <p className="text-sm text-red-400">{error}</p>
+                          </div>
+                        )}
+                        {success && (
+                          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3">
+                            <p className="text-sm text-emerald-400">{success}</p>
+                          </div>
+                        )}
 
                         <div className="flex gap-2">
                           <Button type="submit" disabled={saving} size="sm">
                             {saving ? 'Vinculando...' : 'Vincular'}
                           </Button>
-                          <Button type="button" variant="outline" size="sm" onClick={() => setShowAddForm(false)}>
+                          <Button type="button" variant="outline" size="sm" onClick={() => setShowAddForm(false)} className="border-white/[0.08] text-zinc-300 hover:bg-white/[0.04] hover:text-white">
                             Cancelar
                           </Button>
                         </div>
@@ -296,37 +320,43 @@ export default function MasterPanel() {
                     </div>
                   )}
 
-                  {/* Lista de usuários */}
+                  {/* Lista de usuarios */}
                   <div>
-                    <h3 className="font-medium mb-3 flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Usuários ({usuarios.length})
+                    <h3 className="font-medium text-sm mb-3 flex items-center gap-2 text-zinc-300">
+                      <Users className="h-4 w-4 text-blue-400" />
+                      Usuarios ({usuarios.length})
                     </h3>
 
                     {usuarios.length === 0 ? (
-                      <p className="text-sm text-muted-foreground py-4 text-center">
-                        Nenhum usuário vinculado
-                      </p>
+                      <div className="flex flex-col items-center py-8">
+                        <div className="h-10 w-10 rounded-xl bg-white/[0.05] flex items-center justify-center mb-3">
+                          <Users className="h-5 w-5 text-zinc-600" />
+                        </div>
+                        <p className="text-sm text-zinc-500 text-center">
+                          Nenhum usuario vinculado
+                        </p>
+                      </div>
                     ) : (
                       <div className="space-y-2">
                         {usuarios.map((eu) => (
                           <div
                             key={eu.id}
-                            className="flex items-center justify-between p-3 rounded-lg border"
+                            className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.06] hover:bg-white/[0.02] transition-colors"
                           >
                             <div>
-                              <p className="font-medium">{eu.usuario?.nome || 'Sem nome'}</p>
-                              <p className="text-sm text-muted-foreground">{eu.usuario?.email}</p>
+                              <p className="font-medium text-sm text-zinc-200">{eu.usuario?.nome || 'Sem nome'}</p>
+                              <p className="text-xs text-zinc-500">{eu.usuario?.email}</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge
                                 variant={eu.hierarquia?.ordem === 1 ? 'default' : 'secondary'}
+                                className={eu.hierarquia?.ordem === 1 ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-white/[0.05] text-zinc-400 border-white/[0.08]'}
                               >
                                 {eu.hierarquia?.nome || 'Sem cargo'}
                               </Badge>
                               <button
                                 onClick={() => handleRemoveUsuario(eu.id, eu.usuario?.nome || '')}
-                                className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                                className="p-2 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                                 title="Remover da empresa"
                               >
                                 <Trash2 className="h-4 w-4" />

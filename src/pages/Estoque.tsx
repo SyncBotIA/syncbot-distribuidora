@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, AlertTriangle, Search } from 'lucide-react'
+import { Plus, AlertTriangle, Search, Warehouse, PackageCheck, PackageMinus } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Produto, EstoqueMovimentacao, Usuario } from '@/types/database'
 
@@ -125,24 +125,63 @@ export default function Estoque() {
     cancelamento: 'secondary',
   }
 
+  const totalEstoque = produtos.reduce((sum, p) => sum + p.estoque_atual, 0)
+  const produtosBaixo = produtos.filter(p => p.estoque_atual <= p.estoque_minimo).length
+  const produtosOk = produtos.filter(p => p.estoque_atual > p.estoque_minimo).length
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Estoque</h1>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/20">
+            <Warehouse className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Estoque</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Controle de estoque e movimentacoes</p>
+          </div>
+        </div>
         {canManageStock && (
           <Button onClick={() => { setDialogOpen(true); setFormProdutoId(''); setFormTipo('entrada'); setFormQuantidade(''); setFormObs('') }} className="gap-2">
             <Plus className="h-4 w-4" />
-            Nova Movimentação
+            Nova Movimentacao
           </Button>
         )}
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-50 border border-blue-100">
+          <Warehouse className="h-5 w-5 text-blue-600" />
+          <div>
+            <p className="text-lg font-bold text-blue-700">{totalEstoque}</p>
+            <p className="text-[11px] text-blue-600/70 font-medium">Itens em Estoque</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
+          <PackageCheck className="h-5 w-5 text-emerald-600" />
+          <div>
+            <p className="text-lg font-bold text-emerald-700">{produtosOk}</p>
+            <p className="text-[11px] text-emerald-600/70 font-medium">Estoque Normal</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-red-50 border border-red-100 hidden sm:flex">
+          <PackageMinus className="h-5 w-5 text-red-500" />
+          <div>
+            <p className="text-lg font-bold text-red-600">{produtosBaixo}</p>
+            <p className="text-[11px] text-red-500/70 font-medium">Estoque Baixo</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
       <div className="flex gap-2">
         <Button variant={tab === 'estoque' ? 'default' : 'outline'} onClick={() => setTab('estoque')}>
           Estoque Atual
         </Button>
         <Button variant={tab === 'historico' ? 'default' : 'outline'} onClick={() => setTab('historico')}>
-          Histórico
+          Historico
         </Button>
       </div>
 
@@ -155,7 +194,12 @@ export default function Estoque() {
         <Card>
           <CardContent className="pt-6">
             {loading ? (
-              <p className="text-muted-foreground">Carregando...</p>
+              <div className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-muted-foreground">Carregando estoque...</p>
+                </div>
+              </div>
             ) : (
               <Table>
                 <TableHeader>

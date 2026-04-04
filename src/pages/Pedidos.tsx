@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Eye, XCircle, Check, Truck } from 'lucide-react'
+import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Pedido, Produto, PedidoItem, Usuario, Cliente, EmpresaUsuario, Hierarquia } from '@/types/database'
 
@@ -273,20 +273,70 @@ export default function Pedidos() {
     return false
   }
 
+  const pedidosConfirmados = pedidos.filter(p => p.status === 'confirmado').length
+  const pedidosRascunho = pedidos.filter(p => p.status === 'rascunho').length
+  const valorTotalPedidos = pedidos.filter(p => p.status !== 'cancelado').reduce((sum, p) => sum + (p.valor_total || 0), 0)
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Pedidos</h1>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/20">
+            <ShoppingCart className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Pedidos</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Gerenciamento de vendas e pedidos</p>
+          </div>
+        </div>
         <Button onClick={openCreateDialog} className="gap-2">
           <Plus className="h-4 w-4" />
           Novo Pedido
         </Button>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-50 border border-blue-100">
+          <FileText className="h-5 w-5 text-blue-600" />
+          <div>
+            <p className="text-lg font-bold text-blue-700">{pedidos.length}</p>
+            <p className="text-[11px] text-blue-600/70 font-medium">Total</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-100">
+          <FileText className="h-5 w-5 text-amber-600" />
+          <div>
+            <p className="text-lg font-bold text-amber-700">{pedidosRascunho}</p>
+            <p className="text-[11px] text-amber-600/70 font-medium">Rascunhos</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
+          <Check className="h-5 w-5 text-emerald-600" />
+          <div>
+            <p className="text-lg font-bold text-emerald-700">{pedidosConfirmados}</p>
+            <p className="text-[11px] text-emerald-600/70 font-medium">Confirmados</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-50 border border-violet-100">
+          <ShoppingCart className="h-5 w-5 text-violet-600" />
+          <div>
+            <p className="text-lg font-bold text-violet-700">{formatCurrency(valorTotalPedidos)}</p>
+            <p className="text-[11px] text-violet-600/70 font-medium">Valor Total</p>
+          </div>
+        </div>
+      </div>
+
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <p className="text-muted-foreground">Carregando...</p>
+            <div className="flex items-center justify-center py-12">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground">Carregando pedidos...</p>
+              </div>
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -338,7 +388,15 @@ export default function Pedidos() {
                 })}
                 {pedidos.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">Nenhum pedido</TableCell>
+                    <TableCell colSpan={6}>
+                      <div className="flex flex-col items-center justify-center py-10">
+                        <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
+                          <ShoppingCart className="h-6 w-6 text-muted-foreground/50" />
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">Nenhum pedido registrado</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">Crie seu primeiro pedido</p>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>

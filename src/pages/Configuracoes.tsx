@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
+import { Settings, User, Lock, Mail, Phone } from 'lucide-react'
 
 export default function Configuracoes() {
   const { user, usuario } = useAuth()
@@ -70,26 +71,49 @@ export default function Configuracoes() {
   }
 
   return (
-    <div className="space-y-6 max-w-lg">
-      <h1 className="text-2xl font-bold">Configuracoes</h1>
+    <div className="space-y-6 max-w-lg animate-fade-in">
+      {/* Page Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 shadow-lg shadow-slate-500/20">
+          <Settings className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Configuracoes</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Gerencie seu perfil e seguranca</p>
+        </div>
+      </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Meu Perfil</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-blue-50">
+              <User className="h-4 w-4 text-blue-600" />
+            </div>
+            Meu Perfil
+          </CardTitle>
           <CardDescription>Atualize suas informacoes pessoais</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSaveProfile} className="space-y-4">
             <div className="space-y-2">
-              <Label>Email</Label>
+              <Label className="flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                Email
+              </Label>
               <Input value={usuario?.email ?? ''} disabled className="bg-muted" />
             </div>
             <div className="space-y-2">
-              <Label>Nome</Label>
+              <Label className="flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5 text-muted-foreground" />
+                Nome
+              </Label>
               <Input value={nomeEdit} onChange={(e) => setNomeEdit(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label>Telefone</Label>
+              <Label className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                Telefone
+              </Label>
               <Input value={telefoneEdit} onChange={(e) => setTelefoneEdit(e.target.value)} placeholder="(00) 00000-0000" />
             </div>
             <Button type="submit" disabled={savingProfile}>
@@ -101,13 +125,21 @@ export default function Configuracoes() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Alterar Senha</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-amber-50">
+              <Lock className="h-4 w-4 text-amber-600" />
+            </div>
+            Alterar Senha
+          </CardTitle>
           <CardDescription>Defina uma nova senha de acesso</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
-              <Label>Nova senha</Label>
+              <Label className="flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                Nova senha
+              </Label>
               <Input
                 type="password"
                 value={novaSenha}
@@ -117,7 +149,10 @@ export default function Configuracoes() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Confirmar senha</Label>
+              <Label className="flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                Confirmar senha
+              </Label>
               <Input
                 type="password"
                 value={confirmarSenha}
