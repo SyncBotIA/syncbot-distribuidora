@@ -81,6 +81,7 @@ export default function MasterPanel() {
     }
 
     if (data) {
+      console.log('Usuarios empresa:', data.length, data)
       setUsuários(data as unknown as UsuarioEmpresa[])
 
       // Extrair hierarquias únicas dos resultados
