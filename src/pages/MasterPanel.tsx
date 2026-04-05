@@ -217,6 +217,26 @@ export default function MasterPanel() {
     }
   }
 
+  async function handleDeleteEmpresa(empresa: EmpresaResumo) {
+    if (!usuario) return
+    if (!confirm(`Tem certeza que deseja excluir a empresa "${empresa.nome}"? Todos os dados serão apagados permanentemente.`)) return
+
+    try {
+      const { error } = await supabase.rpc('deletar_empresa', {
+        p_empresa_id: empresa.id,
+        p_usuario_id: usuario.id,
+      })
+      if (error) throw error
+      if (selectedEmpresa?.id === empresa.id) {
+        setSelectedEmpresa(null)
+      }
+      fetchEmpresas()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao excluir empresa'
+      setError(message)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -265,26 +285,34 @@ export default function MasterPanel() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {empresas.map((emp) => (
-                  <button
-                    key={emp.id}
-                    onClick={() => handleSelectEmpresa(emp)}
-                    className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 cursor-pointer ${
-                      selectedEmpresa?.id === emp.id
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-500/50 shadow-lg shadow-blue-600/25'
-                        : 'border-white/[0.06] hover:bg-white/[0.04] hover:border-blue-500/20'
-                    }`}
-                  >
-                    <p className={`font-semibold text-sm ${selectedEmpresa?.id === emp.id ? 'text-white' : 'text-zinc-200'}`}>{emp.nome}</p>
-                    <div className="flex items-center justify-between mt-1.5">
-                      <span className={`text-xs font-mono ${selectedEmpresa?.id === emp.id ? 'text-white/60' : 'text-zinc-500'}`}>
-                        {emp.cnpj || 'Sem CNPJ'}
-                      </span>
-                      <span className={`text-xs flex items-center gap-1 ${selectedEmpresa?.id === emp.id ? 'text-white/60' : 'text-zinc-500'}`}>
-                        <Users className="h-3 w-3" />
-                        {emp.total_usuarios}
-                      </span>
-                    </div>
-                  </button>
+                  <div key={emp.id} className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleSelectEmpresa(emp)}
+                      className={`flex-1 text-left p-3.5 rounded-xl border transition-all duration-200 cursor-pointer ${
+                        selectedEmpresa?.id === emp.id
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-500/50 shadow-lg shadow-blue-600/25'
+                          : 'border-white/[0.06] hover:bg-white/[0.04] hover:border-blue-500/20'
+                      }`}
+                    >
+                      <p className={`font-semibold text-sm ${selectedEmpresa?.id === emp.id ? 'text-white' : 'text-zinc-200'}`}>{emp.nome}</p>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className={`text-xs font-mono ${selectedEmpresa?.id === emp.id ? 'text-white/60' : 'text-zinc-500'}`}>
+                          {emp.cnpj || 'Sem CNPJ'}
+                        </span>
+                        <span className={`text-xs flex items-center gap-1 ${selectedEmpresa?.id === emp.id ? 'text-white/60' : 'text-zinc-500'}`}>
+                          <Users className="h-3 w-3" />
+                          {emp.total_usuarios}
+                        </span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDeleteEmpresa(emp) }}
+                      className="flex-shrink-0 p-2.5 rounded-xl border border-white/[0.06] text-red-400/60 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/15 transition-all cursor-pointer"
+                      title="Excluir empresa"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 ))}
 
                 {empresas.length === 0 && (
