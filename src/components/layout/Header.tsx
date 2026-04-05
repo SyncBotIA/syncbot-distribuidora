@@ -21,23 +21,22 @@ export default function Header({ onMenuClick }: HeaderProps) {
     .toUpperCase() ?? '?'
 
   return (
-    <header className="h-16 border-b border-white/[0.06] bg-[#060a14]/90 backdrop-blur-xl flex items-center justify-between px-4 sm:px-6 shrink-0 sticky top-0 z-30">
-      <div className="flex items-center gap-4">
-        <button onClick={onMenuClick} className="lg:hidden cursor-pointer p-2 rounded-xl hover:bg-white/[0.06] transition-all">
+    <header className="h-14 sm:h-16 border-b border-white/[0.06] bg-[#060a14]/90 backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 shrink-0 sticky top-0 z-30">
+      <div className="flex items-center gap-3">
+        <button onClick={onMenuClick} className="lg:hidden cursor-pointer p-1.5 rounded-xl hover:bg-white/[0.06] transition-all touch-manipulation">
           <Menu className="h-5 w-5 text-zinc-400" />
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <div className="hidden sm:flex h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-600/10 items-center justify-center border border-blue-500/10">
             <Building2 className="h-4 w-4 text-blue-400" />
           </div>
           <div>
             <h1 className="text-sm font-bold text-white leading-tight tracking-tight">{empresa?.nome}</h1>
-            <p className="text-[10px] text-zinc-500 leading-tight hidden sm:block font-medium">Painel de Gestão</p>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {isMaster && (
           <Button
             variant="outline"
@@ -61,14 +60,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </Button>
         )}
 
-        <div className="h-6 w-px bg-white/[0.06] mx-1 hidden sm:block" />
+        <div className="h-6 w-px bg-white/[0.06] mx-0.5 hidden sm:block" />
 
         <button
           onClick={signOut}
-          className="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer group"
+          className="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer touch-manipulation group"
         >
           <div className="relative">
-            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-shadow">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-all">
               {initials}
             </div>
           </div>

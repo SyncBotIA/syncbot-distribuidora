@@ -12,7 +12,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, AlertTriangle, Search, Warehouse, PackageCheck, PackageMinus } from 'lucide-react'
+import {
+  Plus, AlertTriangle, Search, Warehouse, PackageCheck, PackageMinus,
+  Package, ArrowUpRight, ArrowDownLeft, SlidersHorizontal, History,
+  Barcode, TrendingDown, ArrowRightLeft
+} from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Produto, EstoqueMovimentacao, Usuario } from '@/types/database'
 
@@ -118,21 +122,29 @@ export default function Estoque() {
   const produtosBaixo = produtos.filter(p => p.estoque_atual <= p.estoque_minimo).length
   const produtosOk = produtos.filter(p => p.estoque_atual > p.estoque_minimo).length
 
+  function getStockPercentage(atual: number, minimo: number): number {
+    if (minimo === 0) return 100
+    return Math.min((atual / (minimo * 3)) * 100, 100)
+  }
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 sm:space-y-6 animate-fade-in">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/20">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 ring-1 ring-blue-400/20">
             <Warehouse className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Estoque</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Controle de estoque e movimentações</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Estoque</h1>
+            <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">Controle de estoque e movimentações</p>
           </div>
         </div>
         {canManageStock && (
-          <Button onClick={() => { setDialogOpen(true); setFormProdutoId(''); setFormTipo('entrada'); setFormQuantidade(''); setFormObs('') }} className="gap-2 self-start">
+          <Button
+            onClick={() => { setDialogOpen(true); setFormProdutoId(''); setFormTipo('entrada'); setFormQuantidade(''); setFormObs('') }}
+            className="gap-2 self-start touch-manipulation"
+          >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">Nova Movimentação</span>
           </Button>
@@ -140,11 +152,12 @@ export default function Estoque() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 stagger-children">
-        <Card className="border-blue-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-500/10">
-              <Warehouse className="h-5 w-5 text-blue-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <Card className="border-blue-500/10 overflow-hidden relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <CardContent className="p-4 flex items-center gap-3 relative">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 ring-1 ring-blue-500/20 shadow-lg shadow-blue-500/10">
+              <Package className="h-5 w-5 text-blue-400" />
             </div>
             <div>
               <p className="text-lg font-bold text-blue-300">{totalEstoque}</p>
@@ -152,9 +165,10 @@ export default function Estoque() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-emerald-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-500/10">
+        <Card className="border-emerald-500/10 overflow-hidden relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <CardContent className="p-4 flex items-center gap-3 relative">
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/20 shadow-lg shadow-emerald-500/10">
               <PackageCheck className="h-5 w-5 text-emerald-400" />
             </div>
             <div>
@@ -163,9 +177,10 @@ export default function Estoque() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-red-500/10 hidden sm:block">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-500/10">
+        <Card className="border-red-500/10 overflow-hidden relative group hidden sm:block">
+          <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <CardContent className="p-4 flex items-center gap-3 relative">
+            <div className="p-2.5 rounded-xl bg-red-500/10 ring-1 ring-red-500/20 shadow-lg shadow-red-500/10">
               <PackageMinus className="h-5 w-5 text-red-400" />
             </div>
             <div>
@@ -177,28 +192,40 @@ export default function Estoque() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] w-fit">
+      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] w-full sm:w-fit">
         <button
           onClick={() => setTab('estoque')}
-          className={`px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-all cursor-pointer ${
-            tab === 'estoque' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-zinc-400 hover:text-zinc-200'
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer touch-manipulation ${
+            tab === 'estoque'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 ring-1 ring-blue-500/30'
+              : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
-          Estoque Atual
+          <Package className="h-4 w-4" />
+          <span>Estoque</span>
         </button>
         <button
           onClick={() => setTab('historico')}
-          className={`px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-all cursor-pointer ${
-            tab === 'historico' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-zinc-400 hover:text-zinc-200'
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer touch-manipulation ${
+            tab === 'historico'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 ring-1 ring-blue-500/30'
+              : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
-          Histórico
+          <History className="h-4 w-4" />
+          <span>Histórico</span>
         </button>
       </div>
 
-      <div className="relative w-full sm:max-w-sm">
+      {/* Search */}
+      <div className="relative w-full sm:max-w-sm mx-auto sm:mx-0">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-        <Input placeholder="Buscar produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+        <Input
+          placeholder="Buscar produto ou SKU..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10"
+        />
       </div>
 
       {tab === 'estoque' ? (
@@ -261,21 +288,72 @@ export default function Estoque() {
                   </Table>
                 </div>
                 {/* Mobile cards */}
-                <div className="md:hidden space-y-2">
+                <div className="md:hidden space-y-2.5">
                   {filteredProdutos.map((p) => {
                     const baixo = p.estoque_atual <= p.estoque_minimo
+                    const percentage = getStockPercentage(p.estoque_atual, p.estoque_minimo)
                     return (
-                      <div key={p.id} className="rounded-xl border border-white/[0.06] p-3.5">
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div
+                        key={p.id}
+                        className="rounded-xl border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent p-3.5 active:scale-[0.98] transition-transform duration-150"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2.5">
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-white text-sm truncate">{p.nome}</p>
-                            <p className="text-xs text-zinc-500 font-mono mt-0.5">{p.sku}</p>
+                            <p className="font-semibold text-white text-sm leading-snug truncate">{p.nome}</p>
+                            {p.sku && (
+                              <p className="text-[11px] text-zinc-500 font-mono mt-0.5 flex items-center gap-1">
+                                <Barcode className="h-3 w-3" />
+                                {p.sku}
+                              </p>
+                            )}
                           </div>
-                          <Badge variant={baixo ? 'destructive' : 'success'}>{baixo ? 'Baixo' : 'Normal'}</Badge>
+                          <span
+                            className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ${
+                              baixo
+                                ? 'bg-red-500/10 text-red-400 ring-red-500/20'
+                                : 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20'
+                            }`}
+                          >
+                            {baixo ? (
+                              <>
+                                <AlertTriangle className="h-3 w-3" />
+                                Baixo
+                              </>
+                            ) : (
+                              <>
+                                <PackageCheck className="h-3 w-3" />
+                                OK
+                              </>
+                            )}
+                          </span>
                         </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-500">Estoque: <span className={`font-bold text-sm ${baixo ? 'text-red-400' : 'text-white'}`}>{p.estoque_atual}</span></span>
-                          <span className="text-zinc-500">Min: <span className="font-semibold">{p.estoque_minimo}</span></span>
+
+                        {/* Stock quantity - big and prominent */}
+                        <div className="flex items-end gap-3 mb-2.5">
+                          <div>
+                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-medium mb-0.5">Estoque</p>
+                            <p className={`text-2xl font-black tabular-nums ${baixo ? 'text-red-400' : 'text-white'}`}>
+                              {p.estoque_atual}
+                            </p>
+                          </div>
+                          <div className="pb-1">
+                            <p className="text-[10px] text-zinc-600 uppercase tracking-wider font-medium mb-0.5">Mín.</p>
+                            <p className="text-sm font-bold text-zinc-500">{p.estoque_minimo}</p>
+                          </div>
+                        </div>
+
+                        {/* Stock level bar */}
+                        <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              baixo
+                                ? 'bg-gradient-to-r from-red-500 to-red-400'
+                                : percentage > 66
+                                  ? 'bg-gradient-to-r from-blue-600 to-blue-400'
+                                  : 'bg-gradient-to-r from-amber-500 to-amber-400'
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          />
                         </div>
                       </div>
                     )
@@ -296,8 +374,11 @@ export default function Estoque() {
         </Card>
       ) : (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Histórico de Movimentações</CardTitle>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4 text-zinc-500" />
+              Histórico de Movimentações
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {/* Desktop table */}
@@ -343,23 +424,59 @@ export default function Estoque() {
               </Table>
             </div>
             {/* Mobile cards */}
-            <div className="md:hidden space-y-2">
-              {movimentacoes.map((m) => (
-                <div key={m.id} className="rounded-xl border border-white/[0.06] p-3.5">
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-white text-sm truncate">{(m.produto as unknown as Produto)?.nome ?? '—'}</p>
-                      <p className="text-xs text-zinc-500 mt-0.5">{formatDate(m.created_at)}</p>
+            <div className="md:hidden space-y-2.5">
+              {movimentacoes.map((m) => {
+                const tipoIcon = m.tipo === 'entrada' ? ArrowUpRight : m.tipo === 'saida' ? ArrowDownLeft : SlidersHorizontal
+                const tipoColor = m.tipo === 'entrada'
+                  ? 'text-emerald-400 bg-emerald-500/10 ring-emerald-500/20'
+                  : m.tipo === 'saida'
+                    ? 'text-red-400 bg-red-500/10 ring-red-500/20'
+                    : 'text-amber-400 bg-amber-500/10 ring-amber-500/20'
+                return (
+                  <div
+                    key={m.id}
+                    className="rounded-xl border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent p-3.5 active:scale-[0.98] transition-transform duration-150"
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Type indicator circle */}
+                      <div className={`shrink-0 mt-0.5 p-2 rounded-xl ring-1 ${tipoColor}`}>
+                        {tipoIcon({ className: 'h-4 w-4' })}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-semibold text-white text-sm leading-snug truncate">
+                            {(m.produto as unknown as Produto)?.nome ?? '—'}
+                          </p>
+                          <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ${tipoColor}`}>
+                            {tipoLabel[m.tipo]}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Qtd</span>
+                            <span className={`text-lg font-black tabular-nums ${
+                              m.tipo === 'entrada' ? 'text-emerald-400' : m.tipo === 'saida' ? 'text-red-400' : 'text-amber-400'
+                            }`}>
+                              {m.tipo === 'saida' ? '-' : m.tipo === 'entrada' ? '+' : ''}{m.quantidade}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-600">{formatDate(m.created_at)}</p>
+                        </div>
+                        {(m.usuario as unknown as Usuario)?.nome && (
+                          <p className="text-[11px] text-zinc-500 mt-1">
+                            por {(m.usuario as unknown as Usuario)?.nome}
+                          </p>
+                        )}
+                        {m.observacao && (
+                          <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2 italic">
+                            "{m.observacao}"
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <Badge variant={tipoVariant[m.tipo]}>{tipoLabel[m.tipo]}</Badge>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span>Qtd: <span className="font-mono font-semibold text-white">{m.quantidade}</span></span>
-                    <span>{(m.usuario as unknown as Usuario)?.nome ?? '—'}</span>
-                  </div>
-                  {m.observacao && <p className="text-xs text-zinc-500 mt-1 truncate">{m.observacao}</p>}
-                </div>
-              ))}
+                )
+              })}
               {movimentacoes.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-14">
                   <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
@@ -377,7 +494,10 @@ export default function Estoque() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
-            <DialogTitle>Nova Movimentação</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5 text-blue-400" />
+              Nova Movimentação
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">

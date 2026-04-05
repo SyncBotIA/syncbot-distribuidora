@@ -13,8 +13,16 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-md animate-fade-in" onClick={() => onOpenChange(false)} />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-md animate-fade-in"
+        onClick={() => onOpenChange(false)}
+        onTouchStart={(e) => {
+          if ((e.target as HTMLElement).dataset.overlay === 'true') {
+            onOpenChange(false)
+          }
+        }}
+      />
+      <div className="fixed inset-0 flex items-center justify-center p-4 sm:items-end sm:justify-center">
         {children}
       </div>
     </div>
@@ -26,9 +34,11 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
     <div
       ref={ref}
       className={cn(
-        'relative z-50 w-full max-w-lg rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#0d1525] to-[#0a0f1a] p-6 shadow-2xl shadow-black/60 max-h-[85vh] overflow-y-auto animate-scale-in ring-1 ring-white/[0.04]',
-        'sm:rounded-2xl sm:p-6',
-        'fixed inset-x-3 bottom-3 top-auto sm:static sm:inset-auto sm:mx-auto sm:max-h-[85vh] sm:max-w-lg',
+        'relative z-50 w-full max-w-lg rounded-t-2xl rounded-b-none border-t border-x border-white/[0.08] border-b-0 bg-gradient-to-b from-[#0d1525] to-[#0a0f1a] shadow-2xl shadow-black/60 max-h-[92vh] overflow-y-auto',
+        'sm:rounded-2xl sm:border-b',
+        'sm:static sm:inset-auto sm:mx-auto sm:max-h-[85vh] sm:max-w-lg',
+        'p-4 pb-24 sm:p-6',
+        'animate-up-from-bottom',
         className
       )}
       {...props}
@@ -48,7 +58,7 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
 DialogContent.displayName = 'DialogContent'
 
 function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left mb-6', className)} {...props} />
+  return <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left mb-4', className)} {...props} />
 }
 
 function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
@@ -62,7 +72,7 @@ function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLPar
 function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn(
-      'flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-2 mt-6 pt-5 border-t border-white/[0.06]',
+      'flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-2 mt-4 pt-4 border-t border-white/[0.06]',
       '[&>button]:w-full [&>button]:sm:w-auto',
       className
     )} {...props} />

@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Search, Phone, Trash2, Loader2, UserCheck, MapPin, Building } from 'lucide-react'
+import { Plus, Pencil, Search, Phone, Trash2, Loader2, UserCheck, MapPin, Building, Building2, Sparkles } from 'lucide-react'
 import type { Cliente, Usuario, EmpresaUsuario } from '@/types/database'
 
 export default function Clientes() {
@@ -80,7 +80,7 @@ export default function Clientes() {
     try {
       const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
       if (!res.ok) {
-        toast({ title: 'CNPJ não encontrado', description: 'Verifique o número e tente novamente', variant: 'destructive' })
+        toast({ title: 'CNPJ nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
         setBuscandoCnpj(false)
         return
       }
@@ -116,13 +116,13 @@ export default function Clientes() {
     try {
       const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
       if (!res.ok) {
-        toast({ title: 'CEP não encontrado', description: 'Verifique o número e tente novamente', variant: 'destructive' })
+        toast({ title: 'CEP nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
         setBuscandoCep(false)
         return
       }
       const data = await res.json()
       if (data.erro) {
-        toast({ title: 'CEP não encontrado', description: 'Verifique o número e tente novamente', variant: 'destructive' })
+        toast({ title: 'CEP nao encontrado', description: 'Verifique o numero e tente novamente', variant: 'destructive' })
         setBuscandoCep(false)
         return
       }
@@ -134,7 +134,7 @@ export default function Clientes() {
         cidade: data.localidade ? `${data.localidade}/${data.uf}` : prev.cidade,
       }))
 
-      toast({ title: 'Endereço preenchido', description: `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`, variant: 'success' })
+      toast({ title: 'Endereco preenchido', description: `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`, variant: 'success' })
     } catch {
       toast({ title: 'Erro ao buscar CEP', description: 'Tente novamente', variant: 'destructive' })
     } finally {
@@ -256,55 +256,65 @@ export default function Clientes() {
   const totalCidades = new Set(clientes.filter(c => c.cidade).map(c => c.cidade)).size
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-5 animate-fade-in">
+      {/* Page Header — compact on mobile */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/20">
+          <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25 ring-1 ring-cyan-400/20">
             <UserCheck className="h-5 w-5 text-white" />
+            <Sparkles className="h-3 w-3 text-cyan-200/80 absolute -top-1 -right-1" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Clientes</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Gerencie sua base de clientes</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Clientes</h1>
+            <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">Gerencie sua base de clientes</p>
           </div>
         </div>
-        <Button onClick={openCreate} className="gap-2 self-start">
+        <Button onClick={openCreate} className="gap-2 self-start shadow-lg shadow-blue-500/20">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Novo Cliente</span>
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 stagger-children">
-        <Card className="border-cyan-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-cyan-500/10">
-              <UserCheck className="h-5 w-5 text-cyan-400" />
+      {/* Stats — glowing icons, gradient borders */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 stagger-children">
+        <Card className="relative overflow-hidden border-cyan-500/20 bg-gradient-to-br from-cyan-500/[0.06] to-transparent">
+          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-xl bg-cyan-400/20 blur-md" />
+              <div className="relative p-2 rounded-xl bg-cyan-500/15 ring-1 ring-cyan-400/20">
+                <UserCheck className="h-5 w-5 text-cyan-400" />
+              </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-cyan-300">{clientes.length}</p>
-              <p className="text-[11px] text-zinc-500 font-medium">Total de Clientes</p>
+              <p className="text-lg font-bold text-cyan-300 leading-tight">{clientes.length}</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Total Clientes</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-violet-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-violet-500/10">
-              <MapPin className="h-5 w-5 text-violet-400" />
+        <Card className="relative overflow-hidden border-violet-500/20 bg-gradient-to-br from-violet-500/[0.06] to-transparent">
+          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-xl bg-violet-400/20 blur-md" />
+              <div className="relative p-2 rounded-xl bg-violet-500/15 ring-1 ring-violet-400/20">
+                <MapPin className="h-5 w-5 text-violet-400" />
+              </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-violet-300">{totalCidades}</p>
+              <p className="text-lg font-bold text-violet-300 leading-tight">{totalCidades}</p>
               <p className="text-[11px] text-zinc-500 font-medium">Cidades</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-emerald-500/10 hidden sm:block">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-500/10">
-              <Building className="h-5 w-5 text-emerald-400" />
+        <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-transparent hidden sm:block">
+          <CardContent className="p-3.5 sm:p-4 flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-xl bg-emerald-400/20 blur-md" />
+              <div className="relative p-2 rounded-xl bg-emerald-500/15 ring-1 ring-emerald-400/20">
+                <Building className="h-5 w-5 text-emerald-400" />
+              </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-emerald-300">{clientes.filter(c => c.cnpj).length}</p>
+              <p className="text-lg font-bold text-emerald-300 leading-tight">{clientes.filter(c => c.cnpj).length}</p>
               <p className="text-[11px] text-zinc-500 font-medium">Com CNPJ</p>
             </div>
           </CardContent>
@@ -314,11 +324,11 @@ export default function Clientes() {
       {/* Search */}
       <div className="relative w-full sm:max-w-sm">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-        <Input placeholder="Buscar por nome, CNPJ, telefone ou cidade..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+        <Input placeholder="Buscar por nome, CNPJ, telefone..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="border-white/[0.06]">
+        <CardContent className="pt-4 sm:pt-6">
           {loading ? (
             <div className="py-8 space-y-3">
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
@@ -336,7 +346,7 @@ export default function Clientes() {
                       <TableHead>Cidade</TableHead>
                       <TableHead>Bairro</TableHead>
                       {isAdmin && <TableHead>Vendedor</TableHead>}
-                      <TableHead className="w-16">Ações</TableHead>
+                      <TableHead className="w-16">Acoes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -389,33 +399,65 @@ export default function Clientes() {
                   </TableBody>
                 </Table>
               </div>
-              {/* Mobile cards */}
-              <div className="md:hidden space-y-2">
+              {/* Mobile cards — beautiful layered design */}
+              <div className="md:hidden space-y-2.5">
                 {filtered.map((c) => (
-                  <div key={c.id} className="rounded-xl border border-white/[0.06] p-3.5 space-y-2">
+                  <div
+                    key={c.id}
+                    className="group relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.03] via-transparent to-transparent p-3.5 space-y-2.5 active:scale-[0.98] transition-transform duration-150"
+                  >
+                    {/* Subtle top accent bar */}
+                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-cyan-500/40 via-blue-500/20 to-transparent" />
+
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-white text-sm truncate">{c.nome}</p>
-                        {c.cnpj && <p className="text-[11px] text-zinc-500 font-mono mt-0.5">{formatCnpjDisplay(c.cnpj)}</p>}
+                        <p className="font-semibold text-white text-sm truncate leading-tight">{c.nome}</p>
+                        {c.cnpj && (
+                          <p className="text-[11px] text-zinc-500 font-mono mt-1 tracking-wide">
+                            {formatCnpjDisplay(c.cnpj)}
+                          </p>
+                        )}
                       </div>
-                      <div className="flex gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(c)} className="h-10 w-10">
+                      <div className="flex gap-0.5 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEdit(c)}
+                          className="h-9 w-9 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 active:scale-90 transition-all"
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         {canDeleteClient() && (
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(c)} className="h-10 w-10">
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(c)}
+                            className="h-9 w-9 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 active:scale-90 transition-all"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
-                      {c.telefone && (
-                        <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-zinc-500" />{c.telefone}</span>
-                      )}
-                      {c.cidade && <span>{c.cidade}</span>}
-                      {c.bairro && <span>{c.bairro}</span>}
-                    </div>
+
+                    {/* Location + Phone info */}
+                    {(c.telefone || c.cidade || c.bairro) && (
+                      <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-zinc-400">
+                        {c.telefone && (
+                          <span className="flex items-center gap-1.5 text-zinc-300">
+                            <Phone className="h-3 w-3 text-zinc-500" />
+                            {c.telefone}
+                          </span>
+                        )}
+                        {(c.cidade || c.bairro) && (
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="h-3 w-3 text-violet-400/70" />
+                            {[c.cidade, c.bairro].filter(Boolean).join(' - ')}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     {isAdmin && c.vendedor && (
                       <Badge variant="outline" className="text-xs">{(c.vendedor as Usuario)?.nome ?? '—'}</Badge>
                     )}
@@ -423,7 +465,7 @@ export default function Clientes() {
                 ))}
                 {filtered.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-14">
-                    <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.06] flex items-center justify-center mb-4">
                       <UserCheck className="h-7 w-7 text-zinc-600" />
                     </div>
                     <p className="text-sm font-semibold text-zinc-400">Nenhum cliente encontrado</p>
@@ -438,12 +480,17 @@ export default function Clientes() {
         </CardContent>
       </Card>
 
+      {/* Dialog — bottom sheet on mobile */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
-            <DialogTitle>{editing ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-cyan-400" />
+              {editing ? 'Editar Cliente' : 'Novo Cliente'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+            {/* CNPJ with auto-fill indicator */}
             <div className="space-y-2">
               <Label>CNPJ</Label>
               <div className="relative">
@@ -452,16 +499,24 @@ export default function Clientes() {
                   onChange={(e) => handleCnpjChange(e.target.value)}
                   placeholder="00.000.000/0000-00"
                   maxLength={18}
+                  className={buscandoCnpj ? 'pr-10' : ''}
                 />
                 {buscandoCnpj && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                    <div className="relative flex items-center justify-center">
+                      <div className="absolute w-4 h-4 rounded-full bg-cyan-400/20 animate-ping" />
+                      <Loader2 className="h-4 w-4 animate-spin text-cyan-400 relative" />
+                    </div>
                   </div>
                 )}
               </div>
-              <p className="text-[11px] text-zinc-500">Digite o CNPJ para preencher automaticamente</p>
+              <p className="text-[11px] text-zinc-500 flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-amber-400/60" />
+                Digite o CNPJ para preencher automaticamente
+              </p>
             </div>
 
+            {/* CEP with auto-fill indicator */}
             <div className="space-y-2">
               <Label>CEP</Label>
               <div className="relative">
@@ -470,18 +525,25 @@ export default function Clientes() {
                   onChange={(e) => handleCepChange(e.target.value)}
                   placeholder="00000-000"
                   maxLength={9}
+                  className={buscandoCep ? 'pr-10' : ''}
                 />
                 {buscandoCep && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                    <div className="relative flex items-center justify-center">
+                      <div className="absolute w-4 h-4 rounded-full bg-cyan-400/20 animate-ping" />
+                      <Loader2 className="h-4 w-4 animate-spin text-cyan-400 relative" />
+                    </div>
                   </div>
                 )}
               </div>
-              <p className="text-[11px] text-zinc-500">Digite o CEP para preencher endereço automaticamente</p>
+              <p className="text-[11px] text-zinc-500 flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-amber-400/60" />
+                Digite o CEP para preencher endereco automaticamente
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label>Nome / Razão Social</Label>
+              <Label>Nome / Razao Social</Label>
               <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome do cliente" />
             </div>
             <div className="space-y-2">
@@ -499,8 +561,8 @@ export default function Clientes() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Endereço</Label>
-              <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, número" />
+              <Label>Endereco</Label>
+              <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, numero" />
             </div>
             {isAdmin && (
               <div className="space-y-2">
@@ -516,8 +578,8 @@ export default function Clientes() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>Observação</Label>
-              <Textarea value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} placeholder="Observações sobre o cliente" />
+              <Label>Observacao</Label>
+              <Textarea value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} placeholder="Observacoes sobre o cliente" />
             </div>
           </div>
           <DialogFooter>

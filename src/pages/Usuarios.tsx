@@ -15,6 +15,13 @@ import { Badge } from '@/components/ui/badge'
 import { UserPlus, Trash2, Users, Search, ShieldCheck, Pencil } from 'lucide-react'
 import type { EmpresaUsuario, Hierarquia } from '@/types/database'
 
+const roleLevel = (name: string): number => {
+  const n = name.toLowerCase()
+  if (n.includes('admin')) return 3
+  if (n.includes('gerente')) return 2
+  return 1 // vendedor or unknown
+}
+
 const cachedUsuarios = { data: null as EmpresaUsuario[] | null, hierarquias: null as Hierarquia[] | null, empresaId: null as string | null }
 
 export default function Usuarios() {
@@ -104,16 +111,19 @@ export default function Usuarios() {
     setHierarquias(data ?? [])
   }
 
-  const availableHierarquias = hierarquias.filter(
-    (h) => hierarquiaOrdem !== null && h.ordem > hierarquiaOrdem
-  )
+  const myHierarquia = hierarquias.find(h => h.ordem === hierarquiaOrdem)
+  const myRoleName = myHierarquia?.nome?.toLowerCase() || ''
+  const myLevel = roleLevel(myRoleName)
+  const availableHierarquias = isMaster
+    ? hierarquias
+    : hierarquias.filter((h) => roleLevel(h.nome) < myLevel)
 
   const availableSuperiors = usuarios.filter((eu) => {
     if (!formHierarquiaId) return false
     const selectedH = hierarquias.find((h) => h.id === formHierarquiaId)
     if (!selectedH) return false
     const euH = eu.hierarquias as unknown as Hierarquia
-    return euH && euH.ordem < selectedH.ordem
+    return euH && roleLevel(euH.nome) > roleLevel(selectedH.nome)
   })
 
   async function handleInvite() {
@@ -170,7 +180,7 @@ export default function Usuarios() {
     if (isAdmin) return true
     // Superior edita subordinados
     const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
-    if (hierarquiaOrdem !== null && h && h.ordem > hierarquiaOrdem) return true
+    if (h && roleLevel(h.nome) < myLevel) return true
     return false
   }
 
@@ -236,7 +246,7 @@ export default function Usuarios() {
     if (isMaster) return true
     // Gerente/admin exclui quem tem cargo inferior
     const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
-    if (hierarquiaOrdem !== null && h && h.ordem > hierarquiaOrdem) return true
+    if (h && roleLevel(h.nome) < myLevel) return true
     return false
   }
 
@@ -269,71 +279,94 @@ export default function Usuarios() {
   const totalAtivos = usuarios.filter(eu => eu.ativo).length
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-3 sm:space-y-5 animate-fade-in">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 sm:pb-0 border-b border-white/[0.06] sm:border-0">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/20">
-            <Users className="h-5 w-5 text-white" />
+          <div className="relative">
+            <div className="absolute inset-0 rounded-xl bg-blue-500/30 blur-md" />
+            <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
+              <Users className="h-5 w-5 text-white" />
+            </div>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Usuários</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Equipe e permissões de acesso</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Usuários</h1>
+            <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">Equipe e permissões de acesso</p>
           </div>
         </div>
         {availableHierarquias.length > 0 && (
-          <Button onClick={() => {
-            setDialogOpen(true)
-            setFormNome(''); setFormEmail(''); setFormTelefone('')
-            setFormHierarquiaId(''); setFormSuperiorId('')
-          }} className="gap-2 self-start">
+          <Button
+            onClick={() => {
+              setDialogOpen(true)
+              setFormNome(''); setFormEmail(''); setFormTelefone('')
+              setFormHierarquiaId(''); setFormSuperiorId('')
+            }}
+            className="gap-2 self-start min-h-[44px] sm:min-h-0"
+          >
             <UserPlus className="h-4 w-4" />
-            Convidar
+            <span className="sm:inline hidden">Convidar</span>
           </Button>
         )}
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-          <Users className="h-5 w-5 text-cyan-400" />
-          <div>
-            <p className="text-lg font-bold text-cyan-300">{totalAtivos}</p>
-            <p className="text-[11px] text-cyan-400/70 font-medium">Usuários Ativos</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+        <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-cyan-500/[0.08] to-cyan-500/[0.02] border border-cyan-500/15 p-3.5 transition-all duration-300 hover:border-cyan-500/30">
+          <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-cyan-500/10 blur-2xl -translate-y-4 translate-x-4" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-10 w-10 min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-cyan-500/15 ring-1 ring-cyan-500/20">
+              <Users className="h-[18px] w-[18px] text-cyan-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-cyan-300 leading-none">{totalAtivos}</p>
+              <p className="text-[11px] text-cyan-400/70 font-medium mt-1 truncate">Usuários Ativos</p>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
-          <ShieldCheck className="h-5 w-5 text-blue-400" />
-          <div>
-            <p className="text-lg font-bold text-blue-300">{hierarquias.length}</p>
-            <p className="text-[11px] text-blue-400/70 font-medium">Níveis de Hierarquia</p>
+        <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500/[0.08] to-blue-500/[0.02] border border-blue-500/15 p-3.5 transition-all duration-300 hover:border-blue-500/30">
+          <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-blue-500/10 blur-2xl -translate-y-4 translate-x-4" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-10 w-10 min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-blue-500/15 ring-1 ring-blue-500/20">
+              <ShieldCheck className="h-[18px] w-[18px] text-blue-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-blue-300 leading-none">{hierarquias.length}</p>
+              <p className="text-[11px] text-blue-400/70 font-medium mt-1 truncate">Níveis de Hierarquia</p>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/20 hidden sm:flex">
-          <UserPlus className="h-5 w-5 text-violet-400" />
-          <div>
-            <p className="text-lg font-bold text-violet-300">{availableHierarquias.length}</p>
-            <p className="text-[11px] text-violet-400/70 font-medium">Cargos Disponíveis</p>
+        <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-violet-500/[0.08] to-violet-500/[0.02] border border-violet-500/15 p-3.5 transition-all duration-300 hover:border-violet-500/30 hidden sm:flex">
+          <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-violet-500/10 blur-2xl -translate-y-4 translate-x-4" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-10 w-10 min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-violet-500/15 ring-1 ring-violet-500/20">
+              <UserPlus className="h-[18px] w-[18px] text-violet-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-violet-300 leading-none">{availableHierarquias.length}</p>
+              <p className="text-[11px] text-violet-400/70 font-medium mt-1 truncate">Cargos Disponíveis</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+      <div className="relative w-full sm:max-w-sm">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 min-h-[44px] items-center justify-center rounded-lg bg-zinc-800/50">
+          <Search className="h-4 w-4 text-zinc-500" />
+        </div>
         <Input
           placeholder="Buscar por nome ou email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
+          className="pl-12 min-h-[44px]"
         />
       </div>
 
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4 sm:pt-6">
           {loading ? (
             <div className="py-8 space-y-3">
-              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
             </div>
           ) : (
             <>
@@ -404,44 +437,91 @@ export default function Usuarios() {
               </div>
 
               {/* Mobile cards */}
-              <div className="md:hidden space-y-2">
-                {filtered.map((eu) => {
+              <div className="md:hidden space-y-3">
+                {filtered.map((eu, index) => {
                   const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
                   const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+                  const initials = (u?.nome ?? '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                  const hue = eu.ativo !== false ? (index * 37) % 360 : 0
+
                   return (
-                    <div key={eu.id} className="rounded-xl border border-white/[0.06] p-4 space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-white text-sm truncate">{u?.nome ?? '—'}</p>
-                          <p className="text-xs text-zinc-500 truncate mt-0.5">{u?.email ?? '—'}</p>
+                    <div
+                      key={eu.id}
+                      className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-white/[0.06] p-4 transition-all duration-300"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      {/* Subtle ambient glow */}
+                      <div className="absolute -top-8 -left-8 h-20 w-20 rounded-full bg-blue-500/5 blur-3xl pointer-events-none" />
+
+                      <div className="relative flex items-center gap-3">
+                        {/* Avatar */}
+                        <div
+                          className="flex h-11 w-11 min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-lg"
+                          style={{
+                            background: `linear-gradient(135deg, hsl(${hue}, 65%, 55%), hsl(${(hue + 40) % 360}, 65%, 45%))`,
+                          }}
+                        >
+                          {initials}
                         </div>
-                        <div className="flex items-center gap-1 shrink-0">
+
+                        {/* Info */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-white text-sm truncate">{u?.nome ?? '—'}</p>
+                            <Badge
+                              variant={eu.ativo ? 'success' : 'secondary'}
+                              className="flex-shrink-0 text-[10px] px-1.5 py-0 h-5"
+                            >
+                              {eu.ativo ? 'Ativo' : 'Inativo'}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-zinc-500 truncate mt-0.5">{u?.email ?? '—'}</p>
+                          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                            {h && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-500/10 text-[11px] font-medium text-blue-300 ring-1 ring-blue-500/20">
+                                {h.nome}
+                              </span>
+                            )}
+                            {u?.telefone && (
+                              <span className="text-[11px] text-zinc-500 font-mono">{u.telefone}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-col gap-1 flex-shrink-0 ml-1">
                           {canEdit(eu) && (
-                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(eu)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditDialog(eu)}
+                              className="h-9 w-9 min-h-[44px] min-w-[44px] rounded-lg"
+                            >
                               <Pencil className="h-4 w-4 text-blue-400" />
                             </Button>
                           )}
                           {canDelete(eu) && (
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(eu)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(eu)}
+                              className="h-9 w-9 min-h-[44px] min-w-[44px] rounded-lg"
+                            >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {h && <Badge variant="outline">{h.nome}</Badge>}
-                        <Badge variant={eu.ativo ? 'success' : 'secondary'}>{eu.ativo ? 'Ativo' : 'Inativo'}</Badge>
-                      </div>
-                      {u?.telefone && (
-                        <p className="text-xs text-zinc-500 font-mono">{u.telefone}</p>
-                      )}
                     </div>
                   )
                 })}
                 {filtered.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-10">
-                    <div className="h-12 w-12 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-3">
-                      <Users className="h-6 w-6 text-zinc-600" />
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="relative mb-4">
+                      <div className="absolute inset-0 rounded-2xl bg-white/[0.03] blur-xl" />
+                      <div className="relative h-14 w-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
+                        <Users className="h-6 w-6 text-zinc-600" />
+                      </div>
                     </div>
                     <p className="text-sm font-medium text-zinc-400">Nenhum usuário encontrado</p>
                     <p className="text-xs text-zinc-600 mt-1">
@@ -455,31 +535,51 @@ export default function Usuarios() {
         </CardContent>
       </Card>
 
+      {/* Dialog Convidar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent onClose={() => setDialogOpen(false)}>
+        <DialogContent onClose={() => setDialogOpen(false)} className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Convidar Usuário</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15 ring-1 ring-blue-500/20">
+                <UserPlus className="h-4 w-4 text-blue-400" />
+              </div>
+              Convidar Usuário
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Nome</Label>
-              <Input value={formNome} onChange={(e) => setFormNome(e.target.value)} placeholder="Nome completo" />
+              <Input value={formNome} onChange={(e) => setFormNome(e.target.value)} placeholder="Nome completo" className="min-h-[44px]" />
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="email@exemplo.com" />
+              <Input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="email@exemplo.com" className="min-h-[44px]" />
             </div>
-            <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
-              <p className="text-xs text-blue-400">Senha provisória: <span className="font-mono font-bold">123456</span></p>
-              <p className="text-[11px] text-blue-400/60 mt-0.5">O usuário será obrigado a redefinir no primeiro login</p>
+            {/* Password Notice */}
+            <div className="relative overflow-hidden rounded-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-blue-500/10" />
+              <div className="absolute inset-0 ring-1 ring-blue-500/20 rounded-xl" />
+              <div className="relative p-3.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20 ring-1 ring-blue-500/30 flex-shrink-0">
+                    <ShieldCheck className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-blue-300">
+                      Senha provisória: <span className="font-mono font-bold text-blue-200 tracking-wider">123456</span>
+                    </p>
+                    <p className="text-[11px] text-blue-400/60 mt-0.5">O usuário será obrigado a redefinir no primeiro login</p>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Telefone (opcional)</Label>
-              <Input value={formTelefone} onChange={(e) => setFormTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+              <Input value={formTelefone} onChange={(e) => setFormTelefone(e.target.value)} placeholder="(00) 00000-0000" className="min-h-[44px]" />
             </div>
             <div className="space-y-2">
               <Label>Hierarquia</Label>
-              <Select value={formHierarquiaId} onChange={(e) => setFormHierarquiaId(e.target.value)}>
+              <Select value={formHierarquiaId} onChange={(e) => setFormHierarquiaId(e.target.value)} className="min-h-[44px]">
                 <option value="">Selecione...</option>
                 {availableHierarquias.map((h) => (
                   <option key={h.id} value={h.id}>{h.nome}</option>
@@ -488,7 +588,7 @@ export default function Usuarios() {
             </div>
             <div className="space-y-2">
               <Label>Superior direto (opcional)</Label>
-              <Select value={formSuperiorId} onChange={(e) => setFormSuperiorId(e.target.value)}>
+              <Select value={formSuperiorId} onChange={(e) => setFormSuperiorId(e.target.value)} className="min-h-[44px]">
                 <option value="">Nenhum</option>
                 {availableSuperiors.map((eu) => {
                   const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
@@ -500,49 +600,59 @@ export default function Usuarios() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formHierarquiaId || saving}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="min-h-[44px]">Cancelar</Button>
+            <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formHierarquiaId || saving} className="min-h-[44px]">
               {saving ? 'Criando...' : 'Criar Usuário'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {/* Dialog Editar Usuario */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent onClose={() => setEditDialogOpen(false)}>
+        <DialogContent onClose={() => setEditDialogOpen(false)} className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Editar Usuario</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15 ring-1 ring-blue-500/20">
+                <Pencil className="h-4 w-4 text-blue-400" />
+              </div>
+              Editar Usuario
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Nome</Label>
-              <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} placeholder="Nome completo" />
+              <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} placeholder="Nome completo" className="min-h-[44px]" />
             </div>
             <div className="space-y-2">
               <Label>Telefone</Label>
-              <Input value={editTelefone} onChange={(e) => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+              <Input value={editTelefone} onChange={(e) => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" className="min-h-[44px]" />
             </div>
             {editingUser && editingUser.usuario_id !== usuario?.id && (
               <>
                 <div className="space-y-2">
                   <Label>Hierarquia</Label>
-                  <Select value={editHierarquiaId} onChange={(e) => setEditHierarquiaId(e.target.value)}>
+                  <Select value={editHierarquiaId} onChange={(e) => setEditHierarquiaId(e.target.value)} className="min-h-[44px]">
                     <option value="">Selecione...</option>
-                    {hierarquias.filter(h => hierarquiaOrdem !== null ? h.ordem >= hierarquiaOrdem : true).map((h) => (
+                    {isMaster
+                      ? hierarquias.map((h) => (
+                          <option key={h.id} value={h.id}>{h.nome}</option>
+                        ))
+                      : hierarquias.filter(h => roleLevel(h.nome) <= myLevel).map((h) => (
                       <option key={h.id} value={h.id}>{h.nome}</option>
                     ))}
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Superior direto</Label>
-                  <Select value={editSuperiorId} onChange={(e) => setEditSuperiorId(e.target.value)}>
+                  <Select value={editSuperiorId} onChange={(e) => setEditSuperiorId(e.target.value)} className="min-h-[44px]">
                     <option value="">Nenhum</option>
                     {usuarios.filter((eu) => {
                       if (!editHierarquiaId) return false
                       const selectedH = hierarquias.find((h) => h.id === editHierarquiaId)
                       if (!selectedH) return false
                       const euH = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
-                      return euH && euH.ordem < selectedH.ordem
+                      return euH && roleLevel(euH.nome) > roleLevel(selectedH.nome)
                     }).map((eu) => {
                       const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
                       return <option key={eu.id} value={eu.id}>{u?.nome}</option>
@@ -553,8 +663,8 @@ export default function Usuarios() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveEdit} disabled={!editNome || editSaving}>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="min-h-[44px]">Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={!editNome || editSaving} className="min-h-[44px]">
               {editSaving ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>

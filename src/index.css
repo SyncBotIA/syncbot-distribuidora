@@ -183,6 +183,15 @@ body {
   animation: borderGlow 3s ease-in-out infinite;
 }
 
+@keyframes slideUpFromBottom {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-up-from-bottom {
+  animation: slideUpFromBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Stagger children animations */
 .stagger-children > * {
   opacity: 0;
@@ -334,5 +343,43 @@ input[type="number"] {
 @supports (padding: max(0px)) {
   .safe-top {
     padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+}
+
+/* Prevent iOS overscroll/bounce on body */
+@media (max-width: 767px) {
+  body {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 767px) {
+  /* Prevent text zoom on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Hide scrollbars on mobile nav */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Ensure cards are not too narrow on mobile */
+  .rounded-xl {
+    min-width: 0;
+  }
+}
+
+/* Improve dialog animation on mobile */
+@media (max-width: 640px) {
+  .animate-scale-in {
+    animation: slideUpSoft 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes slideUpSoft {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }

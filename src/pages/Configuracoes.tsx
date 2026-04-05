@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
-import { Settings, User, Lock, Mail, Phone, Save, Shield } from 'lucide-react'
+import { Settings, User, Lock, Mail, Phone, Save, Shield, PencilLine } from 'lucide-react'
 
 export default function Configuracoes() {
   const { user, usuario } = useAuth()
@@ -25,7 +25,7 @@ export default function Configuracoes() {
       return
     }
     if (novaSenha !== confirmarSenha) {
-      toast({ title: 'Erro', description: 'As senhas não coincidem', variant: 'destructive' })
+      toast({ title: 'Erro', description: 'As senhas nao coincidem', variant: 'destructive' })
       return
     }
 
@@ -76,54 +76,99 @@ export default function Configuracoes() {
     }
   }
 
+  // Get initials for the avatar
+  const initials = usuario?.nome
+    ? usuario.nome
+        .split(' ')
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : (usuario?.email?.[0] ?? 'U').toUpperCase()
+
   return (
-    <div className="space-y-6 max-w-lg animate-fade-in">
+    <div className="space-y-5 animate-fade-in max-w-lg">
       {/* Page Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/20">
+        <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 ring-1 ring-blue-400/20">
           <Settings className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Configurações</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Gerencie seu perfil e segurança</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Configuracoes</h1>
+          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">Gerencie seu perfil e seguranca</p>
+        </div>
+      </div>
+
+      {/* Profile Avatar Section */}
+      <div className="flex flex-col items-center text-center space-y-3 pb-2">
+        <div className="relative">
+          {/* Outer glow ring */}
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-500/30 to-cyan-400/20 blur-sm" />
+          {/* Avatar circle */}
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 flex items-center justify-center shadow-xl shadow-blue-500/30 ring-2 ring-white/10">
+            <span className="text-2xl sm:text-3xl font-bold text-white tracking-wide drop-shadow-lg">
+              {initials}
+            </span>
+          </div>
+          {/* Edit badge */}
+          <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-zinc-800 border-2 border-zinc-900 flex items-center justify-center shadow-lg">
+            <PencilLine className="h-3 w-3 text-zinc-400" />
+          </div>
+        </div>
+        <div>
+          <p className="text-base font-semibold text-white">{usuario?.nome ?? 'Usuario'}</p>
+          <p className="text-xs text-zinc-500 mt-0.5">{usuario?.email ?? ''}</p>
         </div>
       </div>
 
       {/* Profile Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-blue-500/10">
+      <Card className="border-white/[0.06] overflow-hidden">
+        {/* Card accent line */}
+        <div className="h-px bg-gradient-to-r from-blue-500/40 via-blue-500/10 to-transparent" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2.5 text-base">
+            <div className="p-1.5 rounded-lg bg-blue-500/10 ring-1 ring-blue-400/10">
               <User className="h-4 w-4 text-blue-400" />
             </div>
             Meu Perfil
           </CardTitle>
-          <CardDescription>Atualize suas informações pessoais</CardDescription>
+          <CardDescription className="text-xs">Atualize suas informacoes pessoais</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSaveProfile} className="space-y-4">
+            {/* Email — disabled with distinct styling */}
             <div className="space-y-2">
-              <Label>
-                <Mail className="h-3.5 w-3.5 text-zinc-500" />
+              <Label className="flex items-center gap-2 text-zinc-400">
+                <Mail className="h-3.5 w-3.5" />
                 Email
               </Label>
-              <Input value={usuario?.email ?? ''} disabled className="bg-white/[0.02] opacity-60" />
+              <Input
+                value={usuario?.email ?? ''}
+                disabled
+                className="bg-white/[0.02] opacity-50 cursor-not-allowed border-dashed"
+              />
             </div>
+            {/* Nome */}
             <div className="space-y-2">
-              <Label>
+              <Label className="flex items-center gap-2">
                 <User className="h-3.5 w-3.5 text-zinc-500" />
                 Nome
               </Label>
               <Input value={nomeEdit} onChange={(e) => setNomeEdit(e.target.value)} required />
             </div>
+            {/* Telefone */}
             <div className="space-y-2">
-              <Label>
+              <Label className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-zinc-500" />
                 Telefone
               </Label>
-              <Input value={telefoneEdit} onChange={(e) => setTelefoneEdit(e.target.value)} placeholder="(00) 00000-0000" />
+              <Input
+                value={telefoneEdit}
+                onChange={(e) => setTelefoneEdit(e.target.value)}
+                placeholder="(00) 00000-0000"
+              />
             </div>
-            <Button type="submit" disabled={savingProfile} className="gap-2">
+            <Button type="submit" disabled={savingProfile} className="gap-2 shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-transform">
               <Save className="h-4 w-4" />
               {savingProfile ? 'Salvando...' : 'Salvar Perfil'}
             </Button>
@@ -132,33 +177,35 @@ export default function Configuracoes() {
       </Card>
 
       {/* Password Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-amber-500/10">
+      <Card className="border-white/[0.06] overflow-hidden">
+        {/* Card accent line */}
+        <div className="h-px bg-gradient-to-r from-amber-500/40 via-amber-500/10 to-transparent" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2.5 text-base">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 ring-1 ring-amber-400/10">
               <Shield className="h-4 w-4 text-amber-400" />
             </div>
             Alterar Senha
           </CardTitle>
-          <CardDescription>Defina uma nova senha de acesso</CardDescription>
+          <CardDescription className="text-xs">Defina uma nova senha de acesso</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
-              <Label>
+              <Label className="flex items-center gap-2">
                 <Lock className="h-3.5 w-3.5 text-zinc-500" />
-                Nova senha
+                Nova Senha
               </Label>
               <Input
                 type="password"
                 value={novaSenha}
                 onChange={(e) => setNovaSenha(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Minimo 6 caracteres"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>
+              <Label className="flex items-center gap-2">
                 <Lock className="h-3.5 w-3.5 text-zinc-500" />
                 Confirmar senha
               </Label>
@@ -170,8 +217,8 @@ export default function Configuracoes() {
                 required
               />
             </div>
-            <Button type="submit" disabled={loading} className="gap-2">
-              <Lock className="h-4 w-4" />
+            <Button type="submit" disabled={loading} className="gap-2 shadow-lg shadow-amber-500/15 active:scale-[0.98] transition-transform">
+              <Shield className="h-4 w-4" />
               {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
           </form>

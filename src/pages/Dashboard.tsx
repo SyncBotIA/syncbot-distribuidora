@@ -44,6 +44,13 @@ const periodoLabels: Record<Periodo, string> = {
   ano: 'Este Ano',
 }
 
+function getTimeGreeting(): { greeting: string; emoji: string } {
+  const hour = new Date().getHours()
+  if (hour < 12) return { greeting: 'Bom dia', emoji: '☀️' }
+  if (hour < 18) return { greeting: 'Boa tarde', emoji: '🌤️' }
+  return { greeting: 'Boa noite', emoji: '🌙' }
+}
+
 export default function Dashboard() {
   const { usuario } = useAuth()
   const { empresa, empresaUsuario, isAdmin } = useEmpresa()
@@ -174,30 +181,32 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-4 w-40 mt-2" />
+            <Skeleton className="h-7 sm:h-8 w-36" />
+            <Skeleton className="h-4 w-44 mt-1.5" />
           </div>
-          <Skeleton className="h-9 w-40 rounded-lg" />
+          <Skeleton className="h-9 w-36 sm:w-40 rounded-lg" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="rounded-xl border border-white/[0.06] p-6">
-            <Skeleton className="h-5 w-40 mb-6" />
-            <Skeleton className="h-64 w-full rounded-lg" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="rounded-xl border border-white/[0.06] p-4 sm:p-6">
+            <Skeleton className="h-5 w-40 mb-4" />
+            <Skeleton className="h-52 sm:h-64 w-full rounded-lg" />
           </div>
-          <div className="rounded-xl border border-white/[0.06] p-6">
-            <Skeleton className="h-5 w-40 mb-6" />
-            <Skeleton className="h-64 w-full rounded-lg" />
+          <div className="rounded-xl border border-white/[0.06] p-4 sm:p-6">
+            <Skeleton className="h-5 w-40 mb-4" />
+            <Skeleton className="h-52 sm:h-64 w-full rounded-lg" />
           </div>
         </div>
       </div>
     )
   }
+
+  const { greeting, emoji } = getTimeGreeting()
 
   const kpis = [
     {
@@ -210,6 +219,7 @@ export default function Dashboard() {
       textColor: 'text-blue-400',
       borderColor: 'border-blue-500/10',
       barColor: 'from-blue-500 to-blue-400',
+      glowColor: 'shadow-blue-500/5',
     },
     {
       label: 'Faturamento',
@@ -221,6 +231,7 @@ export default function Dashboard() {
       textColor: 'text-emerald-400',
       borderColor: 'border-emerald-500/10',
       barColor: 'from-emerald-500 to-emerald-400',
+      glowColor: 'shadow-emerald-500/5',
     },
     {
       label: 'Produtos',
@@ -232,6 +243,7 @@ export default function Dashboard() {
       textColor: 'text-violet-400',
       borderColor: 'border-violet-500/10',
       barColor: 'from-violet-500 to-violet-400',
+      glowColor: 'shadow-violet-500/5',
     },
     {
       label: 'Estoque',
@@ -243,21 +255,28 @@ export default function Dashboard() {
       textColor: 'text-red-400',
       borderColor: 'border-red-500/10',
       barColor: 'from-red-500 to-red-400',
+      glowColor: 'shadow-red-500/5',
     },
   ]
 
+  const chartHeight = 220
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard</h1>
-          <p className="text-sm text-zinc-500 mt-1">Visão geral do seu negócio</p>
+          <p className="text-xs font-medium text-zinc-500 mb-0.5">
+            {greeting} {emoji}
+          </p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight">
+            Dashboard
+          </h1>
         </div>
         <Select
           value={periodo}
           onChange={(e) => setPeriodo(e.target.value as Periodo)}
-          className="w-full sm:w-40 max-w-[240px]"
+          className="w-full sm:w-40 max-w-[240px] min-h-[44px] text-sm"
         >
           <option value="dia">Hoje</option>
           <option value="semana">Esta Semana</option>
@@ -267,38 +286,63 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger-children">
         {kpis.map((kpi) => (
-          <Card key={kpi.label} className={`relative overflow-hidden group ${kpi.borderColor}`}>
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`p-2.5 rounded-xl ${kpi.iconBg} transition-transform duration-300 group-hover:scale-110`}>
-                  <kpi.icon className={`h-5 w-5 ${kpi.textColor}`} />
+          <div
+            key={kpi.label}
+            className={`relative rounded-xl border border-white/[0.06] bg-gradient-to-br ${kpi.gradient} overflow-hidden shadow-lg ${kpi.glowColor} transition-all duration-300 active:scale-[0.97] touch-manipulation`}
+          >
+            {/* Gradient border overlay */}
+            <div
+              className="absolute inset-0 rounded-xl opacity-60 pointer-events-none"
+              style={{
+                background: `linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, transparent 50%, rgba(37, 99, 235, 0.06) 100%)`,
+              }}
+            />
+
+            <div className="relative p-3.5 sm:p-5">
+              <div className="flex items-start justify-between mb-2.5">
+                <div
+                  className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl ${kpi.iconBg} transition-all duration-300 active:scale-110`}
+                  style={{
+                    boxShadow: `0 0 12px 1px rgba(37, 99, 235, 0.08)`,
+                  }}
+                >
+                  <kpi.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${kpi.textColor}`} />
                 </div>
-                <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">{kpi.sublabel}</span>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-zinc-500 uppercase tracking-wider leading-none pt-1">
+                  {kpi.sublabel}
+                </span>
               </div>
-              <p className="text-2xl font-bold tracking-tight text-white">{kpi.value}</p>
-              <p className="text-xs font-medium text-zinc-500 mt-1">{kpi.label}</p>
-              <div className={`absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r ${kpi.barColor} opacity-50 group-hover:opacity-80 transition-opacity`} />
-            </CardContent>
-          </Card>
+              <p className="text-lg sm:text-2xl font-bold tracking-tight text-white leading-tight truncate">
+                {kpi.value}
+              </p>
+              <p className="text-[11px] sm:text-xs font-medium text-zinc-500 mt-0.5 sm:mt-1">
+                {kpi.label}
+              </p>
+            </div>
+
+            {/* Bottom gradient bar */}
+            <div className={`absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r ${kpi.barColor} opacity-40`} />
+          </div>
         ))}
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2.5 text-sm">
-              <div className="p-1.5 rounded-lg bg-blue-500/10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Pedidos por Período */}
+        <Card className="gradient-border border border-white/[0.06] overflow-hidden bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10">
+          <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
+            <CardTitle className="flex items-center gap-2.5 text-sm font-semibold">
+              <div className="p-1.5 rounded-lg bg-blue-500/10 ring-1 ring-blue-500/10">
                 <TrendingUp className="h-4 w-4 text-blue-400" />
               </div>
-              Pedidos por Período
+              <span className="text-zinc-200">Pedidos por Período</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6 pb-3 sm:pb-5">
             {stats.pedidosPorMes.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <AreaChart data={stats.pedidosPorMes}>
                   <defs>
                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -324,29 +368,30 @@ export default function Dashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                <div className="p-4 rounded-2xl bg-white/[0.03] mb-3">
+              <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-muted-foreground">
+                <div className="p-4 rounded-2xl bg-white/[0.03] ring-1 ring-white/[0.04] mb-3">
                   <TrendingUp className="h-8 w-8 opacity-20" />
                 </div>
-                <p className="text-sm font-medium">Nenhum dado disponível</p>
+                <p className="text-sm font-medium text-zinc-400">Nenhum dado disponível</p>
                 <p className="text-xs text-zinc-600 mt-1">Os dados aparecerão quando houver pedidos</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2.5 text-sm">
-              <div className="p-1.5 rounded-lg bg-violet-500/10">
+        {/* Produtos Mais Vendidos */}
+        <Card className="gradient-border border border-white/[0.06] overflow-hidden bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10">
+          <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
+            <CardTitle className="flex items-center gap-2.5 text-sm font-semibold">
+              <div className="p-1.5 rounded-lg bg-violet-500/10 ring-1 ring-violet-500/10">
                 <BarChart3 className="h-4 w-4 text-violet-400" />
               </div>
-              Produtos Mais Vendidos
+              <span className="text-zinc-200">Produtos Mais Vendidos</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6 pb-3 sm:pb-5">
             {stats.produtosMaisVendidos.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <PieChart>
                   <Pie
                     data={stats.produtosMaisVendidos}
@@ -354,8 +399,8 @@ export default function Dashboard() {
                     nameKey="nome"
                     cx="50%"
                     cy="50%"
-                    innerRadius={65}
-                    outerRadius={105}
+                    innerRadius={55}
+                    outerRadius={90}
                     paddingAngle={3}
                     label={({ nome, quantidade }) => `${nome}: ${quantidade}`}
                     labelLine={{ stroke: '#475569' }}
@@ -374,11 +419,11 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                <div className="p-4 rounded-2xl bg-white/[0.03] mb-3">
+              <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-muted-foreground">
+                <div className="p-4 rounded-2xl bg-white/[0.03] ring-1 ring-white/[0.04] mb-3">
                   <Package className="h-8 w-8 opacity-20" />
                 </div>
-                <p className="text-sm font-medium">Nenhuma venda registrada</p>
+                <p className="text-sm font-medium text-zinc-400">Nenhuma venda registrada</p>
                 <p className="text-xs text-zinc-600 mt-1">Crie pedidos para ver os dados aqui</p>
               </div>
             )}
@@ -388,16 +433,16 @@ export default function Dashboard() {
 
       {/* Ranking de Vendedores */}
       {isAdmin && stats.rankingVendedores.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2.5 text-sm">
-              <div className="p-1.5 rounded-lg bg-amber-500/10">
+        <Card className="gradient-border border border-white/[0.06] overflow-hidden bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10">
+          <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
+            <CardTitle className="flex items-center gap-2.5 text-sm font-semibold">
+              <div className="p-1.5 rounded-lg bg-amber-500/10 ring-1 ring-amber-500/10">
                 <Trophy className="h-4 w-4 text-amber-400" />
               </div>
-              Ranking de Vendedores — {periodoLabels[periodo]}
+              <span className="text-zinc-200">Ranking de Vendedores — {periodoLabels[periodo]}</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 pb-3 sm:pb-5">
             {/* Desktop table */}
             <div className="hidden md:block">
               <Table>
@@ -438,7 +483,10 @@ export default function Dashboard() {
             {/* Mobile cards */}
             <div className="md:hidden space-y-2">
               {stats.rankingVendedores.map((v, i) => (
-                <div key={i} className="rounded-xl border border-white/[0.06] p-3.5 flex items-center gap-3">
+                <div
+                  key={i}
+                  className="rounded-xl border border-white/[0.06] bg-zinc-900/40 p-3.5 flex items-center gap-3 active:bg-zinc-900/60 transition-colors min-h-[44px] touch-manipulation"
+                >
                   {i < 3 ? (
                     <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                       i === 0 ? 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20' :
@@ -464,28 +512,31 @@ export default function Dashboard() {
 
       {/* Estoque critico */}
       {isAdmin && stats.estoqueCritico.length > 0 && (
-        <Card className="border-red-500/15">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2.5 text-sm">
-              <div className="p-1.5 rounded-lg bg-red-500/10">
+        <Card className="gradient-border border border-red-500/15 overflow-hidden bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10">
+          <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
+            <CardTitle className="flex items-center gap-2.5 text-sm font-semibold">
+              <div className="p-1.5 rounded-lg bg-red-500/10 ring-1 ring-red-500/10">
                 <AlertTriangle className="h-4 w-4 text-red-400" />
               </div>
-              Estoque Crítico
+              <span className="text-zinc-200">Estoque Crítico</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 pb-3 sm:pb-5">
             <div className="space-y-2">
               {stats.estoqueCritico.map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/10 hover:border-red-500/20 transition-colors">
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-red-500/5 border border-red-500/10 hover:border-red-500/20 active:bg-red-500/10 transition-colors min-h-[44px] touch-manipulation"
+                >
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-red-500/10 flex items-center justify-center">
+                    <div className="h-9 w-9 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
                       <Package className="h-4 w-4 text-red-400" />
                     </div>
-                    <span className="font-semibold text-sm">{item.nome}</span>
+                    <span className="font-semibold text-sm text-zinc-100 truncate">{item.nome}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="destructive">{item.atual} un</Badge>
-                    <span className="text-xs text-zinc-500">min: {item.minimo}</span>
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <Badge variant="destructive" className="text-xs">{item.atual} un</Badge>
+                    <span className="text-xs text-zinc-500 hidden sm:inline">min: {item.minimo}</span>
                   </div>
                 </div>
               ))}

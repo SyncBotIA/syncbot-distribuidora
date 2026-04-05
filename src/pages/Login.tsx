@@ -50,7 +50,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#030712] p-4 relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#030712] p-4 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-blue-600/8 rounded-full blur-[150px] pointer-events-none" />

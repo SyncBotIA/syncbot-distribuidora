@@ -18,11 +18,15 @@ interface EmpresaResumo {
 }
 
 interface UsuarioEmpresa {
-  id: string
+  eu_id: string
   usuario_id: string
   ativo: boolean
-  usuarios: { id: string; nome: string; email: string }
-  hierarquias: { id: string; nome: string; ordem: number }
+  usuario_nome: string
+  usuario_email: string
+  usuario_telefone: string | null
+  hierarquia_id: string
+  hierarquia_nome: string
+  hierarquia_ordem: number
 }
 
 export default function MasterPanel() {
@@ -68,24 +72,25 @@ export default function MasterPanel() {
   }, [isMaster, navigate, fetchEmpresas])
 
   async function fetchUsuáriosEmpresa(empresaId: string) {
-    const { data } = await supabase
-      .from('empresa_usuarios')
-      .select('id, usuario_id, ativo, usuarios(id, nome, email), hierarquias(id, nome, ordem)')
-      .eq('empresa_id', empresaId)
-      .order('created_at')
+    const { data, error } = await supabase.rpc('master_listar_usuarios_empresa', {
+      p_empresa_id: empresaId,
+    })
+
+    if (error) {
+      console.error('Erro ao listar usuarios:', error)
+    }
 
     if (data) {
       setUsuários(data as unknown as UsuarioEmpresa[])
-    }
 
-    const { data: hierData } = await supabase
-      .from('hierarquias')
-      .select('id, nome, ordem')
-      .eq('empresa_id', empresaId)
-      .order('ordem')
-
-    if (hierData) {
-      setHierarquias(hierData)
+      // Extrair hierarquias únicas dos resultados
+      const uniq = new Map<string, { id: string; nome: string; ordem: number }>()
+      for (const row of data) {
+        if (!uniq.has(row.hierarquia_id)) {
+          uniq.set(row.hierarquia_id, { id: row.hierarquia_id, nome: row.hierarquia_nome, ordem: row.hierarquia_ordem })
+        }
+      }
+      setHierarquias(Array.from(uniq.values()).sort((a, b) => a.ordem - b.ordem))
     }
   }
 
@@ -148,10 +153,10 @@ export default function MasterPanel() {
   }
 
   function startEdit(eu: UsuarioEmpresa) {
-    setEditingId(eu.id)
-    setEditNome(eu.usuarios?.nome || '')
-    setEditEmail(eu.usuarios?.email || '')
-    setEditHierarquiaId(eu.hierarquias?.id || '')
+    setEditingId(eu.eu_id)
+    setEditNome(eu.usuario_nome)
+    setEditEmail(eu.usuario_email)
+    setEditHierarquiaId(eu.hierarquia_id)
   }
 
   function cancelEdit() {
@@ -162,7 +167,6 @@ export default function MasterPanel() {
   }
 
   async function handleSaveEdit(eu: UsuarioEmpresa) {
-    if (!eu.usuarios) return
     setEditSaving(true)
 
     try {
@@ -170,16 +174,16 @@ export default function MasterPanel() {
       const { error: userError } = await supabase
         .from('usuarios')
         .update({ nome: editNome })
-        .eq('id', eu.usuarios.id)
+        .eq('id', eu.usuario_id)
 
       if (userError) throw userError
 
       // Atualizar hierarquia na empresa_usuarios
-      if (editHierarquiaId && editHierarquiaId !== eu.hierarquias?.id) {
+      if (editHierarquiaId && editHierarquiaId !== eu.hierarquia_id) {
         const { error: euError } = await supabase
           .from('empresa_usuarios')
           .update({ hierarquia_id: editHierarquiaId })
-          .eq('id', eu.id)
+          .eq('id', eu.eu_id)
 
         if (euError) throw euError
       }
@@ -430,10 +434,10 @@ export default function MasterPanel() {
                       <div className="space-y-2">
                         {usuarios.map((eu) => (
                           <div
-                            key={eu.id}
+                            key={eu.eu_id}
                             className="p-3.5 rounded-xl border border-white/[0.06] hover:bg-white/[0.02] transition-colors"
                           >
-                            {editingId === eu.id ? (
+                            {editingId === eu.eu_id ? (
                               <div className="space-y-3">
                                 <div>
                                   <Label className="text-zinc-400 text-xs">Nome</Label>
@@ -476,15 +480,15 @@ export default function MasterPanel() {
                             ) : (
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="font-medium text-sm text-zinc-200">{eu.usuarios?.nome || 'Sem nome'}</p>
-                                  <p className="text-xs text-zinc-500">{eu.usuarios?.email}</p>
+                                  <p className="font-medium text-sm text-zinc-200">{eu.usuario_nome}</p>
+                                  <p className="text-xs text-zinc-500">{eu.usuario_email}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Badge
-                                    variant={eu.hierarquias?.ordem === 1 ? 'default' : 'secondary'}
-                                    className={eu.hierarquias?.ordem === 1 ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-white/[0.05] text-zinc-400 border-white/[0.08]'}
+                                    variant={eu.hierarquia_ordem === 1 ? 'default' : 'secondary'}
+                                    className={eu.hierarquia_ordem === 1 ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' : 'bg-white/[0.05] text-zinc-400 border-white/[0.08]'}
                                   >
-                                    {eu.hierarquias?.nome || 'Sem cargo'}
+                                    {eu.hierarquia_nome}
                                   </Badge>
                                   <button
                                     onClick={() => startEdit(eu)}
@@ -494,7 +498,7 @@ export default function MasterPanel() {
                                     <Pencil className="h-4 w-4" />
                                   </button>
                                   <button
-                                    onClick={() => handleRemoveUsuario(eu.id, eu.usuarios?.nome || '')}
+                                    onClick={() => handleRemoveUsuario(eu.eu_id, eu.usuario_nome)}
                                     className="p-2 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                                     title="Remover da empresa"
                                   >

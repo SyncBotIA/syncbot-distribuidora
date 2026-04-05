@@ -109,15 +109,18 @@ export default function Hierarquias() {
     if (swapIdx < 0 || swapIdx >= hierarquias.length) return
 
     const other = hierarquias[swapIdx]
-    const tempOrdem = -1
+    const myOrdem = h.ordem
+    const otherOrdem = other.ordem
+
+    const tempOrdem = Math.max(...hierarquias.map(x => x.ordem)) + 1
 
     const { error: e1 } = await supabase.from('hierarquias').update({ ordem: tempOrdem }).eq('id', h.id)
     if (e1) { toast({ title: 'Erro ao mover', description: e1.message, variant: 'destructive' }); return }
 
-    const { error: e2 } = await supabase.from('hierarquias').update({ ordem: h.ordem }).eq('id', other.id)
+    const { error: e2 } = await supabase.from('hierarquias').update({ ordem: myOrdem }).eq('id', other.id)
     if (e2) { toast({ title: 'Erro ao mover', description: e2.message, variant: 'destructive' }); return }
 
-    const { error: e3 } = await supabase.from('hierarquias').update({ ordem: other.ordem }).eq('id', h.id)
+    const { error: e3 } = await supabase.from('hierarquias').update({ ordem: otherOrdem }).eq('id', h.id)
     if (e3) { toast({ title: 'Erro ao mover', description: e3.message, variant: 'destructive' }); return }
 
     fetchHierarquias()

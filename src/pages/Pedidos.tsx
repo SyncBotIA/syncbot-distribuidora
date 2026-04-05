@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText, Search, Filter } from 'lucide-react'
+import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText, Search, Filter, TrendingUp } from 'lucide-react'
 import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/utils'
 import type { Pedido, Produto, PedidoItem, Usuario, Cliente, EmpresaUsuario, Hierarquia } from '@/types/database'
 
@@ -292,89 +292,102 @@ export default function Pedidos() {
   })
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-3 sm:space-y-6 animate-fade-in">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/20">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/20 touch-manipulation">
             <ShoppingCart className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Pedidos</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Gerenciamento de vendas e pedidos</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Pedidos</h1>
+            <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">Gerenciamento de vendas e pedidos</p>
           </div>
         </div>
-        <Button onClick={openCreateDialog} className="gap-2 self-start">
+        <Button onClick={openCreateDialog} className="gap-2 self-start touch-manipulation">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Novo Pedido</span>
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
-        <Card className="border-blue-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-500/10">
-              <FileText className="h-5 w-5 text-blue-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 stagger-children">
+        <Card className="border border-blue-500/10 bg-gradient-to-br from-blue-500/[0.06] to-transparent">
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-blue-500/10 shrink-0">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
             </div>
-            <div>
-              <p className="text-lg font-bold text-blue-300">{pedidos.length}</p>
-              <p className="text-[11px] text-zinc-500 font-medium">Total</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-amber-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-500/10">
-              <FileText className="h-5 w-5 text-amber-400" />
-            </div>
-            <div>
-              <p className="text-lg font-bold text-amber-300">{pedidosRascunho}</p>
-              <p className="text-[11px] text-zinc-500 font-medium">Rascunhos</p>
+            <div className="min-w-0">
+              <p className="text-base sm:text-lg font-bold text-blue-300 truncate">{pedidos.length}</p>
+              <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Total</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-emerald-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-500/10">
-              <Check className="h-5 w-5 text-emerald-400" />
+        <Card className="border border-amber-500/10 bg-gradient-to-br from-amber-500/[0.06] to-transparent">
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-amber-500/10 shrink-0">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
             </div>
-            <div>
-              <p className="text-lg font-bold text-emerald-300">{pedidosConfirmados}</p>
-              <p className="text-[11px] text-zinc-500 font-medium">Confirmados</p>
+            <div className="min-w-0">
+              <p className="text-base sm:text-lg font-bold text-amber-300 truncate">{pedidosRascunho}</p>
+              <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Rascunhos</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-violet-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-violet-500/10">
-              <ShoppingCart className="h-5 w-5 text-violet-400" />
+        <Card className="border border-emerald-500/10 bg-gradient-to-br from-emerald-500/[0.06] to-transparent">
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-emerald-500/10 shrink-0">
+              <Check className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
             </div>
-            <div>
-              <p className="text-lg font-bold text-violet-300">{formatCurrency(valorTotalPedidos)}</p>
-              <p className="text-[11px] text-zinc-500 font-medium">Valor Total</p>
+            <div className="min-w-0">
+              <p className="text-base sm:text-lg font-bold text-emerald-300 truncate">{pedidosConfirmados}</p>
+              <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Confirmados</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-violet-500/10 bg-gradient-to-br from-violet-500/[0.06] to-transparent">
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-violet-500/10 shrink-0">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-base sm:text-lg font-bold text-violet-300 truncate">{formatCurrency(valorTotalPedidos)}</p>
+              <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Valor Total</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1 w-full sm:max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-          <Input placeholder="Buscar por vendedor ou cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+        <div className="relative w-full">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 pointer-events-none" />
+          <Input
+            placeholder="Buscar por vendedor ou cliente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 w-full"
+          />
         </div>
-        <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="sm:max-w-[180px] w-full">
-          <option value="">Todos os status</option>
-          <option value="rascunho">Rascunho</option>
-          <option value="confirmado">Confirmado</option>
-          <option value="entregue">Entregue</option>
-          <option value="cancelado">Cancelado</option>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-zinc-500 shrink-0 hidden sm:block" />
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full sm:w-auto sm:min-w-[180px]"
+          >
+            <option value="">Todos os status</option>
+            <option value="rascunho">Rascunho</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="entregue">Entregue</option>
+            <option value="cancelado">Cancelado</option>
+          </Select>
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      {/* Order List */}
+      <Card className="border-white/[0.06] bg-card/50">
+        <CardContent className="pt-4 sm:pt-6">
           {loading ? (
             <div className="py-8 space-y-3">
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
@@ -386,14 +399,15 @@ export default function Pedidos() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data
-                      <span className="text-[10px] font-normal normal-case tracking-normal block text-zinc-600">Relativo</span>
-                    </TableHead>
+                      <TableHead>
+                        Data
+                        <span className="text-[10px] font-normal normal-case tracking-normal block text-zinc-600">Relativo</span>
+                      </TableHead>
                       <TableHead>Vendedor</TableHead>
                       <TableHead>Cliente</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Valor Total</TableHead>
-                      <TableHead>Ações</TableHead>
+                      <TableHead>A&ccedil;&otilde;es</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -442,11 +456,11 @@ export default function Pedidos() {
                       <TableRow>
                         <TableCell colSpan={6}>
                           <div className="flex flex-col items-center justify-center py-14">
-                            <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
-                              <ShoppingCart className="h-7 w-7 text-zinc-600" />
+                            <div className="h-16 w-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-4">
+                              <ShoppingCart className="h-8 w-8 text-zinc-600" />
                             </div>
                             <p className="text-sm font-semibold text-zinc-400">{pedidos.length === 0 ? 'Nenhum pedido registrado' : 'Nenhum pedido encontrado'}</p>
-                            <p className="text-xs text-zinc-600 mt-1">{pedidos.length === 0 ? 'Crie seu primeiro pedido' : 'Tente ajustar seus filtros'}</p>
+                            <p className="text-xs text-zinc-600 mt-1.5">{pedidos.length === 0 ? 'Crie seu primeiro pedido para come&ccedil;ar' : 'Tente ajustar seus filtros de busca'}</p>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -454,41 +468,94 @@ export default function Pedidos() {
                   </TableBody>
                 </Table>
               </div>
+
               {/* Mobile cards */}
-              <div className="md:hidden space-y-2">
-                {filteredPedidos.map((p) => {
+              <div className="md:hidden space-y-3">
+                {filteredPedidos.map((p, index) => {
                   const sc = getStatusConfig(p.status)
+                  const statusColors: Record<string, string> = {
+                    rascunho: 'from-zinc-500/10 to-transparent border-zinc-500/20',
+                    confirmado: 'from-blue-500/10 to-transparent border-blue-500/20',
+                    entregue: 'from-emerald-500/10 to-transparent border-emerald-500/20',
+                    cancelado: 'from-red-500/10 to-transparent border-red-500/20',
+                  }
+                  const statusBadgeColors: Record<string, string> = {
+                    rascunho: 'bg-zinc-500/15 text-zinc-300 border-zinc-500/20',
+                    confirmado: 'bg-blue-500/15 text-blue-300 border-blue-500/20',
+                    entregue: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/20',
+                    cancelado: 'bg-red-500/15 text-red-300 border-red-500/20',
+                  }
                   return (
-                    <div key={p.id} className="rounded-xl border border-white/[0.06] p-3.5 space-y-2.5">
-                      <div className="flex items-start justify-between gap-2">
+                    <div
+                      key={p.id}
+                      className={`rounded-xl border bg-gradient-to-br ${statusColors[p.status] ?? 'from-white/[0.03] to-transparent border-white/[0.06]'} p-3.5 animate-fade-in`}
+                      style={{ animationDelay: `${index * 0.04}s` }}
+                    >
+                      {/* Top row: status badge + vendor */}
+                      <div className="flex items-start justify-between gap-2 mb-3">
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-white text-sm truncate">{(p.usuario as unknown as Usuario)?.nome ?? '—'}</p>
-                          <p className="text-xs text-zinc-500 mt-0.5">{(p.cliente as unknown as Cliente)?.nome ?? 'Sem cliente'}</p>
+                          <p className="text-xs text-zinc-500 mt-0.5 truncate">
+                            {(p.cliente as unknown as Cliente)?.nome ?? 'Sem cliente'}
+                          </p>
                         </div>
-                        <Badge variant={sc.variant}>{sc.label}</Badge>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${statusBadgeColors[p.status] ?? 'bg-white/10 text-zinc-300 border-white/20'}`}
+                        >
+                          {sc.label}
+                        </span>
                       </div>
+
+                      {/* Divider */}
+                      <div className="h-px bg-white/[0.05] mb-3" />
+
+                      {/* Bottom row: value/date + actions */}
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-bold text-white">{formatCurrency(p.valor_total ?? 0)}</p>
-                          <p className="text-[10px] text-zinc-500">{formatRelativeDate(p.created_at)}</p>
+                          <p className="text-[10px] text-zinc-500 mt-0.5">{formatRelativeDate(p.created_at)}</p>
                         </div>
-                        <div className="flex gap-0.5">
-                          <Button variant="ghost" size="icon" onClick={() => viewDetail(p)} className="h-10 w-10" title="Detalhes">
-                            <Eye className="h-4 w-4" />
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => viewDetail(p)}
+                            className="h-10 w-10 rounded-lg bg-white/[0.04] border-white/[0.08] touch-manipulation"
+                            title="Detalhes"
+                          >
+                            <Eye className="h-4 w-4 text-zinc-400" />
                           </Button>
                           {p.status === 'rascunho' && (
-                            <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'confirmado')} className="h-10 w-10" title="Confirmar">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleStatusChange(p, 'confirmado')}
+                              className="h-10 w-10 rounded-lg bg-emerald-500/10 border-emerald-500/20 touch-manipulation"
+                              title="Confirmar"
+                            >
                               <Check className="h-4 w-4 text-emerald-400" />
                             </Button>
                           )}
                           {p.status === 'confirmado' && (
-                            <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'entregue')} className="h-10 w-10" title="Entregue">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleStatusChange(p, 'entregue')}
+                              className="h-10 w-10 rounded-lg bg-blue-500/10 border-blue-500/20 touch-manipulation"
+                              title="Entregue"
+                            >
                               <Truck className="h-4 w-4 text-blue-400" />
                             </Button>
                           )}
                           {canCancel(p) && p.status !== 'cancelado' && p.status !== 'entregue' && (
-                            <Button variant="ghost" size="icon" onClick={() => { if (confirm('Cancelar este pedido?')) handleStatusChange(p, 'cancelado') }} className="h-10 w-10" title="Cancelar">
-                              <XCircle className="h-4 w-4 text-destructive" />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => { if (confirm('Cancelar este pedido?')) handleStatusChange(p, 'cancelado') }}
+                              className="h-10 w-10 rounded-lg bg-red-500/10 border-red-500/20 touch-manipulation"
+                              title="Cancelar"
+                            >
+                              <XCircle className="h-4 w-4 text-red-400" />
                             </Button>
                           )}
                         </div>
@@ -496,13 +563,21 @@ export default function Pedidos() {
                     </div>
                   )
                 })}
+
+                {/* Mobile empty state */}
                 {filteredPedidos.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-14">
-                    <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
-                      <ShoppingCart className="h-7 w-7 text-zinc-600" />
+                  <div className="flex flex-col items-center justify-center py-16 px-6">
+                    <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-white/[0.05] to-white/[0.02] border border-white/[0.08] flex items-center justify-center mb-5">
+                      <ShoppingCart className="h-10 w-10 text-zinc-600" />
                     </div>
-                    <p className="text-sm font-semibold text-zinc-400">{pedidos.length === 0 ? 'Nenhum pedido registrado' : 'Nenhum pedido encontrado'}</p>
-                    <p className="text-xs text-zinc-600 mt-1">{pedidos.length === 0 ? 'Crie seu primeiro pedido' : 'Tente ajustar seus filtros'}</p>
+                    <p className="text-base font-semibold text-zinc-300 text-center">
+                      {pedidos.length === 0 ? 'Nenhum pedido registrado' : 'Nenhum pedido encontrado'}
+                    </p>
+                    <p className="text-sm text-zinc-500 mt-2 text-center">
+                      {pedidos.length === 0
+                        ? 'Crie seu primeiro pedido para come&ccedil;ar'
+                        : 'Tente ajustar seus filtros de busca'}
+                    </p>
                   </div>
                 )}
               </div>
@@ -520,7 +595,7 @@ export default function Pedidos() {
           <div className="space-y-4">
             {canAssignToOther && (
               <div className="space-y-2">
-                <Label>Vendedor responsavel</Label>
+                <Label>Vendedor respons&aacute;vel</Label>
                 <Select value={formVendedorId} onChange={(e) => setFormVendedorId(e.target.value)}>
                   {subordinados.map((eu) => {
                     const u = eu.usuario as unknown as { id: string; nome: string }
@@ -532,7 +607,7 @@ export default function Pedidos() {
                     )
                   })}
                 </Select>
-                <p className="text-[10px] text-zinc-500">Você pode lancar o pedido no nome de um subordinado</p>
+                <p className="text-[10px] text-zinc-500">Voc&ecirc; pode lan&ccedil;ar o pedido no nome de um subordinado</p>
               </div>
             )}
 
@@ -546,27 +621,41 @@ export default function Pedidos() {
               </Select>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Select value={addProdutoId} onChange={(e) => setAddProdutoId(e.target.value)} className="flex-1">
+            {/* Product add section — mobile friendly */}
+            <div className="space-y-3">
+              <Label>Adicionar produto</Label>
+              <Select value={addProdutoId} onChange={(e) => setAddProdutoId(e.target.value)} className="w-full">
                 <option value="">Selecione um produto...</option>
                 {produtos.map((p) => (
                   <option key={p.id} value={p.id}>{p.nome} — {formatCurrency(p.preco_venda)}</option>
                 ))}
               </Select>
               <div className="flex gap-2">
-                <Input type="number" min="1" value={addQtd} onChange={(e) => setAddQtd(e.target.value)} className="w-20" placeholder="Qtd" />
-                <Button onClick={addItem} disabled={!addProdutoId}>Adicionar</Button>
+                <Input
+                  type="number"
+                  min="1"
+                  value={addQtd}
+                  onChange={(e) => setAddQtd(e.target.value)}
+                  className="w-24"
+                  placeholder="Qtd"
+                />
+                <Button onClick={addItem} disabled={!addProdutoId} className="flex-1 sm:flex-initial touch-manipulation">
+                  <Plus className="h-4 w-4 sm:mr-0" />
+                  <span className="sm:hidden">Adicionar</span>
+                  <span className="hidden sm:inline">Adicionar</span>
+                </Button>
               </div>
             </div>
 
+            {/* Items table */}
             {itens.length > 0 && (
-              <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+              <div className="rounded-xl border border-white/[0.06] overflow-hidden bg-white/[0.02]">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Produto</TableHead>
                       <TableHead className="text-right">Qtd</TableHead>
-                      <TableHead className="text-right">Preço Un.</TableHead>
+                      <TableHead className="text-right">Pre&ccedil;o Un.</TableHead>
                       <TableHead className="text-right">Subtotal</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
@@ -579,7 +668,7 @@ export default function Pedidos() {
                         <TableCell className="text-right text-zinc-400">{formatCurrency(i.preco_unitario)}</TableCell>
                         <TableCell className="text-right font-bold">{formatCurrency(i.quantidade * i.preco_unitario)}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => removeItem(i.produto_id)}>
+                          <Button variant="ghost" size="icon" onClick={() => removeItem(i.produto_id)} className="touch-manipulation">
                             <XCircle className="h-4 w-4 text-destructive" />
                           </Button>
                         </TableCell>
@@ -596,13 +685,13 @@ export default function Pedidos() {
             )}
 
             <div className="space-y-2">
-              <Label>Observação (opcional)</Label>
-              <Input value={formObs} onChange={(e) => setFormObs(e.target.value)} />
+              <Label>Observa&ccedil;&atilde;o (opcional)</Label>
+              <Input value={formObs} onChange={(e) => setFormObs(e.target.value)} placeholder="Adicione uma observa&ccedil;&atilde;o..." />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreatePedido} disabled={itens.length === 0}>Criar Pedido</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="touch-manipulation">Cancelar</Button>
+            <Button onClick={handleCreatePedido} disabled={itens.length === 0} className="touch-manipulation">Criar Pedido</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -615,24 +704,24 @@ export default function Pedidos() {
           </DialogHeader>
           {selectedPedido && (
             <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Status</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Status</p>
                   <Badge variant={statusConfig[selectedPedido.status].variant}>
                     {statusConfig[selectedPedido.status].label}
                   </Badge>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Data</p>
+                <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Data</p>
                   <p className="text-sm font-medium">{formatDate(selectedPedido.created_at)}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Valor Total</p>
+                <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Valor Total</p>
                   <p className="text-sm font-bold text-emerald-400">{formatCurrency(selectedPedido.valor_total)}</p>
                 </div>
                 {selectedPedido.observacao && (
-                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Observacao</p>
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
+                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Observa&ccedil;&atilde;o</p>
                     <p className="text-sm">{selectedPedido.observacao}</p>
                   </div>
                 )}
@@ -642,7 +731,7 @@ export default function Pedidos() {
                   <TableRow>
                     <TableHead>Produto</TableHead>
                     <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead className="text-right">Preço Un.</TableHead>
+                    <TableHead className="text-right">Pre&ccedil;o Un.</TableHead>
                     <TableHead className="text-right">Subtotal</TableHead>
                   </TableRow>
                 </TableHeader>
