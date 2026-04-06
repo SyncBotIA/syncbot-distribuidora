@@ -323,7 +323,7 @@ export default function Usuarios() {
     return u.nome.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
   })
 
-  const totalAtivos = usuarios.filter(eu => eu.ativo).length
+  const totalAtivos = usuarios.filter(eu => eu.usuario && eu.ativo).length
 
   return (
     <div className="space-y-3 sm:space-y-5 animate-fade-in">
