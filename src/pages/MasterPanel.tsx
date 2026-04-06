@@ -59,7 +59,23 @@ export default function MasterPanel() {
       p_master_id: usuario.id,
     })
     if (!error && data) {
-      setEmpresas(data as EmpresaResumo[])
+      const empresasList = data as EmpresaResumo[]
+      setEmpresas(empresasList)
+
+      // Buscar contagem real de usuarios validos por empresa
+      const counts: Record<string, number> = {}
+      await Promise.all(
+        empresasList.map(async (emp) => {
+          const { data: users } = await supabase.rpc('master_listar_usuarios_empresa', {
+            p_empresa_id: emp.id,
+          })
+          if (users) {
+            const valid = (users as unknown as UsuarioEmpresa[]).filter(u => u.usuario_id && u.ativo)
+            counts[emp.id] = valid.length
+          }
+        })
+      )
+      setUserCounts(counts)
     }
     setLoading(false)
   }, [usuario])
