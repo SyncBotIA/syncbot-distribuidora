@@ -8,43 +8,24 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Package, Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react'
 
 export default function Login() {
-  const { signIn, signUp } = useAuth()
+  const { signIn } = useAuth()
   const navigate = useNavigate()
-  const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [nome, setNome] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [successMsg, setSuccessMsg] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
-    setSuccessMsg('')
     setLoading(true)
 
-    if (isLogin) {
-      const { error } = await signIn(email, password)
-      if (error) {
-        setError(error.message)
-      } else {
-        navigate('/selecionar-empresa')
-      }
+    const { error } = await signIn(email, password)
+    if (error) {
+      setError(error.message)
     } else {
-      if (!nome.trim()) {
-        setError('Informe seu nome')
-        setLoading(false)
-        return
-      }
-      const { error } = await signUp(email, password, nome)
-      if (error) {
-        setError(error.message)
-      } else {
-        setSuccessMsg('Conta criada! Verifique seu email para confirmar.')
-        setIsLogin(true)
-      }
+      navigate('/selecionar-empresa')
     }
     setLoading(false)
   }
@@ -81,28 +62,11 @@ export default function Login() {
 
         <Card className="shadow-2xl shadow-black/50 border-white/[0.06] backdrop-blur-xl">
           <CardContent className="p-8">
-            <div className="flex items-center justify-center gap-1 mb-7">
-              <div className={`h-1 rounded-full transition-all duration-300 ${isLogin ? 'w-8 bg-blue-500' : 'w-2 bg-zinc-700'}`} />
-              <div className={`h-1 rounded-full transition-all duration-300 ${!isLogin ? 'w-8 bg-blue-500' : 'w-2 bg-zinc-700'}`} />
-            </div>
-
-            <h2 className="text-lg font-bold text-center mb-6 text-white">
-              {isLogin ? 'Acessar sistema' : 'Criar nova conta'}
+            <h2 className="text-lg font-bold text-center mb-7 text-white">
+              Acessar sistema
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label>Nome completo</Label>
-                  <Input
-                    id="nome"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Seu nome completo"
-                    required={!isLogin}
-                  />
-                </div>
-              )}
               <div className="space-y-2">
                 <Label>Email</Label>
                 <Input
@@ -143,12 +107,6 @@ export default function Login() {
                   <p className="text-sm text-red-400">{error}</p>
                 </div>
               )}
-              {successMsg && (
-                <div className="rounded-xl bg-emerald-500/8 border border-emerald-500/15 p-3.5 flex items-start gap-2.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                  <p className="text-sm text-emerald-400">{successMsg}</p>
-                </div>
-              )}
 
               <Button type="submit" className="w-full h-11 text-sm font-semibold mt-2 gap-2" disabled={loading}>
                 {loading ? (
@@ -158,28 +116,11 @@ export default function Login() {
                   </div>
                 ) : (
                   <>
-                    {isLogin ? 'Entrar' : 'Criar Conta'}
+                    Entrar
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </Button>
-
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/[0.06]" />
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-3 bg-[#0a0f1a] text-zinc-600">ou</span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => { setIsLogin(!isLogin); setError(''); setSuccessMsg('') }}
-                className="w-full h-10 rounded-xl border border-white/[0.06] text-sm text-zinc-400 font-medium hover:bg-white/[0.03] hover:text-zinc-300 cursor-pointer transition-all"
-              >
-                {isLogin ? 'Criar uma conta' : 'Ja tenho conta'}
-              </button>
             </form>
           </CardContent>
         </Card>
