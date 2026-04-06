@@ -136,19 +136,37 @@ export default function MasterPanel() {
 
     const nomeUsuario = nome.trim() || email.trim().split('@')[0]
     const emailUsuario = email.trim().toLowerCase()
+    let authId: string
 
     try {
-      // 1. Criar conta no Supabase Auth (com hash bcrypt correto)
+      // 1. Criar conta nova no Supabase Auth
       const { data: authData, error: authError } = await createIsolatedClient().auth.signUp({
         email: emailUsuario,
         password: '123456',
         options: { data: { nome: nomeUsuario } },
       })
 
-      if (authError) throw authError
-      if (!authData?.user) throw new Error('Erro ao criar usuario')
+      if (authData?.user) {
+        authId = authData.user.id
+      } else if (authError?.message?.includes('User already registered') || authError?.message?.includes('already')) {
+        // 2. Reutilizar conta existente (foi excluída da empresa antes)
+        const { data: loginData, error: loginError } = await createIsolatedClient().auth.signInWithPassword({
+          email: emailUsuario,
+          password: '123456',
+        })
 
-      // 2. Vincular a empresa via RPC
+        if (loginData?.user) {
+          authId = loginData.user.id
+        } else {
+          setError('Esse email ja existe no sistema mas a senha nao confere. Use outro email ou redefina a senha no Supabase.')
+          setSaving(false)
+          return
+        }
+      } else {
+        throw authError || new Error('Erro ao criar usuario')
+      }
+
+      // 3. Vincular a empresa via RPC
       const { error: linkError } = await supabase.rpc('convidar_usuario_com_auth_id', {
         p_empresa_id: selectedEmpresa.id,
         p_nome: nomeUsuario,
@@ -156,7 +174,7 @@ export default function MasterPanel() {
         p_hierarquia_id: selectedHierarquiaId,
         p_telefone: null,
         p_superior_id: null,
-        p_auth_id: authData.user.id,
+        p_auth_id: authId,
       })
 
       if (linkError) throw linkError
@@ -168,8 +186,7 @@ export default function MasterPanel() {
       fetchUsuáriosEmpresa(selectedEmpresa.id)
       fetchEmpresas()
     } catch (err: unknown) {
-      const e = err as { message?: string; code?: string; details?: string; hint?: string }
-      const message = e.details ?? e.hint ?? e.message ?? 'Erro ao adicionar usuario'
+      const message = err instanceof Error ? err.message : 'Erro ao adicionar usuario'
       setError(message)
     } finally {
       setSaving(false)

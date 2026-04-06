@@ -173,30 +173,51 @@ export default function Usuarios() {
 
     setSaving(true)
     try {
-      // 1. Criar conta no Supabase Auth (com hash bcrypt correto)
+      const email = formEmail.toLowerCase().trim()
+      let authId: string
+
+      // 1. Tentar criar conta nova no Supabase Auth
       const { data: authData, error: authError } = await createIsolatedClient().auth.signUp({
-        email: formEmail.toLowerCase().trim(),
+        email,
         password: '123456',
         options: { data: { nome: formNome } },
       })
 
-      if (authError) throw authError
-      if (!authData?.user) throw new Error('Erro ao criar usuario')
+      if (authData?.user) {
+        authId = authData.user.id
+      } else if (authError?.message?.includes('User already registered') || authError?.message?.includes('already')) {
+        // 2. Usuário já existe no Auth (foi excluído da empresa antes) — fazer login e reativar
+        const { data: loginData, error: loginError } = await createIsolatedClient().auth.signInWithPassword({
+          email,
+          password: '123456',
+        })
 
-      // 2. Vincular a empresa via RPC
+        if (loginData?.user) {
+          authId = loginData.user.id
+        } else {
+          // Pode ter outra senha — tenta atualizar a senha
+          toast({ title: 'Atencao', description: 'Esse email ja existe no sistema mas a senha nao confere. Use outro email ou redefina a senha no Supabase.', variant: 'destructive' })
+          setSaving(false)
+          return
+        }
+      } else {
+        throw authError || new Error('Erro ao criar usuario')
+      }
+
+      // 3. Vincular a empresa via RPC
       const { error: linkError } = await supabase.rpc('convidar_usuario_com_auth_id', {
         p_empresa_id: empresa.id,
         p_nome: formNome,
-        p_email: formEmail.toLowerCase(),
+        p_email: email,
         p_telefone: formTelefone || null,
         p_hierarquia_id: formHierarquiaId,
         p_superior_id: formSuperiorId || null,
-        p_auth_id: authData.user.id,
+        p_auth_id: authId,
       })
 
       if (linkError) throw linkError
 
-      toast({ title: 'Usuario criado com sucesso', description: `Email: ${formEmail.toLowerCase()} / Senha provisoria: 123456`, variant: 'success' })
+      toast({ title: 'Usuario criado com sucesso', description: `Email: ${email} / Senha provisoria: 123456`, variant: 'success' })
       setDialogOpen(false)
       setFormNome('')
       setFormEmail('')
