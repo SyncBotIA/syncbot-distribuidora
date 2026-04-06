@@ -35,6 +35,7 @@ export default function MasterPanel() {
   const [empresas, setEmpresas] = useState<EmpresaResumo[]>([])
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaResumo | null>(null)
   const [usuarios, setUsuários] = useState<UsuarioEmpresa[]>([])
+  const [userCounts, setUserCounts] = useState<Record<string, number>>({})
   const [hierarquias, setHierarquias] = useState<{ id: string; nome: string; ordem: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -85,9 +86,12 @@ export default function MasterPanel() {
       const valid = (data as unknown as UsuarioEmpresa[]).filter(u => u.usuario_id && u.ativo)
       setUsuários(valid)
 
-      // Extrair hierarquias únicas dos resultados
+      // Atualizar contagem real por empresa no frontend
+      setUserCounts(prev => ({ ...prev, [empresaId]: valid.length }))
+
+      // Extrair hierarquias únicas dos resultados validos
       const uniq = new Map<string, { id: string; nome: string; ordem: number }>()
-      for (const row of data) {
+      for (const row of valid) {
         if (!uniq.has(row.hierarquia_id)) {
           uniq.set(row.hierarquia_id, { id: row.hierarquia_id, nome: row.hierarquia_nome, ordem: row.hierarquia_ordem })
         }
@@ -303,7 +307,7 @@ export default function MasterPanel() {
                         </span>
                         <span className={`text-xs flex items-center gap-1 ${selectedEmpresa?.id === emp.id ? 'text-white/60' : 'text-zinc-500'}`}>
                           <Users className="h-3 w-3" />
-                          {emp.total_usuarios}
+                          {userCounts[emp.id] ?? emp.total_usuarios}
                         </span>
                       </div>
                     </button>
