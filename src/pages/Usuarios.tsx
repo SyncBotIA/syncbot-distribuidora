@@ -22,7 +22,10 @@ const roleLevel = (name: string): number => {
   return 1 // vendedor or unknown
 }
 
-const cachedUsuarios = { data: null as EmpresaUsuario[] | null, hierarquias: null as Hierarquia[] | null, empresaId: null as string | null }
+const cachedUsuarios = { data: null as EmpresaUsuario[] | null, hierarquias: null as Hierarquia[] | null, empresaId: null as string | null };
+cachedUsuarios.data = null;
+cachedUsuarios.hierarquias = null;
+cachedUsuarios.empresaId = null;
 
 export default function Usuarios() {
   const { usuario, isMaster } = useAuth()
@@ -38,6 +41,7 @@ export default function Usuarios() {
     return []
   })
   const [loading, setLoading] = useState(() => !cachedUsuarios.empresaId)
+  const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [search, setSearch] = useState('')
 
@@ -77,25 +81,68 @@ export default function Usuarios() {
   }, [empresa])
 
   async function fetchUsuarios() {
-    const { data } = await supabase
+    setError(null)
+    // Buscar empresa_usuarios primeiro
+    const { data: euData, error: euError } = await supabase
       .from('empresa_usuarios')
-      .select('*, usuarios(*), hierarquias(*)')
+      .select('*')
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
-    let result = data ?? []
 
-    if (!isAdmin && empresaUsuario) {
-      const { data: subs } = await supabase.rpc('get_subordinados', {
-        p_empresa_usuario_id: empresaUsuario.id,
-      })
-      const subIds = new Set((subs ?? []).map((s: { id: string }) => s.id))
-      subIds.add(empresaUsuario.id)
-      result = result.filter((eu) => subIds.has(eu.id))
+    if (euError) {
+      setError(euError.message)
+      setLoading(false)
+      return
     }
 
-    cachedUsuarios.data = result
+    if (!euData || euData.length === 0) {
+      cachedUsuarios.data = []
+      cachedUsuarios.empresaId = empresa!.id
+      setUsuarios([])
+      setLoading(false)
+      return
+    }
+
+    // Buscar dados de usuarios
+    const usuarioIds = euData.map(eu => eu.usuario_id)
+    const hierarquiaIds = euData.map(eu => eu.hierarquia_id).filter(Boolean)
+
+    const { data: usersData, error: usersError } = await supabase
+      .from('usuarios')
+      .select('*')
+      .in('id', usuarioIds)
+
+    if (usersError) {
+      setError(usersError.message)
+      setLoading(false)
+      return
+    }
+
+    const { data: hierarquiasData, error: hierarquiasError } = await supabase
+      .from('hierarquias')
+      .select('*')
+      .in('id', hierarquiaIds)
+
+    if (hierarquiasError) {
+      setError(hierarquiasError.message)
+      setLoading(false)
+      return
+    }
+
+    // Mapear por id
+    const userMap = new Map((usersData ?? []).map(u => [u.id, u]))
+    const hierarquiaMap = new Map((hierarquiasData ?? []).map(h => [h.id, h]))
+
+    // Montar resultado
+    const result = euData.map(eu => ({
+      ...eu,
+      usuario: userMap.get(eu.usuario_id),
+      hierarquia: hierarquiaMap.get(eu.hierarquia_id),
+    }))
+
+    cachedUsuarios.data = result as EmpresaUsuario[]
     cachedUsuarios.empresaId = empresa!.id
-    setUsuarios(result)
+    setUsuarios(result as EmpresaUsuario[])
     setLoading(false)
   }
 
@@ -122,7 +169,7 @@ export default function Usuarios() {
     if (!formHierarquiaId) return false
     const selectedH = hierarquias.find((h) => h.id === formHierarquiaId)
     if (!selectedH) return false
-    const euH = eu.hierarquias as unknown as Hierarquia
+    const euH = eu.hierarquia || eu.hierarquias as Hierarquia | undefined
     return euH && roleLevel(euH.nome) > roleLevel(selectedH.nome)
   })
 
@@ -179,14 +226,14 @@ export default function Usuarios() {
     // Admin edita todos
     if (isAdmin) return true
     // Superior edita subordinados
-    const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+    const h = eu.hierarquia
     if (h && roleLevel(h.nome) < myLevel) return true
     return false
   }
 
   function openEditDialog(eu: EmpresaUsuario) {
-    const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
-    const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+    const u = eu.usuario
+    const h = eu.hierarquia
     setEditingUser(eu)
     setEditNome(u?.nome || '')
     setEditTelefone(u?.telefone || '')
@@ -200,7 +247,7 @@ export default function Usuarios() {
     setEditSaving(true)
 
     try {
-      const u = editingUser.usuario || (editingUser as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+      const u = editingUser.usuario
 
       // Atualizar nome e telefone na tabela usuarios
       if (u) {
@@ -245,13 +292,13 @@ export default function Usuarios() {
     // Master exclui todos
     if (isMaster) return true
     // Gerente/admin exclui quem tem cargo inferior
-    const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+    const h = eu.hierarquia
     if (h && roleLevel(h.nome) < myLevel) return true
     return false
   }
 
   async function handleDelete(eu: EmpresaUsuario) {
-    const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+    const u = eu.usuario
     if (!usuario) return
     if (!confirm(`Remover "${u?.nome}" desta empresa?`)) return
 
@@ -270,7 +317,7 @@ export default function Usuarios() {
   }
 
   const filtered = usuarios.filter((eu) => {
-    const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+    const u = eu.usuario
     if (!u) return false
     const q = search.toLowerCase()
     return u.nome.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
@@ -362,6 +409,14 @@ export default function Usuarios() {
         />
       </div>
 
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-xl bg-red-500/8 border border-red-500/15 p-4 text-center">
+          <p className="text-sm text-red-400">Erro ao carregar dados. {error}</p>
+          <button onClick={fetchUsuarios} className="text-xs text-red-300 underline mt-2">Tentar novamente</button>
+        </div>
+      )}
+
       <Card>
         <CardContent className="pt-4 sm:pt-6">
           {loading ? (
@@ -385,8 +440,8 @@ export default function Usuarios() {
                   </TableHeader>
                   <TableBody>
                     {filtered.map((eu) => {
-                      const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
-                      const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+                      const u = eu.usuario
+                      const h = eu.hierarquia
                       return (
                         <TableRow key={eu.id}>
                           <TableCell className="font-medium">{u?.nome ?? '—'}</TableCell>
@@ -439,8 +494,8 @@ export default function Usuarios() {
               {/* Mobile cards */}
               <div className="md:hidden space-y-3">
                 {filtered.map((eu, index) => {
-                  const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
-                  const h = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+                  const u = eu.usuario
+                  const h = eu.hierarquia
                   const initials = (u?.nome ?? '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
                   const hue = eu.ativo !== false ? (index * 37) % 360 : 0
 
@@ -591,7 +646,7 @@ export default function Usuarios() {
               <Select value={formSuperiorId} onChange={(e) => setFormSuperiorId(e.target.value)} className="min-h-[44px]">
                 <option value="">Nenhum</option>
                 {availableSuperiors.map((eu) => {
-                  const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+                  const u = eu.usuario
                   return (
                     <option key={eu.id} value={eu.id}>{u?.nome ?? 'Sem nome'}</option>
                   )
@@ -651,10 +706,10 @@ export default function Usuarios() {
                       if (!editHierarquiaId) return false
                       const selectedH = hierarquias.find((h) => h.id === editHierarquiaId)
                       if (!selectedH) return false
-                      const euH = (eu.hierarquias || (eu as Record<string, unknown>).hierarquias) as unknown as Hierarquia
+                      const euH = eu.hierarquia
                       return euH && roleLevel(euH.nome) > roleLevel(selectedH.nome)
                     }).map((eu) => {
-                      const u = eu.usuario || (eu as Record<string, unknown>).usuarios as EmpresaUsuario['usuario']
+                      const u = eu.usuario
                       return <option key={eu.id} value={eu.id}>{u?.nome}</option>
                     })}
                   </Select>

@@ -10,7 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatCurrency } from '@/lib/utils'
 import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp, Trophy, BarChart3, Calendar } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import type { Pedido, Produto } from '@/types/database'
+import type { Pedido, Produto, PedidoItem } from '@/types/database'
+
+/** Supabase joins return data under plural keys like "produtos" / "usuarios" */
+type PedidoJoinRow = Pedido & { usuarios?: { nome: string }; produtos?: unknown }
 
 interface DashboardStats {
   totalPedidos: number
@@ -126,7 +129,7 @@ export default function Dashboard() {
 
     const prodMap = new Map<string, { nome: string; quantidade: number }>()
     for (const item of topItems ?? []) {
-      const nome = (item.produtos as unknown as Produto)?.nome ?? 'Desconhecido'
+      const nome = (item.produtos as Produto | undefined)?.nome ?? 'Desconhecido'
       const existing = prodMap.get(item.produto_id) ?? { nome, quantidade: 0 }
       existing.quantidade += item.quantidade
       prodMap.set(item.produto_id, existing)
@@ -164,7 +167,7 @@ export default function Dashboard() {
 
     const vendedorMap = new Map<string, { nome: string; pedidos: number; valor: number }>()
     for (const p of pedidos) {
-      const nome = (p.usuarios as unknown as { nome: string })?.nome ?? 'Desconhecido'
+      const nome = (p.usuarios as { nome: string } | undefined)?.nome ?? 'Desconhecido'
       const existing = vendedorMap.get(p.usuario_id) ?? { nome, pedidos: 0, valor: 0 }
       existing.pedidos++
       existing.valor += p.valor_total || 0

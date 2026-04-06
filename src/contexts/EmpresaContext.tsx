@@ -109,7 +109,6 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   // Efeito principal: restaurar empresa ao carregar
   // Só executa uma vez por sessão para evitar re-fetch em navegações
   const initializedRef = useRef(false)
-  const initEmpresaCalledRef = useRef(false)
 
   useEffect(() => {
     // Esperar auth terminar de carregar
@@ -125,22 +124,21 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       return
     }
 
+    // Só rodar depois que usuario está disponível
+    if (!usuario?.id) return
+
     if (initializedRef.current) return
     initializedRef.current = true
-    initEmpresaCalledRef.current = true
 
     let cancelled = false
 
     async function init() {
-      if (initEmpresaCalledRef.current) {
-        initEmpresaCalledRef.current = false
-      }
       setEmpresaLoading(true)
 
       // 1. Tentar restaurar empresa do localStorage
-      const savedId = localStorage.getItem(STORAGE_KEY)
-      if (savedId) {
-        const success = await loadEmpresaData(savedId, usuario!.id)
+      const restoredEmpresa = localStorage.getItem(STORAGE_KEY)
+      if (restoredEmpresa) {
+        const success = await loadEmpresaData(restoredEmpresa, usuario!.id)
         if (success && !cancelled) {
           // Restaurou! Carregar lista de empresas em background
           const list = await loadEmpresas(usuario!.id, isMaster)
@@ -174,7 +172,7 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
 
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usuario?.id, authLoading, isMaster])
+  }, [usuario, authLoading, isMaster])
 
   async function setEmpresaId(empresaId: string) {
     if (!usuario) return

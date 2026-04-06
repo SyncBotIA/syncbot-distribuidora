@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { EmpresaProvider, useEmpresa } from '@/contexts/EmpresaContext'
 import { ToastProvider } from '@/components/ui/toast'
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
 import MainLayout from '@/components/layout/MainLayout'
 import Login from '@/pages/Login'
 import SelecionarEmpresa from '@/pages/SelecionarEmpresa'
@@ -113,6 +114,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ErrorBoundary>
       <ToastProvider>
         <AuthProvider>
           <EmpresaProvider>
@@ -120,6 +122,7 @@ export default function App() {
           </EmpresaProvider>
         </AuthProvider>
       </ToastProvider>
+      </ErrorBoundary>
     </BrowserRouter>
   )
 }

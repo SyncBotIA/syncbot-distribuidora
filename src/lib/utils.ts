@@ -37,3 +37,14 @@ export function formatRelativeDate(date: string | Date): string {
   if (diffDays < 7) return `${diffDays}d atras`
   return formatDate(date)
 }
+
+// Helper para extrair joins do Supabase de forma segura
+export function getJoined<T>(row: Record<string, unknown>, key: string): T | undefined {
+  const val = row[key]
+  return val && typeof val === 'object' && !Array.isArray(val) ? val as T : undefined
+}
+
+export function getJoinedArray<T>(row: Record<string, unknown>, key: string): T[] | undefined {
+  const val = row[key]
+  return Array.isArray(val) ? val as T[] : undefined
+}

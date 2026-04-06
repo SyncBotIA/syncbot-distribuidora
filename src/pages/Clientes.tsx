@@ -16,12 +16,15 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Search, Phone, Trash2, Loader2, UserCheck, MapPin, Building, Building2, Sparkles } from 'lucide-react'
 import type { Cliente, Usuario, EmpresaUsuario } from '@/types/database'
 
+/** Supabase returns joined data under plural key "usuarios" in this query */
+type VendedorRow = EmpresaUsuario & { usuarios?: { nome: string } }
+
 export default function Clientes() {
   const { usuario, isMaster } = useAuth()
   const { empresa, isAdmin } = useEmpresa()
   const { toast } = useToast()
   const [clientes, setClientes] = useState<Cliente[]>([])
-  const [vendedores, setVendedores] = useState<EmpresaUsuario[]>([])
+  const [vendedores, setVendedores] = useState<VendedorRow[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Cliente | null>(null)
@@ -60,7 +63,7 @@ export default function Clientes() {
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
 
-    setVendedores(data ?? [])
+    setVendedores((data as VendedorRow[]) ?? [])
   }
 
   function formatCnpj(value: string) {
@@ -366,7 +369,7 @@ export default function Clientes() {
                           <TableCell>{c.bairro ?? <span className="text-zinc-600">—</span>}</TableCell>
                           {isAdmin && (
                             <TableCell>
-                              <Badge variant="outline">{(c.vendedor as Usuario)?.nome ?? '—'}</Badge>
+                              <Badge variant="outline">{c.vendedor?.nome ?? '—'}</Badge>
                             </TableCell>
                           )}
                           <TableCell className="flex gap-1">
@@ -459,7 +462,7 @@ export default function Clientes() {
                     )}
 
                     {isAdmin && c.vendedor && (
-                      <Badge variant="outline" className="text-xs">{(c.vendedor as Usuario)?.nome ?? '—'}</Badge>
+                      <Badge variant="outline" className="text-xs">{c.vendedor?.nome ?? '—'}</Badge>
                     )}
                   </div>
                 ))}
@@ -571,7 +574,7 @@ export default function Clientes() {
                   <option value="">Nenhum</option>
                   {vendedores.map((v) => (
                     <option key={v.id} value={v.usuario_id}>
-                      {(v.usuario as unknown as Usuario)?.nome}
+                      {v.usuarios?.nome ?? v.usuario?.nome ?? ''}
                     </option>
                   ))}
                 </Select>

@@ -20,12 +20,18 @@ import {
 import { formatDate } from '@/lib/utils'
 import type { Produto, EstoqueMovimentacao, Usuario } from '@/types/database'
 
+/** Supabase joins return nested data under "produtos" and "usuarios" keys */
+type MovimentacaoJoinRow = EstoqueMovimentacao & {
+  produto?: Produto
+  usuarios?: { nome: string }
+}
+
 export default function Estoque() {
   const { usuario } = useAuth()
   const { empresa, canManageStock } = useEmpresa()
   const { toast } = useToast()
   const [produtos, setProdutos] = useState<(Produto & { estoque_atual: number })[]>([])
-  const [movimentacoes, setMovimentacoes] = useState<EstoqueMovimentacao[]>([])
+  const [movimentacoes, setMovimentacoes] = useState<MovimentacaoJoinRow[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [tab, setTab] = useState<'estoque' | 'historico'>('estoque')
@@ -398,12 +404,12 @@ export default function Estoque() {
                   {movimentacoes.map((m) => (
                     <TableRow key={m.id}>
                       <TableCell className="text-zinc-400">{formatDate(m.created_at)}</TableCell>
-                      <TableCell className="font-semibold">{(m.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
+                      <TableCell className="font-semibold">{(m.produto as Produto | undefined)?.nome ?? '—'}</TableCell>
                       <TableCell>
                         <Badge variant={tipoVariant[m.tipo]}>{tipoLabel[m.tipo]}</Badge>
                       </TableCell>
                       <TableCell className="text-right font-mono font-semibold">{m.quantidade}</TableCell>
-                      <TableCell>{(m.usuario as unknown as Usuario)?.nome ?? '—'}</TableCell>
+                      <TableCell>{m.usuarios?.nome ?? '—'}</TableCell>
                       <TableCell className="text-zinc-500 max-w-[200px] truncate">{m.observacao ?? '—'}</TableCell>
                     </TableRow>
                   ))}
@@ -445,7 +451,7 @@ export default function Estoque() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-semibold text-white text-sm leading-snug truncate">
-                            {(m.produto as unknown as Produto)?.nome ?? '—'}
+                            {(m.produto as Produto | undefined)?.nome ?? '—'}
                           </p>
                           <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ${tipoColor}`}>
                             {tipoLabel[m.tipo]}
@@ -462,9 +468,9 @@ export default function Estoque() {
                           </div>
                           <p className="text-[11px] text-zinc-600">{formatDate(m.created_at)}</p>
                         </div>
-                        {(m.usuario as unknown as Usuario)?.nome && (
+                        {m.usuarios?.nome && (
                           <p className="text-[11px] text-zinc-500 mt-1">
-                            por {(m.usuario as unknown as Usuario)?.nome}
+                            por {m.usuarios.nome}
                           </p>
                         )}
                         {m.observacao && (
