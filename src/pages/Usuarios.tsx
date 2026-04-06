@@ -68,12 +68,7 @@ export default function Usuarios() {
     if (empresa && empresa.id !== empresaIdRef.current) {
       empresaIdRef.current = empresa.id
       initializedRef.current = true
-      if (cachedUsuarios.empresaId === empresa.id && cachedUsuarios.data) {
-        setUsuarios(cachedUsuarios.data)
-        if (cachedUsuarios.hierarquias) setHierarquias(cachedUsuarios.hierarquias)
-        setLoading(false)
-        return
-      }
+      // Nao usar cache - sempre buscar dados atualizados para evitar contagens desatualizadas
       fetchUsuarios()
       fetchHierarquias()
     }

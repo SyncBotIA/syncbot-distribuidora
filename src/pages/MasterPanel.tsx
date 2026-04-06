@@ -81,8 +81,9 @@ export default function MasterPanel() {
     }
 
     if (data) {
-      console.log('Usuarios empresa:', data.length, data)
-      setUsuários(data as unknown as UsuarioEmpresa[])
+      // Filtrar registros que possuem usuario valido e estao ativos (evitar orfaos)
+      const valid = (data as unknown as UsuarioEmpresa[]).filter(u => u.usuario_id && u.ativo)
+      setUsuários(valid)
 
       // Extrair hierarquias únicas dos resultados
       const uniq = new Map<string, { id: string; nome: string; ordem: number }>()
