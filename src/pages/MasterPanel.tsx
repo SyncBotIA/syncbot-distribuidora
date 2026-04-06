@@ -89,6 +89,7 @@ export default function MasterPanel() {
   }, [isMaster, navigate, fetchEmpresas])
 
   async function fetchUsuáriosEmpresa(empresaId: string) {
+    // Buscar usuarios
     const { data, error } = await supabase.rpc('master_listar_usuarios_empresa', {
       p_empresa_id: empresaId,
     })
@@ -104,16 +105,17 @@ export default function MasterPanel() {
 
       // Atualizar contagem real por empresa no frontend
       setUserCounts(prev => ({ ...prev, [empresaId]: valid.length }))
-
-      // Extrair hierarquias únicas dos resultados validos
-      const uniq = new Map<string, { id: string; nome: string; ordem: number }>()
-      for (const row of valid) {
-        if (!uniq.has(row.hierarquia_id)) {
-          uniq.set(row.hierarquia_id, { id: row.hierarquia_id, nome: row.hierarquia_nome, ordem: row.hierarquia_ordem })
-        }
-      }
-      setHierarquias(Array.from(uniq.values()).sort((a, b) => a.ordem - b.ordem))
     }
+
+    // Buscar TODAS as hierarquias da empresa (independente de quem esta cadastrado)
+    const { data: hierData } = await supabase
+      .from('hierarquias')
+      .select('*')
+      .eq('empresa_id', empresaId)
+      .eq('ativo', true)
+      .order('ordem')
+
+    setHierarquias((hierData || []).map(h => ({ id: h.id, nome: h.nome, ordem: h.ordem })))
   }
 
   function handleSelectEmpresa(emp: EmpresaResumo) {

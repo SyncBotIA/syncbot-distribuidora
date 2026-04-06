@@ -629,7 +629,7 @@ export default function Usuarios() {
             </div>
             <div className="space-y-2">
               <Label>Hierarquia</Label>
-              <Select value={formHierarquiaId} onChange={(e) => setFormHierarquiaId(e.target.value)} className="min-h-[44px]">
+              <Select key={formHierarquiaId || 'empty-select'} value={formHierarquiaId} onChange={(e) => setFormHierarquiaId((e.target as HTMLSelectElement).value)} className="min-h-[44px]">
                 <option value="">Selecione...</option>
                 {availableHierarquias.map((h) => (
                   <option key={h.id} value={h.id}>{h.nome}</option>
