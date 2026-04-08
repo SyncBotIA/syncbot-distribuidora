@@ -22,7 +22,7 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
           }
         }}
       />
-      <div className="fixed inset-0 flex items-center justify-center p-4 sm:items-end sm:justify-center">
+      <div className="fixed inset-0 flex items-end justify-center p-0 sm:items-center sm:justify-center sm:p-4">
         {children}
       </div>
     </div>

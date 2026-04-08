@@ -46,7 +46,7 @@ export default function Clientes() {
   async function fetchClientes() {
     const query = supabase
       .from('clientes')
-      .select('*, vendedor:usuarios!clientes_vendedor_id_fkey(nome)')
+      .select('*, vendedor:empresa_usuarios!clientes_vendedor_id_fkey(*, usuario:usuarios(nome))')
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
       .order('nome')

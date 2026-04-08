@@ -460,7 +460,7 @@ export default function Pedidos() {
                               <ShoppingCart className="h-8 w-8 text-zinc-600" />
                             </div>
                             <p className="text-sm font-semibold text-zinc-400">{pedidos.length === 0 ? 'Nenhum pedido registrado' : 'Nenhum pedido encontrado'}</p>
-                            <p className="text-xs text-zinc-600 mt-1.5">{pedidos.length === 0 ? 'Crie seu primeiro pedido para come&ccedil;ar' : 'Tente ajustar seus filtros de busca'}</p>
+                            <p className="text-xs text-zinc-600 mt-1.5">{pedidos.length === 0 ? 'Crie seu primeiro pedido para começar' : 'Tente ajustar seus filtros de busca'}</p>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -575,7 +575,7 @@ export default function Pedidos() {
                     </p>
                     <p className="text-sm text-zinc-500 mt-2 text-center">
                       {pedidos.length === 0
-                        ? 'Crie seu primeiro pedido para come&ccedil;ar'
+                        ? 'Crie seu primeiro pedido para começar'
                         : 'Tente ajustar seus filtros de busca'}
                     </p>
                   </div>

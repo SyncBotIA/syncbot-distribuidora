@@ -1,6 +1,6 @@
 // Edge Function: criar_usuario
-// Usa o Service Role Key para criar o usuario no auth sem rate limit
-// e com email ja confirmado
+// Cria usuario no auth com Service Role Key (sem rate limit, email confirmado)
+// Reutiliza contas existentes quando o email ja foi deletado da empresa
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -25,60 +25,117 @@ serve(async (req) => {
       )
     }
 
-    // Client com Service Role Key (ignora rate limits e RLS)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { persistSession: false } }
     )
 
-    // 1. Criar auth user com email confirmado e senha provisoria
+    const emailLower = email.toLowerCase().trim()
+
+    // 1. Verificar se ja existe registro na tabela usuarios com esse email
+    const { data: existingUsuario } = await supabaseAdmin
+      .from('usuarios')
+      .select('id, auth_id')
+      .eq('email', emailLower)
+      .single()
+
+    if (existingUsuario) {
+      // Usuario ja existe na tabela — reutilizar auth_id e vincular a empresa
+      const authId = existingUsuario.auth_id
+
+      // Resetar senha provisoria no auth
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(authId, {
+        password: '123456',
+      })
+      if (updateError) {
+        throw new Error(`Usuario existente mas falha ao resetar senha: ${updateError.message}`)
+      }
+
+      // Atualizar nome
+      await supabaseAdmin.from('usuarios')
+        .update({ nome, telefone: telefone || null, senha_provisoria: true })
+        .eq('id', existingUsuario.id)
+
+      // Vincular a empresa
+      const { error: linkError } = await supabaseAdmin
+        .from('empresa_usuarios')
+        .insert({
+          empresa_id,
+          usuario_id: existingUsuario.id,
+          hierarquia_id,
+          superior_id: superior_id || null,
+          ativo: true,
+        })
+
+      if (linkError) throw linkError
+
+      return new Response(
+        JSON.stringify({ success: true, email: emailLower, reutilizado: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 2. Criar novo auth user com email ja confirmado
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: email.toLowerCase().trim(),
+      email: emailLower,
       password: '123456',
-      email_confirm: true, // Sem necessidade de confirmar
+      email_confirm: true,
       user_metadata: { nome },
     })
 
-    if (authError && !authError.message.includes('already been registered')) {
+    if (authError) {
+      // Se ja existe no auth mas nao na tabela usuarios, buscar e vincular
+      if (authError.message.includes('already')) {
+        const { data: listData } = await supabaseAdmin.auth.admin.listUsers()
+        const found = listData?.users.find(u => u.email?.toLowerCase() === emailLower)
+        if (found) {
+          // Criar registro na tabela usuarios
+          const { data: userData, error: insertError } = await supabaseAdmin
+            .from('usuarios')
+            .insert({
+              auth_id: found.id,
+              nome,
+              email: emailLower,
+              telefone: telefone || null,
+              senha_provisoria: true,
+            })
+            .select()
+            .single()
+
+          if (insertError) throw insertError
+
+          // Vincular a empresa
+          const { error: linkError } = await supabaseAdmin
+            .from('empresa_usuarios')
+            .insert({
+              empresa_id,
+              usuario_id: userData.id,
+              hierarquia_id,
+              superior_id: superior_id || null,
+              ativo: true,
+            })
+
+          if (linkError) throw linkError
+
+          return new Response(
+            JSON.stringify({ success: true, email: emailLower, reutilizado: true }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+      }
       throw authError
     }
 
-    const authId = authUser?.user?.id
+    const authId = authUser.user.id
 
-    if (!authId) {
-      // Usuario ja existe, buscar o ID
-      const { data: existing } = await supabaseAdmin
-        .from('usuarios')
-        .select('auth_id')
-        .eq('email', email.toLowerCase().trim())
-        .single()
-
-      if (existing?.auth_id) {
-        throw new Error(`Ja existe um usuario com o email ${email}`)
-      }
-      throw new Error('Nao foi possivel obter o ID do usuario')
-    }
-
-    // 2. Criar/verificar na tabela usuarios
-    const { data: existingUser, error: checkError } = await supabaseAdmin
-      .from('usuarios')
-      .select('id')
-      .eq('auth_id', authId.trim())
-      .single()
-
-    if (checkError && checkError.code !== 'PGRST116') throw checkError
-
-    if (existingUser) {
-      throw new Error(`Usuario com email ${email} ja esta cadastrado`)
-    }
-
+    // 3. Criar na tabela usuarios
     const { data: usuarioData, error: usuarioError } = await supabaseAdmin
       .from('usuarios')
       .insert({
-        auth_id: authId.trim(),
+        auth_id: authId,
         nome,
-        email: email.toLowerCase().trim(),
+        email: emailLower,
         telefone: telefone || null,
         senha_provisoria: true,
       })
@@ -87,7 +144,7 @@ serve(async (req) => {
 
     if (usuarioError) throw usuarioError
 
-    // 3. Vincular a empresa
+    // 4. Vincular a empresa
     const { error: linkError } = await supabaseAdmin
       .from('empresa_usuarios')
       .insert({
@@ -101,11 +158,7 @@ serve(async (req) => {
     if (linkError) throw linkError
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        email: email.toLowerCase().trim(),
-        reutilizado: false,
-      }),
+      JSON.stringify({ success: true, email: emailLower, reutilizado: false }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err: unknown) {

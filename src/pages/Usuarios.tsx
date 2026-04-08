@@ -184,22 +184,25 @@ export default function Usuarios() {
       })
 
       if (authData?.user) {
+        // Novo usuario criado com sucesso
         authId = authData.user.id
-      } else if (authError?.message?.includes('User already registered') || authError?.message?.includes('already')) {
-        // 2. Usuário já existe no Auth (foi excluído da empresa antes) — fazer login e reativar
-        const { data: loginData, error: loginError } = await createIsolatedClient().auth.signInWithPassword({
-          email,
-          password: '123456',
+      } else if (authError?.message?.includes('already')) {
+        // Usuario ja existe no Auth — buscar o auth_id direto do banco
+        const { data: adminData, error: adminErr } = await supabase.rpc('get_or_create_auth_user_id', {
+          p_email: email,
         })
 
-        if (loginData?.user) {
-          authId = loginData.user.id
-        } else {
-          // Pode ter outra senha — tenta atualizar a senha
-          toast({ title: 'Atencao', description: 'Esse email ja existe no sistema mas a senha nao confere. Use outro email ou redefina a senha no Supabase.', variant: 'destructive' })
+        if (adminErr || !adminData) {
+          toast({
+            title: 'Email ja esta em uso',
+            description: 'Este email ja foi cadastrado e nao foi possivel localizar o registro. Use outro email ou entre em contato com o suporte.',
+            variant: 'destructive',
+          })
           setSaving(false)
           return
         }
+
+        authId = adminData
       } else {
         throw authError || new Error('Erro ao criar usuario')
       }

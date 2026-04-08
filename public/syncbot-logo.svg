@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100">
+  <defs>
+    <style>
+      .text-sync { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-size: 48px; font-weight: 700; fill: #FFFFFF; letter-spacing: -1px; }
+      .text-bot { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-size: 48px; font-weight: 700; fill: #3B82F6; letter-spacing: -1px; }
+    </style>
+  </defs>
+
+  <!-- Icon: Sync Arrows forming subtle "S" shape -->
+  <g transform="translate(10, 15)" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Top arrow -->
+    <path d="M 8 12 Q 8 4 20 4 L 32 4 Q 44 4 44 12 L 44 18" stroke="#3B82F6" />
+    <polyline points="38,12 44,18 50,12" stroke="#3B82F6" />
+    <!-- Bottom arrow -->
+    <path d="M 44 36 Q 44 44 32 44 L 20 44 Q 8 44 8 36 L 8 30" stroke="#FFFFFF" />
+    <polyline points="14,36 8,30 2,36" stroke="#FFFFFF" />
+    <!-- Center dot (node/automation) -->
+    <circle cx="26" cy="22" r="3" fill="#3B82F6" stroke="none" />
+  </g>
+
+  <!-- Wordmark -->
+  <text x="80" y="62">
+    <tspan class="text-sync" x="80">Sync</tspan><tspan class="text-bot">Bot</tspan>
+  </text>
+</svg>
