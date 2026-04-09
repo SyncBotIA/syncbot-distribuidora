@@ -52,7 +52,7 @@ function getTimeGreeting(): { greeting: string; emoji: string } {
 }
 
 export default function Dashboard() {
-  const { usuario } = useAuth()
+  const { usuario, isMaster } = useAuth()
   const { empresa, empresaUsuario, isAdmin, hierarquiaOrdem, isVendedor } = useEmpresa()
   const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [stats, setStats] = useState<DashboardStats>({
@@ -432,7 +432,7 @@ export default function Dashboard() {
       </div>
 
       {/* Ranking de Vendedores - visível para gerente, admin e master */}
-      {!isVendedor && stats.rankingVendedores.length > 0 && (
+      {(isMaster || !isVendedor) && stats.rankingVendedores.length > 0 && (
         <Card className="gradient-border border border-white/[0.06] overflow-hidden bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10">
           <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
             <CardTitle className="flex items-center gap-2.5 text-sm font-semibold">
