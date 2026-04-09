@@ -8,12 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { Select } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
-import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp, Trophy, BarChart3, Calendar } from 'lucide-react'
+import { ShoppingCart, DollarSign, Package, AlertTriangle, TrendingUp, Trophy, BarChart3 } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import type { Pedido, Produto, PedidoItem } from '@/types/database'
-
-/** Supabase joins return data under plural keys like "produtos" / "usuarios" */
-type PedidoJoinRow = Pedido & { usuarios?: { nome: string }; produtos?: unknown }
+import type { Pedido, Produto } from '@/types/database'
 
 interface DashboardStats {
   totalPedidos: number
@@ -56,7 +53,7 @@ function getTimeGreeting(): { greeting: string; emoji: string } {
 
 export default function Dashboard() {
   const { usuario } = useAuth()
-  const { empresa, empresaUsuario, isAdmin } = useEmpresa()
+  const { empresa, empresaUsuario, isAdmin, hierarquiaOrdem, isVendedor } = useEmpresa()
   const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [stats, setStats] = useState<DashboardStats>({
     totalPedidos: 0, valorTotal: 0, totalProdutos: 0, estoqueBaixo: 0,
@@ -434,8 +431,8 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Ranking de Vendedores */}
-      {isAdmin && stats.rankingVendedores.length > 0 && (
+      {/* Ranking de Vendedores - visível para gerente, admin e master */}
+      {!isVendedor && stats.rankingVendedores.length > 0 && (
         <Card className="gradient-border border border-white/[0.06] overflow-hidden bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10">
           <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
             <CardTitle className="flex items-center gap-2.5 text-sm font-semibold">

@@ -7,6 +7,7 @@ interface EmpresaContextType {
   empresa: Empresa | null
   empresaUsuario: EmpresaUsuario | null
   hierarquiaOrdem: number | null
+  hierarquiaNome: string | null
   empresas: Empresa[]
   loading: boolean
   empresaSelecionada: boolean
@@ -14,6 +15,8 @@ interface EmpresaContextType {
   clearEmpresa: () => void
   refreshEmpresas: () => Promise<void>
   isAdmin: boolean
+  isGerente: boolean
+  isVendedor: boolean
   canManageProducts: boolean
   canManageStock: boolean
 }
@@ -33,6 +36,7 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   const [empresa, setEmpresa] = useState<Empresa | null>(null)
   const [empresaUsuario, setEmpresaUsuario] = useState<EmpresaUsuario | null>(null)
   const [hierarquiaOrdem, setHierarquiaOrdem] = useState<number | null>(null)
+  const [hierarquiaNome, setHierarquiaNome] = useState<string | null>(null)
   const [empresas, setEmpresas] = useState<Empresa[]>([])
   const [empresaLoading, setEmpresaLoading] = useState(true)
   const [empresaSelecionada, setEmpresaSelecionada] = useState(false)
@@ -62,10 +66,12 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       setEmpresaUsuario(euData)
       const hierarquia = euData.hierarquias as unknown as Hierarquia
       setHierarquiaOrdem(hierarquia?.ordem ?? null)
+      setHierarquiaNome(hierarquia?.nome ?? null)
     } else {
       // Master sem vínculo direto - dar acesso total
       setEmpresaUsuario(null)
       setHierarquiaOrdem(1)
+      setHierarquiaNome('Admin')
     }
 
     localStorage.setItem(STORAGE_KEY, empresaId)
@@ -118,6 +124,7 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       setEmpresa(null)
       setEmpresaUsuario(null)
       setHierarquiaOrdem(null)
+      setHierarquiaNome(null)
       setEmpresas([])
       setEmpresaLoading(false)
       initializedRef.current = false
@@ -188,24 +195,31 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
     setEmpresa(null)
     setEmpresaUsuario(null)
     setHierarquiaOrdem(null)
+    setHierarquiaNome(null)
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  const isAdmin = hierarquiaOrdem === 1
-  const canManageProducts = hierarquiaOrdem !== null && hierarquiaOrdem <= 2
-  const canManageStock = hierarquiaOrdem !== null && hierarquiaOrdem <= 2
+  const nomeLower = hierarquiaNome?.toLowerCase() || ''
+  const isAdmin = nomeLower.includes('admin')
+  const isGerente = nomeLower.includes('gerente')
+  const isVendedor = hierarquiaNome !== null && !isAdmin && !isGerente
+  const canManageProducts = isAdmin || isGerente
+  const canManageStock = isAdmin || isGerente
 
   return (
     <EmpresaContext.Provider value={{
       empresa,
       empresaUsuario,
       hierarquiaOrdem,
+      hierarquiaNome,
       empresas,
       loading,
       setEmpresaId,
       clearEmpresa,
       refreshEmpresas,
       isAdmin,
+      isGerente,
+      isVendedor,
       canManageProducts,
       canManageStock,
     }}>

@@ -29,7 +29,7 @@ cachedUsuarios.empresaId = null;
 
 export default function Usuarios() {
   const { usuario, isMaster } = useAuth()
-  const { empresa, empresaUsuario, hierarquiaOrdem, isAdmin } = useEmpresa()
+  const { empresa, empresaUsuario, hierarquiaOrdem, hierarquiaNome, isAdmin, isVendedor } = useEmpresa()
   const { toast } = useToast()
   const initializedRef = useRef(false)
   const [usuarios, setUsuarios] = useState<EmpresaUsuario[]>(() => {
@@ -154,7 +154,7 @@ export default function Usuarios() {
   }
 
   const myHierarquia = hierarquias.find(h => h.ordem === hierarquiaOrdem)
-  const myRoleName = myHierarquia?.nome?.toLowerCase() || ''
+  const myRoleName = hierarquiaNome?.toLowerCase() || myHierarquia?.nome?.toLowerCase() || ''
   const myLevel = roleLevel(myRoleName)
   const availableHierarquias = isMaster
     ? hierarquias
@@ -240,13 +240,20 @@ export default function Usuarios() {
   function canEdit(eu: EmpresaUsuario) {
     // Pode editar a si mesmo (nome/telefone)
     if (eu.usuario_id === usuario?.id) return true
+    // Descobrir meu cargo pela lista local de usuarios (mais confiável)
+    const meInList = usuarios.find(u => u.usuario_id === usuario?.id)
+    const meH = meInList?.hierarquia
+    const meRole = meH?.nome?.toLowerCase() || hierarquiaNome?.toLowerCase() || ''
     // Master edita todos
     if (isMaster) return true
     // Admin edita todos
-    if (isAdmin) return true
-    // Superior edita subordinados
-    const h = eu.hierarquia
-    if (h && roleLevel(h.nome) < myLevel) return true
+    if (meRole.includes('admin')) return true
+    // Gerente edita subordinados
+    if (meRole.includes('gerente')) {
+      const h = eu.hierarquia
+      if (h && roleLevel(h.nome) < roleLevel(meRole)) return true
+    }
+    // Qualquer outro cargo (vendedor etc) não edita outros
     return false
   }
 
@@ -308,11 +315,20 @@ export default function Usuarios() {
   function canDelete(eu: EmpresaUsuario) {
     // Nao pode excluir a si mesmo
     if (eu.usuario_id === usuario?.id) return false
+    // Descobrir meu cargo pela lista local de usuarios
+    const meInList = usuarios.find(u => u.usuario_id === usuario?.id)
+    const meH = meInList?.hierarquia
+    const meRole = meH?.nome?.toLowerCase() || hierarquiaNome?.toLowerCase() || ''
     // Master exclui todos
     if (isMaster) return true
-    // Gerente/admin exclui quem tem cargo inferior
-    const h = eu.hierarquia
-    if (h && roleLevel(h.nome) < myLevel) return true
+    // Admin exclui todos
+    if (meRole.includes('admin')) return true
+    // Gerente exclui subordinados
+    if (meRole.includes('gerente')) {
+      const h = eu.hierarquia
+      if (h && roleLevel(h.nome) < roleLevel(meRole)) return true
+    }
+    // Qualquer outro cargo (vendedor etc) não exclui
     return false
   }
 
