@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
@@ -52,8 +53,9 @@ function getTimeGreeting(): { greeting: string; emoji: string } {
 }
 
 export default function Dashboard() {
-  const { usuario, isMaster } = useAuth()
-  const { empresa, empresaUsuario, isAdmin, hierarquiaOrdem, isVendedor } = useEmpresa()
+  const { usuario } = useAuth()
+  const { empresa, empresaUsuario } = useEmpresa()
+  const { isMaster, isAdmin, canViewRanking, canViewEstoqueCritico } = usePermissions()
   const [periodo, setPeriodo] = useState<Periodo>('mes')
   const [stats, setStats] = useState<DashboardStats>({
     totalPedidos: 0, valorTotal: 0, totalProdutos: 0, estoqueBaixo: 0,
@@ -76,7 +78,7 @@ export default function Dashboard() {
       .neq('status', 'cancelado')
       .gte('created_at', startDate)
 
-    if (!isAdmin && empresaUsuario) {
+    if (!isMaster && !isAdmin && empresaUsuario) {
       const { data: subs } = await supabase.rpc('get_subordinados', {
         p_empresa_usuario_id: empresaUsuario.id,
       })
@@ -432,7 +434,7 @@ export default function Dashboard() {
       </div>
 
       {/* Ranking de Vendedores - visível para gerente, admin e master */}
-      {(isMaster || !isVendedor) && stats.rankingVendedores.length > 0 && (
+      {canViewRanking && stats.rankingVendedores.length > 0 && (
         <Card className="gradient-border border border-white/[0.06] overflow-hidden bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10">
           <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
             <CardTitle className="flex items-center gap-2.5 text-sm font-semibold">
@@ -511,7 +513,7 @@ export default function Dashboard() {
       )}
 
       {/* Estoque critico */}
-      {isAdmin && stats.estoqueCritico.length > 0 && (
+      {canViewEstoqueCritico && stats.estoqueCritico.length > 0 && (
         <Card className="gradient-border border border-red-500/15 overflow-hidden bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10">
           <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
             <CardTitle className="flex items-center gap-2.5 text-sm font-semibold">

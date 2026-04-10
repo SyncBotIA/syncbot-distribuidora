@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,7 +26,8 @@ interface PedidoItemForm {
 
 export default function Pedidos() {
   const { usuario } = useAuth()
-  const { empresa, empresaUsuario, hierarquiaOrdem, isAdmin } = useEmpresa()
+  const { empresa, empresaUsuario } = useEmpresa()
+  const { isMaster, isAdmin, isGerente, canManageProducts } = usePermissions()
   const { toast } = useToast()
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [produtos, setProdutos] = useState<Produto[]>([])
@@ -46,7 +48,7 @@ export default function Pedidos() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  const canAssignToOther = hierarquiaOrdem !== null && hierarquiaOrdem <= 2
+  const canAssignToOther = isMaster || isAdmin || isGerente
 
   useEffect(() => {
     if (empresa) {
@@ -66,7 +68,7 @@ export default function Pedidos() {
 
     let result = data ?? []
 
-    if (!isAdmin && empresaUsuario) {
+    if (!isMaster && !isAdmin && empresaUsuario) {
       const { data: subs } = await supabase.rpc('get_subordinados', {
         p_empresa_usuario_id: empresaUsuario.id,
       })
@@ -274,7 +276,7 @@ export default function Pedidos() {
   function canCancel(pedido: Pedido) {
     if (pedido.status === 'cancelado' || pedido.status === 'entregue') return false
     if (pedido.usuario_id === usuario?.id) return true
-    if (hierarquiaOrdem !== null && hierarquiaOrdem <= 2) return true
+    if (isMaster || isAdmin || isGerente) return true
     return false
   }
 

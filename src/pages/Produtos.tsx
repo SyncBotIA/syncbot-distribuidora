@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,7 +18,8 @@ import { formatCurrency } from '@/lib/utils'
 import type { Produto, Categoria } from '@/types/database'
 
 export default function Produtos() {
-  const { empresa, canManageProducts } = useEmpresa()
+  const { empresa } = useEmpresa()
+  const { canManageProducts } = usePermissions()
   const { toast } = useToast()
   const [produtos, setProdutos] = useState<Produto[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])

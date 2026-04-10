@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { useEmpresa } from '@/contexts/EmpresaContext'
-import { useAuth } from '@/contexts/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useState } from 'react'
 import {
   LayoutDashboard,
@@ -15,9 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 
 export default function MobileNav() {
-  const { isAdmin } = useEmpresa()
-  const { isMaster } = useAuth()
-  const { canManageProducts } = useEmpresa()
+  const { isAdmin, canManageProducts } = usePermissions()
   const [moreOpen, setMoreOpen] = useState(false)
 
   const navItems = [

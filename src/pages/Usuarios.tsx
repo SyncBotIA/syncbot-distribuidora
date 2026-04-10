@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase, createIsolatedClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,8 +29,9 @@ cachedUsuarios.hierarquias = null;
 cachedUsuarios.empresaId = null;
 
 export default function Usuarios() {
-  const { usuario, isMaster } = useAuth()
-  const { empresa, empresaUsuario, hierarquiaOrdem, hierarquiaNome, isAdmin, isVendedor } = useEmpresa()
+  const { usuario } = useAuth()
+  const { empresa, empresaUsuario, hierarquiaOrdem, hierarquiaNome } = useEmpresa()
+  const { isMaster, isAdmin, isGerente, isVendedor } = usePermissions()
   const { toast } = useToast()
   const initializedRef = useRef(false)
   const [usuarios, setUsuarios] = useState<EmpresaUsuario[]>(() => {

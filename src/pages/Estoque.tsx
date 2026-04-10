@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,7 +29,8 @@ type MovimentacaoJoinRow = EstoqueMovimentacao & {
 
 export default function Estoque() {
   const { usuario } = useAuth()
-  const { empresa, canManageStock } = useEmpresa()
+  const { empresa } = useEmpresa()
+  const { canManageStock } = usePermissions()
   const { toast } = useToast()
   const [produtos, setProdutos] = useState<(Produto & { estoque_atual: number })[]>([])
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoJoinRow[]>([])

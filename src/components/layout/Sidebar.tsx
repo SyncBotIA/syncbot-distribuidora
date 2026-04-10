@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import {
   LayoutDashboard,
   Users,
@@ -21,7 +22,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
-  const { empresa, isAdmin, canManageProducts } = useEmpresa()
+  const { empresa } = useEmpresa()
+  const { isAdmin, canManageProducts } = usePermissions()
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },

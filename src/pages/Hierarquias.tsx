@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +15,8 @@ import { Plus, ArrowUp, ArrowDown, Pencil, Trash2, ShieldCheck, Layers } from 'l
 import type { Hierarquia } from '@/types/database'
 
 export default function Hierarquias() {
-  const { empresa, isAdmin } = useEmpresa()
+  const { empresa } = useEmpresa()
+  const { isAdmin } = usePermissions()
   const { toast } = useToast()
   const [hierarquias, setHierarquias] = useState<Hierarquia[]>([])
   const [loading, setLoading] = useState(true)

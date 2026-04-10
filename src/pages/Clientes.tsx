@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,8 +21,9 @@ import type { Cliente, Usuario, EmpresaUsuario } from '@/types/database'
 type VendedorRow = EmpresaUsuario & { usuarios?: { nome: string } }
 
 export default function Clientes() {
-  const { usuario, isMaster } = useAuth()
-  const { empresa, isAdmin } = useEmpresa()
+  const { usuario } = useAuth()
+  const { empresa } = useEmpresa()
+  const { isMaster, isAdmin } = usePermissions()
   const { toast } = useToast()
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [vendedores, setVendedores] = useState<VendedorRow[]>([])
