@@ -13,7 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText, Search, Filter, TrendingUp } from 'lucide-react'
+import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText, Search, Filter, TrendingUp, Download } from 'lucide-react'
+import { exportToCSV, pedidoColumns } from '@/lib/export'
 import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/utils'
 import type { Pedido, Produto, PedidoItem, Usuario, Cliente, EmpresaUsuario, Hierarquia } from '@/types/database'
 
@@ -384,6 +385,9 @@ export default function Pedidos() {
             <option value="entregue">Entregue</option>
             <option value="cancelado">Cancelado</option>
           </Select>
+          <Button variant="outline" size="sm" onClick={() => exportToCSV(filteredPedidos as unknown as Record<string, unknown>[], 'pedidos', pedidoColumns)} title="Exportar CSV">
+            <Download className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 

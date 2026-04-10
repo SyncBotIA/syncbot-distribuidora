@@ -6,18 +6,31 @@ import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
 import MainLayout from '@/components/layout/MainLayout'
 import Login from '@/pages/Login'
 import SelecionarEmpresa from '@/pages/SelecionarEmpresa'
-import CriarEmpresa from '@/pages/CriarEmpresa'
-import Dashboard from '@/pages/Dashboard'
-import Hierarquias from '@/pages/Hierarquias'
-import Usuarios from '@/pages/Usuarios'
-import Produtos from '@/pages/Produtos'
-import Estoque from '@/pages/Estoque'
-import Pedidos from '@/pages/Pedidos'
-import Clientes from '@/pages/Clientes'
-import MasterPanel from '@/pages/MasterPanel'
-import Configuracoes from '@/pages/Configuracoes'
 import RedefinirSenha from '@/pages/RedefinirSenha'
-import type { ReactNode } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
+
+// Lazy load das páginas pesadas
+const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const Hierarquias = lazy(() => import('@/pages/Hierarquias'))
+const Usuarios = lazy(() => import('@/pages/Usuarios'))
+const Produtos = lazy(() => import('@/pages/Produtos'))
+const Estoque = lazy(() => import('@/pages/Estoque'))
+const Pedidos = lazy(() => import('@/pages/Pedidos'))
+const Clientes = lazy(() => import('@/pages/Clientes'))
+const MasterPanel = lazy(() => import('@/pages/MasterPanel'))
+const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
+const CriarEmpresa = lazy(() => import('@/pages/CriarEmpresa'))
+
+function PageLoader() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-zinc-500 text-sm">Carregando...</p>
+      </div>
+    </div>
+  )
+}
 
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -68,46 +81,48 @@ function EmpresaRoute({ children }: { children: ReactNode }) {
 
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/login" element={<Login />} />
 
-      <Route path="/redefinir-senha" element={
-        <PrivateRoute><RedefinirSenha /></PrivateRoute>
-      } />
+        <Route path="/redefinir-senha" element={
+          <PrivateRoute><RedefinirSenha /></PrivateRoute>
+        } />
 
-      <Route path="/selecionar-empresa" element={
-        <PrivateRoute><PasswordGuard><SelecionarEmpresa /></PasswordGuard></PrivateRoute>
-      } />
+        <Route path="/selecionar-empresa" element={
+          <PrivateRoute><PasswordGuard><SelecionarEmpresa /></PasswordGuard></PrivateRoute>
+        } />
 
-      <Route path="/criar-empresa" element={
-        <PrivateRoute><PasswordGuard><CriarEmpresa /></PasswordGuard></PrivateRoute>
-      } />
+        <Route path="/criar-empresa" element={
+          <PrivateRoute><PasswordGuard><CriarEmpresa /></PasswordGuard></PrivateRoute>
+        } />
 
-      <Route path="/master" element={
-        <PrivateRoute><PasswordGuard><MasterPanel /></PasswordGuard></PrivateRoute>
-      } />
+        <Route path="/master" element={
+          <PrivateRoute><PasswordGuard><MasterPanel /></PasswordGuard></PrivateRoute>
+        } />
 
-      <Route element={
-        <PrivateRoute>
-          <PasswordGuard>
-            <EmpresaRoute>
-              <MainLayout />
-            </EmpresaRoute>
-          </PasswordGuard>
-        </PrivateRoute>
-      }>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/hierarquias" element={<Hierarquias />} />
-        <Route path="/usuarios" element={<Usuarios />} />
-        <Route path="/clientes" element={<Clientes />} />
-        <Route path="/produtos" element={<Produtos />} />
-        <Route path="/estoque" element={<Estoque />} />
-        <Route path="/pedidos" element={<Pedidos />} />
-        <Route path="/configuracoes" element={<Configuracoes />} />
-      </Route>
+        <Route element={
+          <PrivateRoute>
+            <PasswordGuard>
+              <EmpresaRoute>
+                <MainLayout />
+              </EmpresaRoute>
+            </PasswordGuard>
+          </PrivateRoute>
+        }>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/hierarquias" element={<Hierarquias />} />
+          <Route path="/usuarios" element={<Usuarios />} />
+          <Route path="/clientes" element={<Clientes />} />
+          <Route path="/produtos" element={<Produtos />} />
+          <Route path="/estoque" element={<Estoque />} />
+          <Route path="/pedidos" element={<Pedidos />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Suspense>
   )
 }
 

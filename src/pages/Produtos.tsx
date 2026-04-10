@@ -13,7 +13,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Search, Trash2, Tags, Package, BarChart3, ArrowUpRight, ChevronDown } from 'lucide-react'
+import { Plus, Pencil, Search, Trash2, Tags, Package, BarChart3, ArrowUpRight, ChevronDown, Download } from 'lucide-react'
+import { exportToCSV, produtoColumns } from '@/lib/export'
 import { formatCurrency } from '@/lib/utils'
 import type { Produto, Categoria } from '@/types/database'
 
@@ -288,6 +289,9 @@ export default function Produtos() {
           </Select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 pointer-events-none" />
         </div>
+        <Button variant="outline" size="sm" onClick={() => exportToCSV(filtered as unknown as Record<string, unknown>[], 'produtos', produtoColumns)} title="Exportar CSV">
+          <Download className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* ===== Product List ===== */}

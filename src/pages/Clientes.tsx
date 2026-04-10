@@ -14,11 +14,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Search, Phone, Trash2, Loader2, UserCheck, MapPin, Building, Building2, Sparkles } from 'lucide-react'
+import { Plus, Pencil, Search, Phone, Trash2, Loader2, UserCheck, MapPin, Building, Building2, Sparkles, Download } from 'lucide-react'
+import { exportToCSV, clienteColumns } from '@/lib/export'
 import type { Cliente, Usuario, EmpresaUsuario } from '@/types/database'
 
-/** Supabase returns joined data under plural key "usuarios" in this query */
-type VendedorRow = EmpresaUsuario & { usuarios?: { nome: string } }
+/** Supabase returns joined data; the clientes query aliases as "usuario", the vendedores query uses default "usuarios" */
+type VendedorRow = EmpresaUsuario & { usuario?: { nome: string }; usuarios?: { nome: string } }
 
 export default function Clientes() {
   const { usuario } = useAuth()
@@ -48,7 +49,7 @@ export default function Clientes() {
   async function fetchClientes() {
     const query = supabase
       .from('clientes')
-      .select('*, vendedor:empresa_usuarios!clientes_vendedor_id_fkey(*, usuario:usuarios(nome))')
+      .select('*, vendedor:empresa_usuarios(*, usuario:usuarios(nome))')
       .eq('empresa_id', empresa!.id)
       .eq('ativo', true)
       .order('nome')
@@ -326,10 +327,15 @@ export default function Clientes() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="relative w-full sm:max-w-sm">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-        <Input placeholder="Buscar por nome, CNPJ, telefone..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+      {/* Search + Export */}
+      <div className="flex gap-2 items-center">
+        <div className="relative flex-1 sm:max-w-sm">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Input placeholder="Buscar por nome, CNPJ, telefone..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+        </div>
+        <Button variant="outline" size="sm" onClick={() => exportToCSV(filtered as unknown as Record<string, unknown>[], 'clientes', clienteColumns)} title="Exportar CSV">
+          <Download className="h-4 w-4" />
+        </Button>
       </div>
 
       <Card className="border-white/[0.06]">
@@ -371,7 +377,7 @@ export default function Clientes() {
                           <TableCell>{c.bairro ?? <span className="text-zinc-600">—</span>}</TableCell>
                           {isAdmin && (
                             <TableCell>
-                              <Badge variant="outline">{c.vendedor?.nome ?? '—'}</Badge>
+                              <Badge variant="outline">{c.vendedor?.usuario?.nome ?? '—'}</Badge>
                             </TableCell>
                           )}
                           <TableCell className="flex gap-1">
@@ -464,7 +470,7 @@ export default function Clientes() {
                     )}
 
                     {isAdmin && c.vendedor && (
-                      <Badge variant="outline" className="text-xs">{c.vendedor?.nome ?? '—'}</Badge>
+                      <Badge variant="outline" className="text-xs">{c.vendedor?.usuario?.nome ?? '—'}</Badge>
                     )}
                   </div>
                 ))}
@@ -575,7 +581,7 @@ export default function Clientes() {
                 <Select value={form.vendedor_id} onChange={(e) => setForm({ ...form, vendedor_id: e.target.value })}>
                   <option value="">Nenhum</option>
                   {vendedores.map((v) => (
-                    <option key={v.id} value={v.usuario_id}>
+                    <option key={v.id} value={v.id}>
                       {v.usuarios?.nome ?? v.usuario?.nome ?? ''}
                     </option>
                   ))}

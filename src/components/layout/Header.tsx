@@ -3,7 +3,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Menu, LogOut, ArrowLeft, Building2, Bell } from 'lucide-react'
+import { Menu, LogOut, ArrowLeft, Building2 } from 'lucide-react'
+import NotificationBell from '@/components/ui/NotificationBell'
 
 function UserMenuMobile({ initials, nome, signOut }: { initials: string; nome?: string; signOut: () => void }) {
   const [open, setOpen] = useState(false)
@@ -104,6 +105,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </Button>
         )}
 
+        <NotificationBell />
         <div className="h-6 w-px bg-white/[0.06] mx-0.5 hidden sm:block" />
 
         {/* Desktop: botão direto */}
