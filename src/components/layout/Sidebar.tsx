@@ -46,7 +46,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       <aside
         className={cn(
           'fixed top-0 left-0 z-50 h-full w-[260px] flex flex-col transition-transform duration-300 ease-out lg:translate-x-0 lg:static lg:z-auto',
-          'bg-gradient-to-b from-[#080b14] via-[#0a0d18] to-[#060912] text-sidebar-foreground border-r border-white/[0.06]',
+          'bg-sidebar text-sidebar-foreground border-r border-[var(--theme-subtle-border)]',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -57,24 +57,24 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
                 <Package className="h-5 w-5 text-white" />
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-[#080b14] shadow-sm shadow-emerald-400/50" />
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-sidebar shadow-sm shadow-emerald-400/50" />
             </div>
             <div>
-              <h2 className="font-bold text-[13px] leading-tight text-white tracking-tight">{empresa?.nome ?? 'Distribuidora'}</h2>
-              <p className="text-[10px] text-zinc-500 font-medium mt-0.5">Sistema de Gestão</p>
+              <h2 className="font-bold text-[13px] leading-tight text-foreground tracking-tight">{empresa?.nome ?? 'Distribuidora'}</h2>
+              <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Sistema de Gestão</p>
             </div>
           </div>
-          <button onClick={onClose} className="lg:hidden cursor-pointer p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all">
+          <button onClick={onClose} className="lg:hidden cursor-pointer p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[var(--theme-subtle-bg-hover)] transition-all">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Divider */}
-        <div className="mx-5 border-t border-white/[0.05]" />
+        <div className="mx-5 border-t border-[var(--theme-subtle-border)]" />
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          <p className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">Menu</p>
+          <p className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">Menu</p>
           {links.filter((l) => l.show).map((link) => (
             <NavLink
               key={link.to}
@@ -85,7 +85,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                   'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 relative',
                   isActive
                     ? 'bg-gradient-to-r from-blue-600/90 to-blue-500/80 text-white shadow-lg shadow-blue-600/20'
-                    : 'text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200'
+                    : 'text-muted-foreground hover:bg-[var(--theme-subtle-bg)] hover:text-foreground'
                 )
               }
             >
@@ -115,7 +115,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <Zap className="h-3.5 w-3.5 text-blue-400" />
               <p className="text-[11px] text-blue-300 font-semibold">Suporte</p>
             </div>
-            <p className="text-[10px] text-zinc-500 leading-relaxed">Entre em contato para qualquer dúvida.</p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">Entre em contato para qualquer dúvida.</p>
           </div>
           <div className="px-3 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -123,9 +123,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 <div className="h-2 w-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
                 <div className="absolute inset-0 h-2 w-2 rounded-full bg-emerald-400 animate-ping opacity-30" />
               </div>
-              <p className="text-[10px] text-zinc-500 font-medium">Online</p>
+              <p className="text-[10px] text-muted-foreground font-medium">Online</p>
             </div>
-            <p className="text-[10px] text-zinc-600 font-mono">v1.0.0</p>
+            <p className="text-[10px] text-muted-foreground/60 font-mono">v1.0.0</p>
           </div>
         </div>
       </aside>

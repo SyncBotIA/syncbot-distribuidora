@@ -45,7 +45,7 @@ export default function MobileNav() {
         />
       )}
 
-      <div className="relative z-50 bg-[#060a14]/95 backdrop-blur-xl border-t border-white/[0.06] pb-[env(safe-area-inset-bottom)]">
+      <div className="relative z-50 bg-[var(--theme-mobile-nav-bg)] backdrop-blur-xl border-t border-[var(--theme-subtle-border)] pb-[env(safe-area-inset-bottom)]">
         <div className="flex overflow-x-auto px-0.5 py-0.5 gap-0 no-scrollbar">
           {primary.map((item) => (
             <NavLink
@@ -54,7 +54,7 @@ export default function MobileNav() {
               className={({ isActive }) =>
                 cn(
                   'flex flex-col items-center justify-center min-w-[56px] flex-1 py-1.5 rounded-lg transition-all duration-150 cursor-pointer touch-manipulation active:scale-95',
-                  isActive ? 'text-blue-400' : 'text-zinc-500'
+                  isActive ? 'text-blue-400' : 'text-muted-foreground'
                 )
               }
             >
@@ -81,7 +81,7 @@ export default function MobileNav() {
                 onClick={() => setMoreOpen(!moreOpen)}
                 className={cn(
                   'flex flex-col items-center justify-center min-w-[56px] w-full py-1.5 rounded-lg transition-all duration-150 cursor-pointer touch-manipulation active:scale-95',
-                  moreOpen ? 'text-blue-400' : 'text-zinc-500'
+                  moreOpen ? 'text-blue-400' : 'text-muted-foreground'
                 )}
               >
                 <div className="relative mb-0.5">
@@ -95,9 +95,9 @@ export default function MobileNav() {
 
               {/* Dropdown menu */}
               {moreOpen && (
-                <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[60] bg-[#0a0f1a]/98 backdrop-blur-2xl rounded-2xl border border-white/[0.08] p-2 py-2 w-48 shadow-2xl shadow-black/60 animate-scale-in">
+                <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[60] bg-[var(--theme-dropdown-bg)] backdrop-blur-2xl rounded-2xl border border-[var(--theme-subtle-border)] p-2 py-2 w-48 shadow-2xl shadow-black/30 animate-scale-in">
                   {/* Handle bar indicator */}
-                  <div className="w-10 h-1 rounded-full bg-zinc-600 mx-auto mb-2" />
+                  <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-2" />
                   {rest.map((item) => (
                     <NavLink
                       key={item.to}
@@ -105,7 +105,7 @@ export default function MobileNav() {
                       className={() =>
                         cn(
                           'flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all active:scale-95 touch-manipulation',
-                          'text-zinc-400 active:bg-white/[0.05]'
+                          'text-muted-foreground active:bg-[var(--theme-subtle-bg)]'
                         )
                       }
                       onClick={() => setMoreOpen(false)}

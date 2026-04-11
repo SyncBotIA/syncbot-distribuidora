@@ -31,7 +31,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#030712] p-4 relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-blue-600/8 rounded-full blur-[150px] pointer-events-none" />
@@ -56,13 +56,13 @@ export default function Login() {
               <Sparkles className="h-3 w-3 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Distribuidora</h1>
-          <p className="text-zinc-500 mt-2 text-sm">Sistema de Gestão Empresarial</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Distribuidora</h1>
+          <p className="text-muted-foreground mt-2 text-sm">Sistema de Gestão Empresarial</p>
         </div>
 
-        <Card className="shadow-2xl shadow-black/50 border-white/[0.06] backdrop-blur-xl">
+        <Card className="shadow-2xl shadow-black/30 backdrop-blur-xl">
           <CardContent className="p-8">
-            <h2 className="text-lg font-bold text-center mb-7 text-white">
+            <h2 className="text-lg font-bold text-center mb-7 text-foreground">
               Acessar sistema
             </h2>
 
@@ -94,7 +94,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 cursor-pointer transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -104,7 +104,7 @@ export default function Login() {
               {error && (
                 <div className="rounded-xl bg-red-500/8 border border-red-500/15 p-3.5 flex items-start gap-2.5">
                   <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                  <p className="text-sm text-red-400">{error}</p>
+                  <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
 
@@ -125,7 +125,7 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-[10px] text-zinc-600 mt-6">
+        <p className="text-center text-[10px] text-muted-foreground/60 mt-6">
           Distribuidora v1.0 — Sistema de Gestão
         </p>
       </div>

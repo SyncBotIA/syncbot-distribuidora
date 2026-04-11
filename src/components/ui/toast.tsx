@@ -66,7 +66,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
       className={cn(
         'rounded-xl border shadow-2xl transition-all duration-300 ease-out',
         visible ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-4 scale-95',
-        'border-white/[0.08] bg-[#0c1220] text-white overflow-hidden relative',
+        'border-[var(--theme-subtle-border)] bg-[var(--theme-dropdown-bg)] text-foreground overflow-hidden relative',
         toast.variant === 'destructive' && 'border-red-500/20 bg-red-500/5',
         toast.variant === 'success' && 'border-emerald-500/20 bg-emerald-500/5'
       )}
@@ -75,22 +75,22 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
         <div className="flex items-start gap-3">
           {icons[toast.variant ?? 'default']}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">{toast.title}</p>
-            {toast.description && <p className="text-xs text-zinc-400 mt-0.5">{toast.description}</p>}
+            <p className="text-sm font-semibold text-foreground">{toast.title}</p>
+            {toast.description && <p className="text-xs text-muted-foreground mt-0.5">{toast.description}</p>}
           </div>
           <button
             onClick={() => {
               setVisible(false)
               setTimeout(() => onClose(toast.id), 300)
             }}
-            className="opacity-40 hover:opacity-100 cursor-pointer transition-opacity shrink-0 text-zinc-400"
+            className="opacity-40 hover:opacity-100 cursor-pointer transition-opacity shrink-0 text-muted-foreground"
           >
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
       {/* Dismiss progress bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/5">
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--theme-subtle-border)]">
         <div
           className={cn('h-full transition-[width] duration-100 ease-linear', barColors[toast.variant ?? 'default'])}
           style={{ width: `${progress}%` }}

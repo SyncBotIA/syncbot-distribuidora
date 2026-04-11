@@ -43,9 +43,9 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg hover:bg-white/5 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+        className="relative p-2 rounded-lg hover:bg-[var(--theme-subtle-bg)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
       >
-        <Bell className="h-5 w-5 text-zinc-400" />
+        <Bell className="h-5 w-5 text-muted-foreground" />
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 h-4 min-w-[16px] px-1 flex items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -54,9 +54,9 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-white/[0.08] bg-zinc-900 shadow-2xl shadow-black/40 z-50 flex flex-col max-h-96">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
-            <span className="text-sm font-semibold text-zinc-200">Notificações ({notifications.length})</span>
+        <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-[var(--theme-subtle-border)] bg-[var(--theme-dropdown-bg)] shadow-2xl shadow-black/20 z-50 flex flex-col max-h-96">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--theme-subtle-border)] shrink-0">
+            <span className="text-sm font-semibold text-foreground">Notificações ({notifications.length})</span>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
@@ -69,16 +69,16 @@ export default function NotificationBell() {
           </div>
 
           {notifications.length === 0 ? (
-            <div className="px-4 py-8 text-center text-zinc-500 text-sm">
+            <div className="px-4 py-8 text-center text-muted-foreground text-sm">
               Nenhuma notificação
             </div>
           ) : (
-            <div className="overflow-y-auto divide-y divide-white/[0.04]">
+            <div className="overflow-y-auto divide-y divide-[var(--theme-subtle-border)]">
               {notifications.map(n => (
                 <button
                   key={n.id}
                   onClick={() => handleClick(n)}
-                  className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-white/[0.03] transition-colors min-h-[44px] ${
+                  className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-[var(--theme-subtle-bg)] transition-colors min-h-[44px] ${
                     !n.read ? 'bg-blue-500/[0.04]' : ''
                   }`}
                 >
@@ -87,14 +87,14 @@ export default function NotificationBell() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm ${!n.read ? 'font-semibold text-zinc-100' : 'text-zinc-300'}`}>
+                      <span className={`text-sm ${!n.read ? 'font-semibold text-foreground' : 'text-secondary-foreground'}`}>
                         {n.title}
                       </span>
                       {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />}
                     </div>
-                    <p className="text-xs text-zinc-500 truncate mt-0.5">{n.message}</p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{n.message}</p>
                   </div>
-                  <span className="text-[10px] text-zinc-600 shrink-0 mt-1">{timeAgo(n.created_at)}</span>
+                  <span className="text-[10px] text-muted-foreground/60 shrink-0 mt-1">{timeAgo(n.created_at)}</span>
                 </button>
               ))}
             </div>

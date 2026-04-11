@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #030712;
-  --color-foreground: #f1f5f9;
-  --color-muted: #111827;
-  --color-muted-foreground: #64748b;
-  --color-card: #0a0f1a;
-  --color-card-foreground: #f1f5f9;
-  --color-popover: #0a0f1a;
-  --color-popover-foreground: #f1f5f9;
+  --color-background: var(--theme-background);
+  --color-foreground: var(--theme-foreground);
+  --color-muted: var(--theme-muted);
+  --color-muted-foreground: var(--theme-muted-foreground);
+  --color-card: var(--theme-card);
+  --color-card-foreground: var(--theme-card-foreground);
+  --color-popover: var(--theme-popover);
+  --color-popover-foreground: var(--theme-popover-foreground);
   --color-primary: #2563eb;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #111827;
-  --color-secondary-foreground: #e2e8f0;
-  --color-accent: #0f172a;
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-foreground: var(--theme-secondary-foreground);
+  --color-accent: var(--theme-accent);
   --color-accent-foreground: #60a5fa;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: #1e293b;
-  --color-input: #1e293b;
+  --color-border: var(--theme-border);
+  --color-input: var(--theme-input);
   --color-ring: #2563eb;
-  --color-sidebar: #0a0a0f;
-  --color-sidebar-foreground: #e2e8f0;
-  --color-sidebar-muted: #131320;
+  --color-sidebar: var(--theme-sidebar);
+  --color-sidebar-foreground: var(--theme-sidebar-foreground);
+  --color-sidebar-muted: var(--theme-sidebar-muted);
   --color-sidebar-accent: #2563eb;
   --color-success: #10b981;
   --color-warning: #f59e0b;
@@ -30,6 +30,106 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+}
+
+/* ============================================
+   THEME: DARK (default)
+   ============================================ */
+:root, .dark {
+  --theme-background: #030712;
+  --theme-foreground: #f1f5f9;
+  --theme-muted: #111827;
+  --theme-muted-foreground: #64748b;
+  --theme-card: #0a0f1a;
+  --theme-card-foreground: #f1f5f9;
+  --theme-popover: #0a0f1a;
+  --theme-popover-foreground: #f1f5f9;
+  --theme-secondary: #111827;
+  --theme-secondary-foreground: #e2e8f0;
+  --theme-accent: #0f172a;
+  --theme-border: #1e293b;
+  --theme-input: #1e293b;
+  --theme-sidebar: #0a0a0f;
+  --theme-sidebar-foreground: #e2e8f0;
+  --theme-sidebar-muted: #131320;
+  --theme-surface: #0c1225;
+  --theme-surface-hover: #1e3a5f;
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #94a3b8;
+  --theme-text-muted: #64748b;
+  --theme-overlay: rgba(0, 0, 0, 0.7);
+  --theme-glass: rgba(10, 15, 26, 0.7);
+  --theme-glass-light: rgba(255, 255, 255, 0.03);
+  --theme-scrollbar: rgba(148, 163, 184, 0.15);
+  --theme-scrollbar-hover: rgba(148, 163, 184, 0.25);
+  --theme-selection: rgba(37, 99, 235, 0.3);
+  --theme-shimmer-from: #111827;
+  --theme-shimmer-via: #1e293b;
+  --theme-subtle-border: rgba(255, 255, 255, 0.06);
+  --theme-subtle-border-hover: rgba(255, 255, 255, 0.1);
+  --theme-subtle-bg: rgba(255, 255, 255, 0.04);
+  --theme-subtle-bg-hover: rgba(255, 255, 255, 0.07);
+  --theme-card-gradient-from: rgba(255, 255, 255, 0.05);
+  --theme-card-gradient-to: rgba(255, 255, 255, 0.02);
+  --theme-sidebar-bg: linear-gradient(to bottom, #080b14, #0a0d18, #060912);
+  --theme-header-bg: rgba(6, 10, 20, 0.9);
+  --theme-mobile-nav-bg: rgba(6, 10, 20, 0.95);
+  --theme-dropdown-bg: rgba(10, 15, 26, 0.98);
+  --theme-dialog-from: #0d1525;
+  --theme-dialog-to: #0a0f1a;
+  --theme-dialog-footer-bg: rgba(10, 15, 26, 0.95);
+  --theme-ring-offset: #030712;
+  color-scheme: dark;
+}
+
+/* ============================================
+   THEME: LIGHT
+   ============================================ */
+.light {
+  --theme-background: #f8fafc;
+  --theme-foreground: #0f172a;
+  --theme-muted: #f1f5f9;
+  --theme-muted-foreground: #64748b;
+  --theme-card: #ffffff;
+  --theme-card-foreground: #0f172a;
+  --theme-popover: #ffffff;
+  --theme-popover-foreground: #0f172a;
+  --theme-secondary: #f1f5f9;
+  --theme-secondary-foreground: #1e293b;
+  --theme-accent: #e2e8f0;
+  --theme-border: #e2e8f0;
+  --theme-input: #e2e8f0;
+  --theme-sidebar: #ffffff;
+  --theme-sidebar-foreground: #1e293b;
+  --theme-sidebar-muted: #f1f5f9;
+  --theme-surface: #ffffff;
+  --theme-surface-hover: #f1f5f9;
+  --theme-text-primary: #0f172a;
+  --theme-text-secondary: #475569;
+  --theme-text-muted: #94a3b8;
+  --theme-overlay: rgba(0, 0, 0, 0.4);
+  --theme-glass: rgba(255, 255, 255, 0.8);
+  --theme-glass-light: rgba(0, 0, 0, 0.03);
+  --theme-scrollbar: rgba(100, 116, 139, 0.2);
+  --theme-scrollbar-hover: rgba(100, 116, 139, 0.35);
+  --theme-selection: rgba(37, 99, 235, 0.2);
+  --theme-shimmer-from: #f1f5f9;
+  --theme-shimmer-via: #e2e8f0;
+  --theme-subtle-border: rgba(0, 0, 0, 0.08);
+  --theme-subtle-border-hover: rgba(0, 0, 0, 0.12);
+  --theme-subtle-bg: rgba(0, 0, 0, 0.03);
+  --theme-subtle-bg-hover: rgba(0, 0, 0, 0.06);
+  --theme-card-gradient-from: rgba(255, 255, 255, 0.9);
+  --theme-card-gradient-to: rgba(255, 255, 255, 0.7);
+  --theme-sidebar-bg: linear-gradient(to bottom, #ffffff, #f8fafc, #f1f5f9);
+  --theme-header-bg: rgba(255, 255, 255, 0.9);
+  --theme-mobile-nav-bg: rgba(255, 255, 255, 0.95);
+  --theme-dropdown-bg: rgba(255, 255, 255, 0.98);
+  --theme-dialog-from: #ffffff;
+  --theme-dialog-to: #f8fafc;
+  --theme-dialog-footer-bg: rgba(255, 255, 255, 0.95);
+  --theme-ring-offset: #f8fafc;
+  color-scheme: light;
 }
 
 /* ============================================
@@ -65,11 +165,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.15);
+  background: var(--theme-scrollbar);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.25);
+  background: var(--theme-scrollbar-hover);
 }
 
 /* ============================================
@@ -165,7 +265,7 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #111827 25%, #1e293b 50%, #111827 75%);
+  background: linear-gradient(90deg, var(--theme-shimmer-from) 25%, var(--theme-shimmer-via) 50%, var(--theme-shimmer-from) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -210,19 +310,19 @@ body {
    GLASS EFFECTS
    ============================================ */
 .glass {
-  background: rgba(10, 15, 26, 0.7);
+  background: var(--theme-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--theme-glass-light);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+  background: linear-gradient(135deg, var(--theme-glass-light) 0%, transparent 100%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -260,30 +360,29 @@ body {
 }
 
 /* ============================================
-   FORCE DARK SELECTS
+   SELECTS — Theme-aware
    ============================================ */
 select {
-  color-scheme: dark;
-  background-color: #0c1225;
+  background-color: var(--theme-surface);
 }
 
 select option {
-  background-color: #0c1225;
-  color: #f1f5f9;
+  background-color: var(--theme-surface);
+  color: var(--theme-foreground);
   padding: 8px;
 }
 
 select option:checked,
 select option:hover {
-  background-color: #1e3a5f;
-  color: #ffffff;
+  background-color: var(--theme-surface-hover);
+  color: var(--theme-text-primary);
 }
 
 /* ============================================
    SELECTION COLOR
    ============================================ */
 ::selection {
-  background: rgba(37, 99, 235, 0.3);
+  background: var(--theme-selection);
   color: inherit;
 }
 

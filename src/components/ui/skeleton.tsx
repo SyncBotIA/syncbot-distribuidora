@@ -3,14 +3,14 @@ import { cn } from '@/lib/utils'
 export function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={cn('animate-shimmer rounded-md bg-gradient-to-r from-zinc-800/80 via-zinc-700/60 to-zinc-800/80 bg-[length:200%_100%]', className)}
+      className={cn('animate-shimmer rounded-md bg-[length:200%_100%]', className)}
     />
   )
 }
 
 export function SkeletonCard() {
   return (
-    <div className="space-y-3 rounded-xl border border-white/[0.06] p-5">
+    <div className="space-y-3 rounded-xl border border-[var(--theme-subtle-border)] p-5">
       <div className="flex items-center justify-between">
         <Skeleton className="h-10 w-10 rounded-xl" />
         <Skeleton className="h-3 w-16" />

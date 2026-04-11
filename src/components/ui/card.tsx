@@ -6,7 +6,7 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     <div
       ref={ref}
       className={cn(
-        'relative rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.05] to-white/[0.02] text-card-foreground shadow-xl shadow-black/20 backdrop-blur-sm transition-all duration-300 hover:border-white/[0.08] hover:shadow-2xl hover:shadow-black/25',
+        'relative rounded-2xl border border-[var(--theme-subtle-border)] bg-gradient-to-br from-[var(--theme-card-gradient-from)] to-[var(--theme-card-gradient-to)] text-card-foreground shadow-xl shadow-black/10 backdrop-blur-sm transition-all duration-300 hover:border-[var(--theme-subtle-border-hover)] hover:shadow-2xl hover:shadow-black/15',
         className
       )}
       {...props}
@@ -24,14 +24,14 @@ CardHeader.displayName = 'CardHeader'
 
 const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-base font-semibold leading-none tracking-tight text-white', className)} {...props} />
+    <h3 ref={ref} className={cn('text-base font-semibold leading-none tracking-tight text-foreground', className)} {...props} />
   )
 )
 CardTitle.displayName = 'CardTitle'
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-sm text-zinc-400', className)} {...props} />
+    <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
   )
 )
 CardDescription.displayName = 'CardDescription'

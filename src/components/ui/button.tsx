@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030712] disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-[0.97]',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--theme-ring-offset)] disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-[0.97]',
   {
     variants: {
       variant: {
@@ -12,11 +12,11 @@ const buttonVariants = cva(
         destructive:
           'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-600/20 hover:shadow-red-500/30 hover:from-red-500 hover:to-red-400 border border-red-500/20',
         outline:
-          'border border-white/[0.1] bg-white/[0.03] text-zinc-300 hover:bg-white/[0.07] hover:text-white hover:border-white/[0.15] shadow-sm backdrop-blur-sm',
+          'border border-[var(--theme-subtle-border-hover)] bg-[var(--theme-subtle-bg)] text-secondary-foreground hover:bg-[var(--theme-subtle-bg-hover)] hover:text-foreground hover:border-[var(--theme-subtle-border-hover)] shadow-sm backdrop-blur-sm',
         secondary:
-          'bg-white/[0.06] text-zinc-300 hover:bg-white/[0.10] hover:text-white border border-white/[0.04]',
+          'bg-[var(--theme-subtle-bg-hover)] text-secondary-foreground hover:bg-[var(--theme-subtle-border-hover)] hover:text-foreground border border-[var(--theme-subtle-border)]',
         ghost:
-          'text-zinc-400 hover:bg-white/[0.06] hover:text-white',
+          'text-muted-foreground hover:bg-[var(--theme-subtle-bg-hover)] hover:text-foreground',
         link:
           'text-blue-400 underline-offset-4 hover:underline hover:text-blue-300',
       },

@@ -53,7 +53,7 @@ export default function SelecionarEmpresa() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <div className="h-10 w-10 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
@@ -65,7 +65,7 @@ export default function SelecionarEmpresa() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#030712] p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-blue-600/8 rounded-full blur-[150px] pointer-events-none" />

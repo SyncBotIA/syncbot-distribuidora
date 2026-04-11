@@ -63,7 +63,7 @@ export default function RedefinirSenha() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#030712] p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-amber-600/5 rounded-full blur-[150px] pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-700/5 rounded-full blur-[120px] pointer-events-none" />

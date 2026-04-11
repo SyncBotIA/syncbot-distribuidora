@@ -16,7 +16,8 @@
       "Bash(python3 -c \"import pathlib; p = pathlib.Path\\(r''C:/Users/PICHAU/.claude/plans''\\); p.mkdir\\(parents=True, exist_ok=True\\); print\\(p.exists\\(\\)\\)\")",
       "Bash(node -e \"console.log\\(''ok''\\)\")",
       "Bash(node -e 'const fs=require\\(\"\"fs\"\"\\);fs.mkdirSync\\(\"\"C:/Users/PICHAU/.claude/plans\"\",{recursive:true}\\);fs.writeFileSync\\(\"\"C:/Users/PICHAU/.claude/plans/quirky-twirling-crystal-agent-a1e73f392c376a793.md\"\",\"\"# Plan - see conversation for details\\\\n\"\",\"\"utf8\"\"\\);console.log\\(\"\"ok\"\"\\)')",
-      "Bash(xxd -l 200 -s 680 \"C:/Projetos/syncbot-distribuidora/src/components/layout/MobileNav.tsx\")"
+      "Bash(xxd -l 200 -s 680 \"C:/Projetos/syncbot-distribuidora/src/components/layout/MobileNav.tsx\")",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx|css\\)$\")"
     ]
   }
 }

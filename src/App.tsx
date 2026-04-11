@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { EmpresaProvider, useEmpresa } from '@/contexts/EmpresaContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ToastProvider } from '@/components/ui/toast'
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
 import MainLayout from '@/components/layout/MainLayout'
@@ -38,10 +39,10 @@ function PrivateRoute({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-zinc-500 text-sm">Carregando...</p>
+          <p className="text-muted-foreground text-sm">Carregando...</p>
         </div>
       </div>
     )
@@ -67,10 +68,10 @@ function EmpresaRoute({ children }: { children: ReactNode }) {
     // If user just selected empresa and localStorage has it, render children
     if (localStorage.getItem('distribuidora_empresa_id')) return <>{children}</>
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-zinc-500 text-sm">Carregando...</p>
+          <p className="text-muted-foreground text-sm">Carregando...</p>
         </div>
       </div>
     )
@@ -136,16 +137,18 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-      <ToastProvider>
-        <AuthProvider>
-          <EmpresaProvider>
-            <AppRoutes />
-          </EmpresaProvider>
-        </AuthProvider>
-      </ToastProvider>
-      </ErrorBoundary>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <ErrorBoundary>
+        <ToastProvider>
+          <AuthProvider>
+            <EmpresaProvider>
+              <AppRoutes />
+            </EmpresaProvider>
+          </AuthProvider>
+        </ToastProvider>
+        </ErrorBoundary>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }

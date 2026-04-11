@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { usePermissions } from '@/hooks/usePermissions'
+import { useTheme } from '@/contexts/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { cadastrarEmpresa } from '@/lib/nuvemfiscal'
 import { Button } from '@/components/ui/button'
@@ -10,12 +11,13 @@ import { PhoneInput } from '@/components/ui/phone-input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
-import { Settings, User, Lock, Mail, Phone, Save, Shield, PencilLine, Receipt, Loader2, CheckCircle } from 'lucide-react'
+import { Settings, User, Lock, Mail, Phone, Save, Shield, PencilLine, Receipt, Loader2, CheckCircle, Sun, Moon, Palette } from 'lucide-react'
 
 export default function Configuracoes() {
   const { user, usuario } = useAuth()
   const { empresa } = useEmpresa()
   const { isAdmin, isMaster } = usePermissions()
+  const { theme, toggleTheme } = useTheme()
   const { toast } = useToast()
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
@@ -102,8 +104,8 @@ export default function Configuracoes() {
           <Settings className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Configuracoes</h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">Gerencie seu perfil e seguranca</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Configuracoes</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Gerencie seu perfil e seguranca</p>
         </div>
       </div>
 
@@ -119,18 +121,51 @@ export default function Configuracoes() {
             </span>
           </div>
           {/* Edit badge */}
-          <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-zinc-800 border-2 border-zinc-900 flex items-center justify-center shadow-lg">
-            <PencilLine className="h-3 w-3 text-zinc-400" />
+          <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-muted border-2 border-background flex items-center justify-center shadow-lg">
+            <PencilLine className="h-3 w-3 text-muted-foreground" />
           </div>
         </div>
         <div>
-          <p className="text-base font-semibold text-white">{usuario?.nome ?? 'Usuario'}</p>
-          <p className="text-xs text-zinc-500 mt-0.5">{usuario?.email ?? ''}</p>
+          <p className="text-base font-semibold text-foreground">{usuario?.nome ?? 'Usuario'}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{usuario?.email ?? ''}</p>
         </div>
       </div>
 
+      {/* Theme Card */}
+      <Card className="overflow-hidden">
+        <div className="h-px bg-gradient-to-r from-cyan-500/40 via-cyan-500/10 to-transparent" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2.5 text-base">
+            <div className="p-1.5 rounded-lg bg-cyan-500/10 ring-1 ring-cyan-400/10">
+              <Palette className="h-4 w-4 text-cyan-400" />
+            </div>
+            Aparencia
+          </CardTitle>
+          <CardDescription className="text-xs">Escolha entre tema claro ou escuro</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              className="relative flex items-center gap-3 w-full p-3 rounded-xl border border-[var(--theme-subtle-border)] bg-[var(--theme-subtle-bg)] hover:bg-[var(--theme-subtle-bg-hover)] transition-all cursor-pointer group"
+            >
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/15 to-blue-600/10 border border-blue-500/10">
+                {theme === 'dark' ? <Moon className="h-4 w-4 text-blue-400" /> : <Sun className="h-4 w-4 text-amber-500" />}
+              </div>
+              <div className="text-left flex-1">
+                <p className="text-sm font-semibold text-foreground">{theme === 'dark' ? 'Tema Escuro' : 'Tema Claro'}</p>
+                <p className="text-xs text-muted-foreground">{theme === 'dark' ? 'Clique para mudar para claro' : 'Clique para mudar para escuro'}</p>
+              </div>
+              <div className={`relative w-11 h-6 rounded-full transition-colors ${theme === 'dark' ? 'bg-blue-600' : 'bg-amber-400'}`}>
+                <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-transform ${theme === 'dark' ? 'left-[22px]' : 'left-0.5'}`} />
+              </div>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Profile Card */}
-      <Card className="border-white/[0.06] overflow-hidden">
+      <Card className="overflow-hidden">
         {/* Card accent line */}
         <div className="h-px bg-gradient-to-r from-blue-500/40 via-blue-500/10 to-transparent" />
         <CardHeader className="pb-3">
@@ -146,7 +181,7 @@ export default function Configuracoes() {
           <form onSubmit={handleSaveProfile} className="space-y-4">
             {/* Email — disabled with distinct styling */}
             <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-zinc-400">
+              <Label className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-3.5 w-3.5" />
                 Email
               </Label>
@@ -159,7 +194,7 @@ export default function Configuracoes() {
             {/* Nome */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <User className="h-3.5 w-3.5 text-zinc-500" />
+                <User className="h-3.5 w-3.5 text-muted-foreground" />
                 Nome
               </Label>
               <Input value={nomeEdit} onChange={(e) => setNomeEdit(e.target.value)} required />
@@ -167,7 +202,7 @@ export default function Configuracoes() {
             {/* Telefone */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Phone className="h-3.5 w-3.5 text-zinc-500" />
+                <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                 Telefone
               </Label>
               <PhoneInput
@@ -185,7 +220,7 @@ export default function Configuracoes() {
 
       {/* NF-e Card — Admin/Master only */}
       {(isAdmin || isMaster) && (
-        <Card className="border-white/[0.06] overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="h-px bg-gradient-to-r from-violet-500/40 via-violet-500/10 to-transparent" />
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2.5 text-base">
@@ -204,7 +239,7 @@ export default function Configuracoes() {
               </div>
             ) : (
               <>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-muted-foreground">
                   Ao cadastrar, sua empresa podera emitir NF-e diretamente pela tela de Pedidos.
                   O cadastro usa o CNPJ da empresa e o ambiente de homologacao (testes).
                 </p>
@@ -261,7 +296,7 @@ export default function Configuracoes() {
       )}
 
       {/* Password Card */}
-      <Card className="border-white/[0.06] overflow-hidden">
+      <Card className="overflow-hidden">
         {/* Card accent line */}
         <div className="h-px bg-gradient-to-r from-amber-500/40 via-amber-500/10 to-transparent" />
         <CardHeader className="pb-3">
@@ -277,7 +312,7 @@ export default function Configuracoes() {
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Lock className="h-3.5 w-3.5 text-zinc-500" />
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                 Nova Senha
               </Label>
               <Input
@@ -290,7 +325,7 @@ export default function Configuracoes() {
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Lock className="h-3.5 w-3.5 text-zinc-500" />
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                 Confirmar senha
               </Label>
               <Input
