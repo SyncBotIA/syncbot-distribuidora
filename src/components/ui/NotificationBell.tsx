@@ -54,9 +54,9 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-xl border border-white/[0.08] bg-zinc-900 shadow-2xl shadow-black/40 z-50">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-            <span className="text-sm font-semibold text-zinc-200">Notificacoes</span>
+        <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-white/[0.08] bg-zinc-900 shadow-2xl shadow-black/40 z-50 flex flex-col max-h-96">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
+            <span className="text-sm font-semibold text-zinc-200">Notificações ({notifications.length})</span>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
@@ -70,10 +70,10 @@ export default function NotificationBell() {
 
           {notifications.length === 0 ? (
             <div className="px-4 py-8 text-center text-zinc-500 text-sm">
-              Nenhuma notificacao
+              Nenhuma notificação
             </div>
           ) : (
-            <div className="divide-y divide-white/[0.04]">
+            <div className="overflow-y-auto divide-y divide-white/[0.04]">
               {notifications.map(n => (
                 <button
                   key={n.id}

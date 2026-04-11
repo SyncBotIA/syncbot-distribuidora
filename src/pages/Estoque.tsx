@@ -16,14 +16,14 @@ import { Badge } from '@/components/ui/badge'
 import {
   Plus, AlertTriangle, Search, Warehouse, PackageCheck, PackageMinus,
   Package, ArrowUpRight, ArrowDownLeft, SlidersHorizontal, History,
-  Barcode, TrendingDown, ArrowRightLeft
+  Barcode, TrendingDown, ArrowRightLeft, ChevronDown, ChevronRight
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
-import type { Produto, EstoqueMovimentacao, Usuario } from '@/types/database'
+import type { Produto, EstoqueMovimentacao } from '@/types/database'
 
-/** Supabase joins return nested data under "produtos" and "usuarios" keys */
+/** Supabase joins return nested data under table name keys */
 type MovimentacaoJoinRow = EstoqueMovimentacao & {
-  produto?: Produto
+  produtos?: { nome: string; sku: string | null }
   usuarios?: { nome: string }
 }
 
@@ -43,6 +43,12 @@ export default function Estoque() {
   const [formTipo, setFormTipo] = useState<'entrada' | 'saida' | 'ajuste'>('entrada')
   const [formQuantidade, setFormQuantidade] = useState('')
   const [formObs, setFormObs] = useState('')
+
+  // Filtros do histórico
+  const [dataInicio, setDataInicio] = useState('')
+  const [dataFim, setDataFim] = useState('')
+  const [filtroTipo, setFiltroTipo] = useState<string>('')
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (empresa) {
@@ -111,6 +117,86 @@ export default function Estoque() {
     const q = search.toLowerCase()
     return p.nome.toLowerCase().includes(q) || (p.sku ?? '').toLowerCase().includes(q)
   })
+
+  // Agrupa movimentações: pedido_id agrupa, null fica individual
+  type MovGroup = {
+    key: string
+    tipo: EstoqueMovimentacao['tipo']
+    created_at: string
+    observacao: string | null
+    responsavel: string
+    items: MovimentacaoJoinRow[]
+  }
+
+  const groupedMovimentacoes: MovGroup[] = (() => {
+    // Agrupa por pedido_id + tipo (confirmação e cancelamento do mesmo pedido ficam separados)
+    const pedidoTipoMap = new Map<string, MovimentacaoJoinRow[]>()
+    const standalone: MovimentacaoJoinRow[] = []
+
+    for (const m of movimentacoes) {
+      if (m.pedido_id) {
+        const groupKey = `${m.pedido_id}::${m.tipo}`
+        const existing = pedidoTipoMap.get(groupKey)
+        if (existing) existing.push(m)
+        else pedidoTipoMap.set(groupKey, [m])
+      } else {
+        standalone.push(m)
+      }
+    }
+
+    const groups: MovGroup[] = []
+
+    for (const [groupKey, items] of pedidoTipoMap) {
+      const first = items[0]
+      groups.push({
+        key: groupKey,
+        tipo: first.tipo,
+        created_at: first.created_at,
+        observacao: first.observacao,
+        responsavel: first.usuarios?.nome ?? '—',
+        items,
+      })
+    }
+
+    for (const m of standalone) {
+      groups.push({
+        key: m.id,
+        tipo: m.tipo,
+        created_at: m.created_at,
+        observacao: m.observacao,
+        responsavel: m.usuarios?.nome ?? '—',
+        items: [m],
+      })
+    }
+
+    groups.sort((a, b) => b.created_at.localeCompare(a.created_at))
+    return groups
+  })()
+
+  const filteredGroups = groupedMovimentacoes.filter((g) => {
+    if (search) {
+      const q = search.toLowerCase()
+      const match = g.items.some(m => {
+        const nome = m.produtos?.nome?.toLowerCase() ?? ''
+        const sku = m.produtos?.sku?.toLowerCase() ?? ''
+        return nome.includes(q) || sku.includes(q)
+      })
+      if (!match) return false
+    }
+    if (filtroTipo && g.tipo !== filtroTipo) return false
+    if (dataInicio && g.created_at < dataInicio) return false
+    if (dataFim && g.created_at > dataFim + 'T23:59:59') return false
+    return true
+  })
+
+  function toggleGroup(key: string) {
+    setExpandedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   const tipoLabel: Record<string, string> = {
     entrada: 'Entrada',
@@ -389,41 +475,129 @@ export default function Estoque() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Filtros */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-4 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+              <div className="flex-1 space-y-1">
+                <Label className="text-xs text-zinc-500">Data Início</Label>
+                <Input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(e) => setDataInicio(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <Label className="text-xs text-zinc-500">Data Fim</Label>
+                <Input
+                  type="date"
+                  value={dataFim}
+                  onChange={(e) => setDataFim(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <Label className="text-xs text-zinc-500">Tipo</Label>
+                <Select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+                  <option value="">Todos</option>
+                  <option value="entrada">Entrada</option>
+                  <option value="saida">Saída</option>
+                  <option value="ajuste">Ajuste</option>
+                  <option value="cancelamento">Cancelamento</option>
+                </Select>
+              </div>
+              {(dataInicio || dataFim || filtroTipo) && (
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setDataInicio(''); setDataFim(''); setFiltroTipo('') }}
+                    className="text-xs whitespace-nowrap"
+                  >
+                    Limpar filtros
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-zinc-500 mb-3">{filteredGroups.length} movimentação(ões) encontrada(s)</p>
+
             {/* Desktop table */}
             <div className="hidden md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-8"></TableHead>
                     <TableHead>Data</TableHead>
-                    <TableHead>Produto</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Quantidade</TableHead>
+                    <TableHead>Produtos</TableHead>
+                    <TableHead className="text-right">Qtd Total</TableHead>
                     <TableHead>Responsável</TableHead>
                     <TableHead>Observação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {movimentacoes.map((m) => (
-                    <TableRow key={m.id}>
-                      <TableCell className="text-zinc-400">{formatDate(m.created_at)}</TableCell>
-                      <TableCell className="font-semibold">{(m.produto as Produto | undefined)?.nome ?? '—'}</TableCell>
-                      <TableCell>
-                        <Badge variant={tipoVariant[m.tipo]}>{tipoLabel[m.tipo]}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-mono font-semibold">{m.quantidade}</TableCell>
-                      <TableCell>{m.usuarios?.nome ?? '—'}</TableCell>
-                      <TableCell className="text-zinc-500 max-w-[200px] truncate">{m.observacao ?? '—'}</TableCell>
-                    </TableRow>
-                  ))}
-                  {movimentacoes.length === 0 && (
+                  {filteredGroups.map((g) => {
+                    const isExpanded = expandedGroups.has(g.key)
+                    const totalQtd = g.items.reduce((sum, i) => sum + i.quantidade, 0)
+                    const hasMultiple = g.items.length > 1
+                    const productNames = g.items.map(i => i.produtos?.nome ?? '—').join(', ')
+                    return (
+                      <>
+                        <TableRow
+                          key={g.key}
+                          className={hasMultiple ? 'cursor-pointer hover:bg-white/[0.03]' : ''}
+                          onClick={() => hasMultiple && toggleGroup(g.key)}
+                        >
+                          <TableCell className="w-8 px-2">
+                            {hasMultiple && (
+                              isExpanded
+                                ? <ChevronDown className="h-4 w-4 text-zinc-500" />
+                                : <ChevronRight className="h-4 w-4 text-zinc-500" />
+                            )}
+                          </TableCell>
+                          <TableCell className="text-zinc-400">{formatDate(g.created_at)}</TableCell>
+                          <TableCell>
+                            <Badge variant={tipoVariant[g.tipo]}>{tipoLabel[g.tipo]}</Badge>
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            {hasMultiple
+                              ? <span className="text-zinc-300">{g.items.length} produtos</span>
+                              : productNames
+                            }
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-semibold">{totalQtd}</TableCell>
+                          <TableCell>{g.responsavel}</TableCell>
+                          <TableCell className="text-zinc-500 max-w-[200px] truncate">{g.observacao ?? '—'}</TableCell>
+                        </TableRow>
+                        {isExpanded && g.items.map((item) => (
+                          <TableRow key={item.id} className="bg-white/[0.02]">
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell className="text-zinc-300 pl-4">
+                              <span className="text-zinc-600 mr-2">↳</span>
+                              {item.produtos?.nome ?? '—'}
+                              {item.produtos?.sku && (
+                                <span className="text-[11px] text-zinc-600 font-mono ml-2">({item.produtos.sku})</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-zinc-400">{item.quantidade}</TableCell>
+                            <TableCell></TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    )
+                  })}
+                  {filteredGroups.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={7}>
                         <div className="flex flex-col items-center justify-center py-14">
                           <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
                             <Warehouse className="h-7 w-7 text-zinc-600" />
                           </div>
-                          <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentação registrada</p>
-                          <p className="text-xs text-zinc-600 mt-1">Registre sua primeira movimentação de estoque</p>
+                          <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentação encontrada</p>
+                          <p className="text-xs text-zinc-600 mt-1">{(dataInicio || dataFim || filtroTipo || search) ? 'Tente ajustar seus filtros' : 'Registre sua primeira movimentação de estoque'}</p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -433,65 +607,94 @@ export default function Estoque() {
             </div>
             {/* Mobile cards */}
             <div className="md:hidden space-y-2.5">
-              {movimentacoes.map((m) => {
-                const tipoIcon = m.tipo === 'entrada' ? ArrowUpRight : m.tipo === 'saida' ? ArrowDownLeft : SlidersHorizontal
-                const tipoColor = m.tipo === 'entrada'
+              {filteredGroups.map((g) => {
+                const TipoIcon = g.tipo === 'entrada' ? ArrowUpRight : g.tipo === 'saida' ? ArrowDownLeft : SlidersHorizontal
+                const tipoColor = g.tipo === 'entrada'
                   ? 'text-emerald-400 bg-emerald-500/10 ring-emerald-500/20'
-                  : m.tipo === 'saida'
+                  : g.tipo === 'saida'
                     ? 'text-red-400 bg-red-500/10 ring-red-500/20'
                     : 'text-amber-400 bg-amber-500/10 ring-amber-500/20'
+                const isExpanded = expandedGroups.has(g.key)
+                const hasMultiple = g.items.length > 1
+                const totalQtd = g.items.reduce((sum, i) => sum + i.quantidade, 0)
                 return (
                   <div
-                    key={m.id}
-                    className="rounded-xl border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent p-3.5 active:scale-[0.98] transition-transform duration-150"
+                    key={g.key}
+                    className="rounded-xl border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent overflow-hidden"
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Type indicator circle */}
-                      <div className={`shrink-0 mt-0.5 p-2 rounded-xl ring-1 ${tipoColor}`}>
-                        {tipoIcon({ className: 'h-4 w-4' })}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-semibold text-white text-sm leading-snug truncate">
-                            {(m.produto as Produto | undefined)?.nome ?? '—'}
-                          </p>
-                          <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ${tipoColor}`}>
-                            {tipoLabel[m.tipo]}
-                          </span>
+                    <div
+                      className={`p-3.5 ${hasMultiple ? 'cursor-pointer active:bg-white/[0.02]' : ''}`}
+                      onClick={() => hasMultiple && toggleGroup(g.key)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`shrink-0 mt-0.5 p-2 rounded-xl ring-1 ${tipoColor}`}>
+                          <TipoIcon className="h-4 w-4" />
                         </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Qtd</span>
-                            <span className={`text-lg font-black tabular-nums ${
-                              m.tipo === 'entrada' ? 'text-emerald-400' : m.tipo === 'saida' ? 'text-red-400' : 'text-amber-400'
-                            }`}>
-                              {m.tipo === 'saida' ? '-' : m.tipo === 'entrada' ? '+' : ''}{m.quantidade}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              {hasMultiple ? (
+                                <div className="flex items-center gap-1.5">
+                                  {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-zinc-500 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 text-zinc-500 shrink-0" />}
+                                  <p className="font-semibold text-white text-sm leading-snug">{g.items.length} produtos</p>
+                                </div>
+                              ) : (
+                                <p className="font-semibold text-white text-sm leading-snug truncate">
+                                  {g.items[0].produtos?.nome ?? '—'}
+                                </p>
+                              )}
+                            </div>
+                            <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ${tipoColor}`}>
+                              {tipoLabel[g.tipo]}
                             </span>
                           </div>
-                          <p className="text-[11px] text-zinc-600">{formatDate(m.created_at)}</p>
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Qtd Total</span>
+                              <span className={`text-lg font-black tabular-nums ${
+                                g.tipo === 'entrada' ? 'text-emerald-400' : g.tipo === 'saida' ? 'text-red-400' : 'text-amber-400'
+                              }`}>
+                                {g.tipo === 'saida' ? '-' : g.tipo === 'entrada' ? '+' : ''}{totalQtd}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-zinc-600">{formatDate(g.created_at)}</p>
+                          </div>
+                          <p className="text-[11px] text-zinc-500 mt-1">por {g.responsavel}</p>
+                          {g.observacao && (
+                            <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2 italic">"{g.observacao}"</p>
+                          )}
                         </div>
-                        {m.usuarios?.nome && (
-                          <p className="text-[11px] text-zinc-500 mt-1">
-                            por {m.usuarios.nome}
-                          </p>
-                        )}
-                        {m.observacao && (
-                          <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2 italic">
-                            "{m.observacao}"
-                          </p>
-                        )}
                       </div>
                     </div>
+                    {isExpanded && (
+                      <div className="border-t border-white/[0.06] bg-white/[0.02] px-3.5 py-2 space-y-2">
+                        {g.items.map((item) => (
+                          <div key={item.id} className="flex items-center justify-between">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-zinc-300 truncate">{item.produtos?.nome ?? '—'}</p>
+                              {item.produtos?.sku && (
+                                <p className="text-[10px] text-zinc-600 font-mono">{item.produtos.sku}</p>
+                              )}
+                            </div>
+                            <span className={`text-sm font-bold tabular-nums ml-3 ${
+                              g.tipo === 'entrada' ? 'text-emerald-400' : g.tipo === 'saida' ? 'text-red-400' : 'text-amber-400'
+                            }`}>
+                              {g.tipo === 'saida' ? '-' : g.tipo === 'entrada' ? '+' : ''}{item.quantidade}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )
               })}
-              {movimentacoes.length === 0 && (
+              {filteredGroups.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-14">
                   <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
                     <Warehouse className="h-7 w-7 text-zinc-600" />
                   </div>
-                  <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentação registrada</p>
-                  <p className="text-xs text-zinc-600 mt-1">Registre sua primeira movimentação de estoque</p>
+                  <p className="text-sm font-semibold text-zinc-400">Nenhuma movimentação encontrada</p>
+                  <p className="text-xs text-zinc-600 mt-1">{(dataInicio || dataFim || filtroTipo || search) ? 'Tente ajustar seus filtros' : 'Registre sua primeira movimentação de estoque'}</p>
                 </div>
               )}
             </div>

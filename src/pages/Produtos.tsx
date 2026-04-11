@@ -18,6 +18,26 @@ import { exportToCSV, produtoColumns } from '@/lib/export'
 import { formatCurrency } from '@/lib/utils'
 import type { Produto, Categoria } from '@/types/database'
 
+function CurrencyInput({ value, onChange, placeholder }: { value: string; onChange: (val: string) => void; placeholder?: string }) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const digits = e.target.value.replace(/\D/g, '')
+    const cents = parseInt(digits || '0', 10)
+    const numeric = cents / 100
+    onChange(String(numeric))
+  }
+
+  const num = parseFloat(value) || 0
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      value={num ? formatCurrency(num) : 'R$ 0,00'}
+      placeholder={placeholder ?? 'R$ 0,00'}
+      onChange={handleChange}
+    />
+  )
+}
+
 export default function Produtos() {
   const { empresa } = useEmpresa()
   const { canManageProducts } = usePermissions()
@@ -34,7 +54,7 @@ export default function Produtos() {
 
   const [form, setForm] = useState({
     nome: '', sku: '', descricao: '', categoria_id: '', unidade_medida: 'un',
-    preco_custo: '', preco_venda: '', estoque_minimo: '0',
+    preco_custo: '', preco_venda: '', desconto_maximo: '0', estoque_minimo: '0',
   })
 
   useEffect(() => {
@@ -68,7 +88,7 @@ export default function Produtos() {
 
   function openCreate() {
     setEditing(null)
-    setForm({ nome: '', sku: '', descricao: '', categoria_id: '', unidade_medida: 'un', preco_custo: '', preco_venda: '', estoque_minimo: '0' })
+    setForm({ nome: '', sku: '', descricao: '', categoria_id: '', unidade_medida: 'un', preco_custo: '', preco_venda: '', desconto_maximo: '0', estoque_minimo: '0' })
     setDialogOpen(true)
   }
 
@@ -77,7 +97,7 @@ export default function Produtos() {
     setForm({
       nome: p.nome, sku: p.sku, descricao: p.descricao ?? '', categoria_id: p.categoria_id ?? '',
       unidade_medida: p.unidade_medida, preco_custo: String(p.preco_custo), preco_venda: String(p.preco_venda),
-      estoque_minimo: String(p.estoque_minimo),
+      desconto_maximo: String(p.desconto_maximo ?? 0), estoque_minimo: String(p.estoque_minimo),
     })
     setDialogOpen(true)
   }
@@ -94,6 +114,7 @@ export default function Produtos() {
       unidade_medida: form.unidade_medida,
       preco_custo: parseFloat(form.preco_custo) || 0,
       preco_venda: parseFloat(form.preco_venda) || 0,
+      desconto_maximo: parseFloat(form.desconto_maximo) || 0,
       estoque_minimo: parseInt(form.estoque_minimo) || 0,
     }
 
@@ -512,14 +533,18 @@ export default function Produtos() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="space-y-2">
                 <Label className="text-xs">Preço Custo</Label>
-                <Input type="number" step="0.01" value={form.preco_custo} onChange={(e) => setForm({ ...form, preco_custo: e.target.value })} placeholder="0,00" />
+                <CurrencyInput value={form.preco_custo} onChange={(val) => setForm({ ...form, preco_custo: val })} />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">Preço Venda</Label>
-                <Input type="number" step="0.01" value={form.preco_venda} onChange={(e) => setForm({ ...form, preco_venda: e.target.value })} placeholder="0,00" />
+                <CurrencyInput value={form.preco_venda} onChange={(val) => setForm({ ...form, preco_venda: val })} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Desc. Máx. (%)</Label>
+                <Input type="number" min="0" max="100" step="0.1" value={form.desconto_maximo} onChange={(e) => setForm({ ...form, desconto_maximo: e.target.value })} placeholder="0" />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">Estoque Min.</Label>

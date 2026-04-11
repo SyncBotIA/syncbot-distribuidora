@@ -10,21 +10,23 @@ import {
   Warehouse,
   Settings,
   ShieldCheck,
+  Truck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function MobileNav() {
-  const { isAdmin, canManageProducts } = usePermissions()
+  const { isMaster, isAdmin, has } = usePermissions()
   const [moreOpen, setMoreOpen] = useState(false)
 
   const navItems = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'In\xEDcio', show: true },
-    { to: '/clientes', icon: UserCheck, label: 'Clientes', show: true },
-    { to: '/produtos', icon: Package, label: 'Produtos', show: true },
-    { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos', show: true },
-    { to: '/estoque', icon: Warehouse, label: 'Estoque', show: canManageProducts },
-    { to: '/usuarios', icon: Users, label: 'Equipe', show: true },
-    { to: '/hierarquias', icon: ShieldCheck, label: 'Cargos', show: isAdmin },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'In\xEDcio', show: has('dashboard.ver') },
+    { to: '/clientes', icon: UserCheck, label: 'Clientes', show: has('clientes.ver') },
+    { to: '/produtos', icon: Package, label: 'Produtos', show: has('produtos.ver') },
+    { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos', show: has('pedidos.ver') },
+    { to: '/estoque', icon: Warehouse, label: 'Estoque', show: has('estoque.ver') },
+    { to: '/entregas', icon: Truck, label: 'Entregas', show: has('entregas.ver') },
+    { to: '/usuarios', icon: Users, label: 'Equipe', show: has('usuarios.ver') },
+    { to: '/hierarquias', icon: ShieldCheck, label: 'Cargos', show: isMaster || isAdmin },
     { to: '/configuracoes', icon: Settings, label: 'Mais', show: true },
   ].filter((item) => item.show)
 

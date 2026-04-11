@@ -46,10 +46,20 @@ export interface Database {
         Insert: Omit<PedidoItem, 'id'>
         Update: Partial<Omit<PedidoItem, 'id'>>
       }
+      pedido_entregadores: {
+        Row: PedidoEntregador
+        Insert: Omit<PedidoEntregador, 'id' | 'created_at'>
+        Update: Partial<Omit<PedidoEntregador, 'id' | 'created_at'>>
+      }
       clientes: {
         Row: Cliente
         Insert: Omit<Cliente, 'id' | 'created_at'>
         Update: Partial<Omit<Cliente, 'id' | 'created_at'>>
+      }
+      hierarquia_permissoes: {
+        Row: HierarquiaPermissao
+        Insert: Omit<HierarquiaPermissao, 'id' | 'created_at'>
+        Update: Partial<Omit<HierarquiaPermissao, 'id' | 'created_at'>>
       }
     }
     Functions: {
@@ -130,6 +140,7 @@ export interface Produto {
   unidade_medida: string
   preco_custo: number
   preco_venda: number
+  desconto_maximo: number
   estoque_minimo: number
   foto_url: string | null
   ativo: boolean
@@ -162,6 +173,10 @@ export interface Pedido {
   status: 'rascunho' | 'confirmado' | 'entregue' | 'cancelado'
   valor_total: number
   observacao: string | null
+  comprovante_url: string | null
+  nfe_id: string | null
+  nfe_status: string | null
+  nfe_numero: number | null
   created_at: string
   updated_at: string
   // Joined
@@ -181,6 +196,15 @@ export interface PedidoItem {
   produto?: Produto
 }
 
+export interface PedidoEntregador {
+  id: string
+  pedido_id: string
+  usuario_id: string
+  created_at: string
+  // Joined
+  usuario?: Usuario
+}
+
 export interface Cliente {
   id: string
   empresa_id: string
@@ -197,4 +221,11 @@ export interface Cliente {
   created_at: string
   // Joined
   vendedor?: Usuario
+}
+
+export interface HierarquiaPermissao {
+  id: string
+  hierarquia_id: string
+  permissao: string
+  created_at: string
 }

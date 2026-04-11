@@ -60,7 +60,6 @@ export function useNotifications() {
       .eq('empresa_id', empresa.id)
       .eq('status', 'rascunho')
       .order('created_at', { ascending: false })
-      .limit(5)
 
     for (const p of pedidos ?? []) {
       const id = `pedido_${p.id}`
@@ -78,10 +77,19 @@ export function useNotifications() {
   useEffect(() => {
     fetchNotifications()
     if (!empresa) return
+
     const channel = supabase
-      .channel('notif-pedidos')
+      .channel('notif-realtime')
+      // Pedidos: INSERT (novo pedido), UPDATE (mudança de status), DELETE
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos', filter: `empresa_id=eq.${empresa.id}` }, () => fetchNotifications())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos', filter: `empresa_id=eq.${empresa.id}` }, () => fetchNotifications())
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'pedidos', filter: `empresa_id=eq.${empresa.id}` }, () => fetchNotifications())
+      // Estoque: movimentações afetam estoque baixo
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'estoque_movimentacoes', filter: `empresa_id=eq.${empresa.id}` }, () => fetchNotifications())
+      // Produtos: alteração de estoque_minimo ou ativo
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'produtos', filter: `empresa_id=eq.${empresa.id}` }, () => fetchNotifications())
       .subscribe()
+
     return () => { supabase.removeChannel(channel) }
   }, [empresa, fetchNotifications])
 

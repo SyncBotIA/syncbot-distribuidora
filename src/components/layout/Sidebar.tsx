@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronRight,
   Zap,
+  Truck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -23,16 +24,17 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const { empresa } = useEmpresa()
-  const { isAdmin, canManageProducts } = usePermissions()
+  const { isMaster, isAdmin, has } = usePermissions()
 
   const links = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
-    { to: '/hierarquias', label: 'Hierarquias', icon: ShieldCheck, show: isAdmin },
-    { to: '/usuarios', label: 'Usuários', icon: Users, show: true },
-    { to: '/clientes', label: 'Clientes', icon: UserCheck, show: true },
-    { to: '/produtos', label: 'Produtos', icon: Package, show: true },
-    { to: '/estoque', label: 'Estoque', icon: Warehouse, show: canManageProducts },
-    { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart, show: true },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: has('dashboard.ver') },
+    { to: '/hierarquias', label: 'Hierarquias', icon: ShieldCheck, show: isMaster || isAdmin },
+    { to: '/usuarios', label: 'Usuários', icon: Users, show: has('usuarios.ver') },
+    { to: '/clientes', label: 'Clientes', icon: UserCheck, show: has('clientes.ver') },
+    { to: '/produtos', label: 'Produtos', icon: Package, show: has('produtos.ver') },
+    { to: '/estoque', label: 'Estoque', icon: Warehouse, show: has('estoque.ver') },
+    { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart, show: has('pedidos.ver') },
+    { to: '/entregas', label: 'Entregas', icon: Truck, show: has('entregas.ver') },
     { to: '/configuracoes', label: 'Configurações', icon: Settings, show: true },
   ]
 

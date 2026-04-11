@@ -6,6 +6,7 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
@@ -559,7 +560,7 @@ export default function Clientes() {
             </div>
             <div className="space-y-2">
               <Label>Telefone</Label>
-              <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(00) 00000-0000" />
+              <PhoneInput value={form.telefone} onChange={(v) => setForm({ ...form, telefone: v })} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -595,7 +596,7 @@ export default function Clientes() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={!form.nome.trim()}>Salvar</Button>
+            <Button onClick={handleSave} disabled={!form.nome.trim() || !form.telefone.trim()}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

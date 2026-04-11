@@ -6,6 +6,7 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
@@ -31,7 +32,7 @@ cachedUsuarios.empresaId = null;
 export default function Usuarios() {
   const { usuario } = useAuth()
   const { empresa, empresaUsuario, hierarquiaOrdem, hierarquiaNome } = useEmpresa()
-  const { isMaster, isAdmin, isGerente, isVendedor } = usePermissions()
+  const { isMaster, isAdmin, has } = usePermissions()
   const { toast } = useToast()
   const initializedRef = useRef(false)
   const [usuarios, setUsuarios] = useState<EmpresaUsuario[]>(() => {
@@ -666,8 +667,8 @@ export default function Usuarios() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Telefone (opcional)</Label>
-              <Input value={formTelefone} onChange={(e) => setFormTelefone(e.target.value)} placeholder="(00) 00000-0000" className="min-h-[44px]" />
+              <Label>Telefone</Label>
+              <PhoneInput value={formTelefone} onChange={(v) => setFormTelefone(v)} className="min-h-[44px]" />
             </div>
             <div className="space-y-2">
               <Label>Hierarquia</Label>
@@ -693,7 +694,7 @@ export default function Usuarios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} className="min-h-[44px]">Cancelar</Button>
-            <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formHierarquiaId || saving} className="min-h-[44px]">
+            <Button onClick={handleInvite} disabled={!formNome || !formEmail || !formTelefone || !formHierarquiaId || saving} className="min-h-[44px]">
               {saving ? 'Criando...' : 'Criar Usuário'}
             </Button>
           </DialogFooter>
@@ -718,7 +719,7 @@ export default function Usuarios() {
             </div>
             <div className="space-y-2">
               <Label>Telefone</Label>
-              <Input value={editTelefone} onChange={(e) => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" className="min-h-[44px]" />
+              <PhoneInput value={editTelefone} onChange={(v) => setEditTelefone(v)} className="min-h-[44px]" />
             </div>
             {editingUser && editingUser.usuario_id !== usuario?.id && (
               <>

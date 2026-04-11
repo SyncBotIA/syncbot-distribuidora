@@ -9,7 +9,7 @@ import SelecionarEmpresa from '@/pages/SelecionarEmpresa'
 import RedefinirSenha from '@/pages/RedefinirSenha'
 import { lazy, Suspense, type ReactNode } from 'react'
 
-// Lazy load das páginas pesadas
+// Lazy-load das páginas pesadas
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Hierarquias = lazy(() => import('@/pages/Hierarquias'))
 const Usuarios = lazy(() => import('@/pages/Usuarios'))
@@ -19,6 +19,7 @@ const Pedidos = lazy(() => import('@/pages/Pedidos'))
 const Clientes = lazy(() => import('@/pages/Clientes'))
 const MasterPanel = lazy(() => import('@/pages/MasterPanel'))
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
+const Entregas = lazy(() => import('@/pages/Entregas'))
 const CriarEmpresa = lazy(() => import('@/pages/CriarEmpresa'))
 
 function PageLoader() {
@@ -79,6 +80,12 @@ function EmpresaRoute({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function DashboardGuard() {
+  const { hasPermission } = useEmpresa()
+  if (!hasPermission('dashboard.ver')) return <Navigate to="/entregas" replace />
+  return <Dashboard />
+}
+
 function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -110,13 +117,14 @@ function AppRoutes() {
             </PasswordGuard>
           </PrivateRoute>
         }>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<DashboardGuard />} />
           <Route path="/hierarquias" element={<Hierarquias />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/produtos" element={<Produtos />} />
           <Route path="/estoque" element={<Estoque />} />
           <Route path="/pedidos" element={<Pedidos />} />
+          <Route path="/entregas" element={<Entregas />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEmpresa } from '@/contexts/EmpresaContext'
 import { supabase, createIsolatedClient } from '@/lib/supabase'
+import { cadastrarEmpresa } from '@/lib/nuvemfiscal'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -98,6 +99,26 @@ export default function CriarEmpresa() {
 
         if (rpcError) throw rpcError
 
+        // Cadastrar na Nuvem Fiscal (sandbox)
+        const cnpjDigits = cnpj.replace(/\D/g, '')
+        try {
+          await cadastrarEmpresa({
+            cnpj: cnpjDigits,
+            razao_social: nome,
+            nome_fantasia: nome,
+            inscricao_estadual: '9999999999',
+            endereco: {
+              logradouro: 'Rua Teste',
+              numero: '100',
+              bairro: 'Centro',
+              codigo_municipio: '4106902',
+              nome_municipio: 'Curitiba',
+              uf: 'PR',
+              cep: '80000000',
+            },
+          })
+        } catch { /* ignora se falhar — pode cadastrar depois */ }
+
         setSuccess(`Empresa criada! Gerente: ${gerenteEmail} / Senha provisória: 123456`)
         await refreshEmpresas()
         setTimeout(() => {
@@ -112,6 +133,26 @@ export default function CriarEmpresa() {
         })
 
         if (rpcError) throw rpcError
+
+        // Cadastrar na Nuvem Fiscal (sandbox)
+        const cnpjDigits2 = cnpj.replace(/\D/g, '')
+        try {
+          await cadastrarEmpresa({
+            cnpj: cnpjDigits2,
+            razao_social: nome,
+            nome_fantasia: nome,
+            inscricao_estadual: '9999999999',
+            endereco: {
+              logradouro: 'Rua Teste',
+              numero: '100',
+              bairro: 'Centro',
+              codigo_municipio: '4106902',
+              nome_municipio: 'Curitiba',
+              uf: 'PR',
+              cep: '80000000',
+            },
+          })
+        } catch { /* ignora */ }
 
         await refreshEmpresas()
         setEmpresaId(empresaId)

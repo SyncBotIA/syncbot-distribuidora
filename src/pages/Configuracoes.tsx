@@ -1,15 +1,21 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEmpresa } from '@/contexts/EmpresaContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { supabase } from '@/lib/supabase'
+import { cadastrarEmpresa } from '@/lib/nuvemfiscal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
-import { Settings, User, Lock, Mail, Phone, Save, Shield, PencilLine } from 'lucide-react'
+import { Settings, User, Lock, Mail, Phone, Save, Shield, PencilLine, Receipt, Loader2, CheckCircle } from 'lucide-react'
 
 export default function Configuracoes() {
   const { user, usuario } = useAuth()
+  const { empresa } = useEmpresa()
+  const { isAdmin, isMaster } = usePermissions()
   const { toast } = useToast()
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
@@ -17,6 +23,8 @@ export default function Configuracoes() {
   const [nomeEdit, setNomeEdit] = useState(usuario?.nome ?? '')
   const [telefoneEdit, setTelefoneEdit] = useState(usuario?.telefone ?? '')
   const [savingProfile, setSavingProfile] = useState(false)
+  const [cadastrandoNF, setCadastrandoNF] = useState(false)
+  const [nfCadastrada, setNfCadastrada] = useState(false)
 
   async function handleChangePassword(e: FormEvent) {
     e.preventDefault()
@@ -162,10 +170,9 @@ export default function Configuracoes() {
                 <Phone className="h-3.5 w-3.5 text-zinc-500" />
                 Telefone
               </Label>
-              <Input
+              <PhoneInput
                 value={telefoneEdit}
-                onChange={(e) => setTelefoneEdit(e.target.value)}
-                placeholder="(00) 00000-0000"
+                onChange={(v) => setTelefoneEdit(v)}
               />
             </div>
             <Button type="submit" disabled={savingProfile} className="gap-2 shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-transform">
@@ -175,6 +182,83 @@ export default function Configuracoes() {
           </form>
         </CardContent>
       </Card>
+
+      {/* NF-e Card — Admin/Master only */}
+      {(isAdmin || isMaster) && (
+        <Card className="border-white/[0.06] overflow-hidden">
+          <div className="h-px bg-gradient-to-r from-violet-500/40 via-violet-500/10 to-transparent" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2.5 text-base">
+              <div className="p-1.5 rounded-lg bg-violet-500/10 ring-1 ring-violet-400/10">
+                <Receipt className="h-4 w-4 text-violet-400" />
+              </div>
+              Nota Fiscal Eletronica
+            </CardTitle>
+            <CardDescription className="text-xs">Cadastre sua empresa na Nuvem Fiscal para emitir NF-e</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {nfCadastrada ? (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <CheckCircle className="h-4 w-4 text-emerald-400" />
+                <p className="text-sm text-emerald-300">Empresa cadastrada na Nuvem Fiscal com sucesso!</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-zinc-400">
+                  Ao cadastrar, sua empresa podera emitir NF-e diretamente pela tela de Pedidos.
+                  O cadastro usa o CNPJ da empresa e o ambiente de homologacao (testes).
+                </p>
+                <Button
+                  onClick={async () => {
+                    if (!empresa) return
+                    setCadastrandoNF(true)
+                    try {
+                      const cnpj = empresa.cnpj?.replace(/\D/g, '')
+                      if (!cnpj) {
+                        toast({ title: 'CNPJ não cadastrado', description: 'Cadastre o CNPJ da empresa antes.', variant: 'destructive' })
+                        setCadastrandoNF(false)
+                        return
+                      }
+                      await cadastrarEmpresa({
+                        cnpj,
+                        razao_social: empresa.nome,
+                        nome_fantasia: empresa.nome,
+                        inscricao_estadual: '9999999999',
+                        endereco: {
+                          logradouro: 'Rua Teste',
+                          numero: '100',
+                          bairro: 'Centro',
+                          codigo_municipio: '4106902',
+                          nome_municipio: 'Curitiba',
+                          uf: 'PR',
+                          cep: '80000000',
+                        },
+                      })
+                      setNfCadastrada(true)
+                      toast({ title: 'Empresa cadastrada na Nuvem Fiscal', variant: 'success' })
+                    } catch (err: unknown) {
+                      const message = err instanceof Error ? err.message : 'Erro ao cadastrar'
+                      if (message.includes('already') || message.includes('ja existe') || message.includes('409')) {
+                        setNfCadastrada(true)
+                        toast({ title: 'Empresa ja estava cadastrada', variant: 'success' })
+                      } else {
+                        toast({ title: 'Erro ao cadastrar na Nuvem Fiscal', description: message, variant: 'destructive' })
+                      }
+                    } finally {
+                      setCadastrandoNF(false)
+                    }
+                  }}
+                  disabled={cadastrandoNF}
+                  className="gap-2 bg-violet-600 hover:bg-violet-500 shadow-lg shadow-violet-500/15 active:scale-[0.98] transition-transform"
+                >
+                  {cadastrandoNF ? <Loader2 className="h-4 w-4 animate-spin" /> : <Receipt className="h-4 w-4" />}
+                  {cadastrandoNF ? 'Cadastrando...' : 'Cadastrar na Nuvem Fiscal'}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Password Card */}
       <Card className="border-white/[0.06] overflow-hidden">

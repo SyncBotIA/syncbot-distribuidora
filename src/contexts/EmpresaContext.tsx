@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
+import { ALL_PERMISSION_KEYS } from '@/lib/permissions'
 import type { Empresa, EmpresaUsuario, Hierarquia } from '@/types/database'
 
 interface EmpresaContextType {
@@ -15,10 +16,8 @@ interface EmpresaContextType {
   clearEmpresa: () => void
   refreshEmpresas: () => Promise<void>
   isAdmin: boolean
-  isGerente: boolean
-  isVendedor: boolean
-  canManageProducts: boolean
-  canManageStock: boolean
+  permissoes: Set<string>
+  hasPermission: (key: string) => boolean
 }
 
 const EmpresaContext = createContext<EmpresaContextType | null>(null)
@@ -40,8 +39,8 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   const [empresas, setEmpresas] = useState<Empresa[]>([])
   const [empresaLoading, setEmpresaLoading] = useState(true)
   const [empresaSelecionada, setEmpresaSelecionada] = useState(false)
+  const [permissoes, setPermissoes] = useState<Set<string>>(new Set())
 
-  // Loading é true enquanto auth OU empresa estiver carregando (e se ainda não tem empresa)
   const loading = authLoading || empresaLoading
 
   const loadEmpresaData = useCallback(async (empresaId: string, usuarioId: string) => {
@@ -67,11 +66,29 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       const hierarquia = euData.hierarquias as unknown as Hierarquia
       setHierarquiaOrdem(hierarquia?.ordem ?? null)
       setHierarquiaNome(hierarquia?.nome ?? null)
+
+      const nomeLower = (hierarquia?.nome ?? '').toLowerCase()
+      const ehAdmin = nomeLower.includes('admin')
+
+      // Admin e Master sempre tem todas as permissoes
+      if (ehAdmin) {
+        setPermissoes(new Set(ALL_PERMISSION_KEYS))
+      } else if (hierarquia?.id) {
+        // Buscar permissoes da hierarquia no banco
+        const { data: permsData } = await supabase
+          .from('hierarquia_permissoes')
+          .select('permissao')
+          .eq('hierarquia_id', hierarquia.id)
+        setPermissoes(new Set((permsData ?? []).map(p => p.permissao)))
+      } else {
+        setPermissoes(new Set())
+      }
     } else {
-      // Master sem vínculo direto - dar acesso total
+      // Master sem vinculo direto - acesso total
       setEmpresaUsuario(null)
       setHierarquiaOrdem(1)
       setHierarquiaNome('Admin')
+      setPermissoes(new Set(ALL_PERMISSION_KEYS))
     }
 
     localStorage.setItem(STORAGE_KEY, empresaId)
@@ -112,12 +129,9 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario, isMaster])
 
-  // Efeito principal: restaurar empresa ao carregar
-  // Só executa uma vez por sessão para evitar re-fetch em navegações
   const initializedRef = useRef(false)
 
   useEffect(() => {
-    // Esperar auth terminar de carregar
     if (authLoading) return
 
     if (!usuario) {
@@ -126,14 +140,13 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       setHierarquiaOrdem(null)
       setHierarquiaNome(null)
       setEmpresas([])
+      setPermissoes(new Set())
       setEmpresaLoading(false)
       initializedRef.current = false
       return
     }
 
-    // Só rodar depois que usuario está disponível
     if (!usuario?.id) return
-
     if (initializedRef.current) return
     initializedRef.current = true
 
@@ -142,12 +155,10 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
     async function init() {
       setEmpresaLoading(true)
 
-      // 1. Tentar restaurar empresa do localStorage
       const restoredEmpresa = localStorage.getItem(STORAGE_KEY)
       if (restoredEmpresa) {
         const success = await loadEmpresaData(restoredEmpresa, usuario!.id)
         if (success && !cancelled) {
-          // Restaurou! Carregar lista de empresas em background
           const list = await loadEmpresas(usuario!.id, isMaster)
           if (!cancelled) {
             setEmpresas(list)
@@ -159,13 +170,11 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
 
       if (cancelled) return
 
-      // 2. Não tinha savedId ou falhou - carregar lista
       const list = await loadEmpresas(usuario!.id, isMaster)
       if (cancelled) return
 
       setEmpresas(list)
 
-      // 3. Auto-selecionar se só tem 1 empresa
       if (list.length === 1) {
         await loadEmpresaData(list[0].id, usuario!.id)
       }
@@ -196,15 +205,17 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
     setEmpresaUsuario(null)
     setHierarquiaOrdem(null)
     setHierarquiaNome(null)
+    setPermissoes(new Set())
     localStorage.removeItem(STORAGE_KEY)
   }
 
   const nomeLower = hierarquiaNome?.toLowerCase() || ''
   const isAdmin = nomeLower.includes('admin')
-  const isGerente = nomeLower.includes('gerente')
-  const isVendedor = hierarquiaNome !== null && !isAdmin && !isGerente
-  const canManageProducts = isAdmin || isGerente
-  const canManageStock = isAdmin || isGerente
+
+  function hasPermission(key: string): boolean {
+    if (isMaster || isAdmin) return true
+    return permissoes.has(key)
+  }
 
   return (
     <EmpresaContext.Provider value={{
@@ -214,14 +225,13 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
       hierarquiaNome,
       empresas,
       loading,
+      empresaSelecionada,
       setEmpresaId,
       clearEmpresa,
       refreshEmpresas,
       isAdmin,
-      isGerente,
-      isVendedor,
-      canManageProducts,
-      canManageStock,
+      permissoes,
+      hasPermission,
     }}>
       {children}
     </EmpresaContext.Provider>
