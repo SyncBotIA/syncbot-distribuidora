@@ -87,7 +87,7 @@ export default function Configuracoes() {
     : (usuario?.email?.[0] ?? 'U').toUpperCase()
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-lg">
+    <div className="space-y-5 animate-fade-in max-w-lg mx-auto sm:mx-0 sm:max-w-xl">
       {/* Page Header */}
       <div className="flex items-center gap-3">
         <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 ring-1 ring-blue-400/20">

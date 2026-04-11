@@ -149,8 +149,8 @@ export default function Hierarquias() {
             <ShieldCheck className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Hierarquias</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Estrutura organizacional e níveis de acesso</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Hierarquias</h1>
+            <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">Estrutura organizacional e níveis de acesso</p>
           </div>
         </div>
         <Button onClick={openCreate} className="gap-2 self-start">

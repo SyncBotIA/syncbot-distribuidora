@@ -261,7 +261,8 @@ export default function Dashboard() {
     },
   ]
 
-  const chartHeight = 220
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+  const chartHeight = isMobile ? 200 : 260
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
@@ -401,11 +402,11 @@ export default function Dashboard() {
                     nameKey="nome"
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={90}
+                    innerRadius={isMobile ? 35 : 55}
+                    outerRadius={isMobile ? 60 : 90}
                     paddingAngle={3}
-                    label={({ nome, quantidade }) => `${nome}: ${quantidade}`}
-                    labelLine={{ stroke: '#475569' }}
+                    label={isMobile ? false : ({ nome, quantidade }: { nome: string; quantidade: number }) => `${nome}: ${quantidade}`}
+                    labelLine={isMobile ? false : { stroke: '#475569' }}
                   >
                     {stats.produtosMaisVendidos.map((_, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />

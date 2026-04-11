@@ -655,7 +655,7 @@ export default function Pedidos() {
 
             {/* Items table */}
             {itens.length > 0 && (
-              <div className="rounded-xl border border-white/[0.06] overflow-hidden bg-white/[0.02]">
+              <div className="rounded-xl border border-white/[0.06] overflow-hidden bg-white/[0.02] overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -732,26 +732,28 @@ export default function Pedidos() {
                   </div>
                 )}
               </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produto</TableHead>
-                    <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead className="text-right">Pre&ccedil;o Un.</TableHead>
-                    <TableHead className="text-right">Subtotal</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pedidoItens.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-semibold">{(item.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
-                      <TableCell className="text-right">{item.quantidade}</TableCell>
-                      <TableCell className="text-right text-zinc-400">{formatCurrency(item.preco_unitario)}</TableCell>
-                      <TableCell className="text-right font-bold">{formatCurrency(item.subtotal)}</TableCell>
+              <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produto</TableHead>
+                      <TableHead className="text-right">Qtd</TableHead>
+                      <TableHead className="text-right">Pre&ccedil;o Un.</TableHead>
+                      <TableHead className="text-right">Subtotal</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {pedidoItens.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-semibold">{(item.produto as unknown as Produto)?.nome ?? '—'}</TableCell>
+                        <TableCell className="text-right">{item.quantidade}</TableCell>
+                        <TableCell className="text-right text-zinc-400">{formatCurrency(item.preco_unitario)}</TableCell>
+                        <TableCell className="text-right font-bold">{formatCurrency(item.subtotal)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </DialogContent>
