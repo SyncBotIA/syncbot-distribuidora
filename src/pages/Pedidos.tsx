@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText, Search, Filter, TrendingUp, Download, FileDown, Loader2, Receipt } from 'lucide-react'
+import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText, Search, Filter, TrendingUp, Download, FileDown, Loader2, Receipt, Pencil } from 'lucide-react'
 import { exportToCSV, pedidoColumns } from '@/lib/export'
 import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/utils'
 import { cadastrarEmpresa, emitirNFe, consultarNFe, baixarDANFE, baixarXML, downloadBlob, openBlob } from '@/lib/nuvemfiscal'
@@ -78,6 +78,7 @@ export default function Pedidos() {
   const [addQtd, setAddQtd] = useState('1')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [editingPedidoId, setEditingPedidoId] = useState<string | null>(null)
 
   const canAssignToOther = has('pedidos.atribuir_vendedor')
 
@@ -218,10 +219,42 @@ export default function Pedidos() {
   }
 
   function openCreateDialog() {
+    setEditingPedidoId(null)
     setItens([])
     setFormClienteId('')
     setFormVendedorId(usuario?.id ?? '')
     setFormObs('')
+    setDialogOpen(true)
+  }
+
+  async function openEditDialog(pedido: Pedido) {
+    setEditingPedidoId(pedido.id)
+    setFormClienteId(pedido.cliente_id ?? '')
+    setFormVendedorId(pedido.usuario_id ?? '')
+    setFormObs(pedido.observacao ?? '')
+
+    // Carregar itens do pedido
+    const { data: items } = await supabase
+      .from('pedido_itens')
+      .select('*, produtos(nome, preco_venda, desconto_maximo)')
+      .eq('pedido_id', pedido.id)
+
+    const loadedItens: PedidoItemForm[] = (items ?? []).map((item: any) => {
+      const prod = item.produtos
+      const precoOriginal = prod?.preco_venda ?? item.preco_unitario
+      const descPercent = precoOriginal > 0 ? Math.round(((precoOriginal - item.preco_unitario) / precoOriginal) * 10000) / 100 : 0
+      return {
+        produto_id: item.produto_id,
+        produto_nome: prod?.nome ?? 'Produto',
+        quantidade: item.quantidade,
+        preco_unitario: item.preco_unitario,
+        preco_original: precoOriginal,
+        desconto_percent: Math.max(0, descPercent),
+        desconto_maximo: prod?.desconto_maximo ?? 0,
+      }
+    })
+
+    setItens(loadedItens)
     setDialogOpen(true)
   }
 
@@ -284,42 +317,78 @@ export default function Pedidos() {
     const vendedorId = canAssignToOther && formVendedorId ? formVendedorId : usuario.id
 
     try {
-      const { data: pedido, error: pError } = await supabase
-        .from('pedidos')
-        .insert({
-          empresa_id: empresa.id,
-          usuario_id: vendedorId,
-          cliente_id: formClienteId || null,
-          status: 'rascunho',
-          valor_total: valorTotal,
-          observacao: formObs || null,
-        })
-        .select()
-        .single()
+      if (editingPedidoId) {
+        // === Edição de pedido existente ===
+        const { error: pError } = await supabase
+          .from('pedidos')
+          .update({
+            usuario_id: vendedorId,
+            cliente_id: formClienteId || null,
+            valor_total: valorTotal,
+            observacao: formObs || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingPedidoId)
 
-      if (pError) throw pError
+        if (pError) throw pError
 
-      const { error: iError } = await supabase.from('pedido_itens').insert(
-        itens.map((i) => ({
-          pedido_id: pedido.id,
-          produto_id: i.produto_id,
-          quantidade: i.quantidade,
-          preco_unitario: i.preco_unitario,
-          subtotal: i.quantidade * i.preco_unitario,
-        }))
-      )
+        // Remover itens antigos e inserir novos
+        await supabase.from('pedido_itens').delete().eq('pedido_id', editingPedidoId)
 
-      if (iError) throw iError
+        const { error: iError } = await supabase.from('pedido_itens').insert(
+          itens.map((i) => ({
+            pedido_id: editingPedidoId,
+            produto_id: i.produto_id,
+            quantidade: i.quantidade,
+            preco_unitario: i.preco_unitario,
+            subtotal: i.quantidade * i.preco_unitario,
+          }))
+        )
 
-      toast({ title: 'Pedido criado como rascunho', variant: 'success' })
+        if (iError) throw iError
+
+        toast({ title: 'Pedido atualizado', variant: 'success' })
+      } else {
+        // === Criação de novo pedido ===
+        const { data: pedido, error: pError } = await supabase
+          .from('pedidos')
+          .insert({
+            empresa_id: empresa.id,
+            usuario_id: vendedorId,
+            cliente_id: formClienteId || null,
+            status: 'rascunho',
+            valor_total: valorTotal,
+            observacao: formObs || null,
+          })
+          .select()
+          .single()
+
+        if (pError) throw pError
+
+        const { error: iError } = await supabase.from('pedido_itens').insert(
+          itens.map((i) => ({
+            pedido_id: pedido.id,
+            produto_id: i.produto_id,
+            quantidade: i.quantidade,
+            preco_unitario: i.preco_unitario,
+            subtotal: i.quantidade * i.preco_unitario,
+          }))
+        )
+
+        if (iError) throw iError
+
+        toast({ title: 'Pedido criado como rascunho', variant: 'success' })
+      }
+
       setDialogOpen(false)
+      setEditingPedidoId(null)
       setItens([])
       setFormClienteId('')
       setFormVendedorId('')
       setFormObs('')
       fetchPedidos()
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao criar pedido'
+      const message = err instanceof Error ? err.message : 'Erro ao salvar pedido'
       toast({ title: 'Erro', description: message, variant: 'destructive' })
     }
   }
@@ -764,6 +833,11 @@ export default function Pedidos() {
                               <Button variant="ghost" size="icon" onClick={() => viewDetail(p)} title="Detalhes">
                                 <Eye className="h-4 w-4" />
                               </Button>
+                              {p.status === 'rascunho' && has('pedidos.editar') && (
+                                <Button variant="ghost" size="icon" onClick={() => openEditDialog(p)} title="Editar">
+                                  <Pencil className="h-4 w-4 text-blue-400" />
+                                </Button>
+                              )}
                               {p.status === 'rascunho' && has('pedidos.confirmar') && (
                                 <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'confirmado')} title="Confirmar">
                                   <Check className="h-4 w-4 text-emerald-400" />
@@ -857,6 +931,17 @@ export default function Pedidos() {
                           >
                             <Eye className="h-4 w-4 text-zinc-400" />
                           </Button>
+                          {p.status === 'rascunho' && has('pedidos.editar') && (
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => openEditDialog(p)}
+                              className="h-10 w-10 rounded-lg bg-blue-500/10 border-blue-500/20 touch-manipulation"
+                              title="Editar"
+                            >
+                              <Pencil className="h-4 w-4 text-blue-400" />
+                            </Button>
+                          )}
                           {p.status === 'rascunho' && has('pedidos.confirmar') && (
                             <Button
                               variant="outline"
@@ -922,7 +1007,7 @@ export default function Pedidos() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClose={() => setDialogOpen(false)} className="max-w-2xl p-4 sm:p-6 w-full sm:max-w-lg md:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Novo Pedido</DialogTitle>
+            <DialogTitle>{editingPedidoId ? 'Editar Pedido' : 'Novo Pedido'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {canAssignToOther && (
@@ -1043,7 +1128,7 @@ export default function Pedidos() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} className="touch-manipulation">Cancelar</Button>
-            <Button onClick={handleCreatePedido} disabled={itens.length === 0 || hasDiscountError} className="touch-manipulation">Criar Pedido</Button>
+            <Button onClick={handleCreatePedido} disabled={itens.length === 0 || hasDiscountError} className="touch-manipulation">{editingPedidoId ? 'Salvar Pedido' : 'Criar Pedido'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
