@@ -25,7 +25,7 @@ type VendedorRow = EmpresaUsuario & { usuario?: { nome: string }; usuarios?: { n
 export default function Clientes() {
   const { usuario } = useAuth()
   const { empresa } = useEmpresa()
-  const { isMaster, isAdmin } = usePermissions()
+  const { isMaster, isAdmin, has, canCreateCliente, canEditCliente, canDeleteCliente } = usePermissions()
   const { toast } = useToast()
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [vendedores, setVendedores] = useState<VendedorRow[]>([])
@@ -173,7 +173,7 @@ export default function Clientes() {
     setEditing(null)
     setForm({
       nome: '', cnpj: '', cep: '', telefone: '', endereco: '', bairro: '', cidade: '', observacao: '',
-      vendedor_id: isAdmin ? '' : (usuario?.id ?? ''),
+      vendedor_id: has('clientes.atribuir_vendedor') ? '' : (usuario?.id ?? ''),
     })
     setDialogOpen(true)
   }
@@ -224,9 +224,7 @@ export default function Clientes() {
     fetchClientes()
   }
 
-  function canDeleteClient() {
-    return isMaster || isAdmin
-  }
+  // canDeleteCliente vem do usePermissions
 
   async function handleDelete(c: Cliente) {
     if (!confirm(`Remover cliente "${c.nome}"?`)) return
@@ -276,10 +274,12 @@ export default function Clientes() {
             <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">Gerencie sua base de clientes</p>
           </div>
         </div>
-        <Button onClick={openCreate} className="gap-2 self-start shadow-lg shadow-blue-500/20">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Novo Cliente</span>
-        </Button>
+        {canCreateCliente && (
+          <Button onClick={openCreate} className="gap-2 self-start shadow-lg shadow-blue-500/20">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Novo Cliente</span>
+          </Button>
+        )}
       </div>
 
       {/* Stats — glowing icons, gradient borders */}
@@ -357,7 +357,7 @@ export default function Clientes() {
                       <TableHead>Telefone</TableHead>
                       <TableHead>Cidade</TableHead>
                       <TableHead>Bairro</TableHead>
-                      {isAdmin && <TableHead>Vendedor</TableHead>}
+                      {has('clientes.atribuir_vendedor') && <TableHead>Vendedor</TableHead>}
                       <TableHead className="w-16">Acoes</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -376,16 +376,18 @@ export default function Clientes() {
                           </TableCell>
                           <TableCell>{c.cidade ?? <span className="text-zinc-600">—</span>}</TableCell>
                           <TableCell>{c.bairro ?? <span className="text-zinc-600">—</span>}</TableCell>
-                          {isAdmin && (
+                          {has('clientes.atribuir_vendedor') && (
                             <TableCell>
                               <Badge variant="outline">{c.vendedor?.usuario?.nome ?? '—'}</Badge>
                             </TableCell>
                           )}
                           <TableCell className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            {canDeleteClient() && (
+                            {canEditCliente(c.vendedor_id) && (
+                              <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canDeleteCliente && (
                               <Button variant="ghost" size="icon" onClick={() => handleDelete(c)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -395,7 +397,7 @@ export default function Clientes() {
                     ))}
                     {filtered.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={isAdmin ? 7 : 6}>
+                        <TableCell colSpan={has('clientes.atribuir_vendedor') ? 7 : 6}>
                           <div className="flex flex-col items-center justify-center py-14">
                             <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mb-4">
                               <UserCheck className="h-7 w-7 text-zinc-600" />
@@ -431,15 +433,17 @@ export default function Clientes() {
                         )}
                       </div>
                       <div className="flex gap-0.5 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEdit(c)}
-                          className="h-9 w-9 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 active:scale-90 transition-all"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        {canDeleteClient() && (
+                        {canEditCliente(c.vendedor_id) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEdit(c)}
+                            className="h-9 w-9 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 active:scale-90 transition-all"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDeleteCliente && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -470,7 +474,7 @@ export default function Clientes() {
                       </div>
                     )}
 
-                    {isAdmin && c.vendedor && (
+                    {has('clientes.atribuir_vendedor') && c.vendedor && (
                       <Badge variant="outline" className="text-xs">{c.vendedor?.usuario?.nome ?? '—'}</Badge>
                     )}
                   </div>
@@ -576,7 +580,7 @@ export default function Clientes() {
               <Label>Endereco</Label>
               <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, numero" />
             </div>
-            {isAdmin && (
+            {has('clientes.atribuir_vendedor') && (
               <div className="space-y-2">
                 <Label>Vendedor</Label>
                 <Select value={form.vendedor_id} onChange={(e) => setForm({ ...form, vendedor_id: e.target.value })}>

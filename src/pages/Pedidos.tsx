@@ -79,7 +79,7 @@ export default function Pedidos() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  const canAssignToOther = isMaster || isAdmin || has('pedidos.ver_todos')
+  const canAssignToOther = has('pedidos.atribuir_vendedor')
 
   useEffect(() => {
     if (empresa) {
@@ -601,8 +601,9 @@ export default function Pedidos() {
 
   function canCancel(pedido: Pedido) {
     if (pedido.status === 'cancelado' || pedido.status === 'entregue') return false
+    if (!has('pedidos.cancelar')) return false
     if (pedido.usuario_id === usuario?.id) return true
-    if (isMaster || isAdmin || has('pedidos.ver_todos')) return true
+    if (has('pedidos.ver_todos')) return true
     return false
   }
 
@@ -763,12 +764,12 @@ export default function Pedidos() {
                               <Button variant="ghost" size="icon" onClick={() => viewDetail(p)} title="Detalhes">
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              {p.status === 'rascunho' && (isMaster || isAdmin || has('pedidos.ver_todos')) && (
+                              {p.status === 'rascunho' && has('pedidos.confirmar') && (
                                 <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'confirmado')} title="Confirmar">
                                   <Check className="h-4 w-4 text-emerald-400" />
                                 </Button>
                               )}
-                              {p.status === 'confirmado' && (isMaster || isAdmin || has('pedidos.ver_todos')) && (
+                              {p.status === 'confirmado' && has('pedidos.marcar_entregue') && (
                                 <Button variant="ghost" size="icon" onClick={() => handleStatusChange(p, 'entregue')} title="Marcar entregue">
                                   <Truck className="h-4 w-4 text-blue-400" />
                                 </Button>
@@ -856,7 +857,7 @@ export default function Pedidos() {
                           >
                             <Eye className="h-4 w-4 text-zinc-400" />
                           </Button>
-                          {p.status === 'rascunho' && (isMaster || isAdmin || has('pedidos.ver_todos')) && (
+                          {p.status === 'rascunho' && has('pedidos.confirmar') && (
                             <Button
                               variant="outline"
                               size="icon"
@@ -867,7 +868,7 @@ export default function Pedidos() {
                               <Check className="h-4 w-4 text-emerald-400" />
                             </Button>
                           )}
-                          {p.status === 'confirmado' && (isMaster || isAdmin || has('pedidos.ver_todos')) && (
+                          {p.status === 'confirmado' && has('pedidos.marcar_entregue') && (
                             <Button
                               variant="outline"
                               size="icon"

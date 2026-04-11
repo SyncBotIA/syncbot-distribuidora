@@ -34,10 +34,10 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
     <div
       ref={ref}
       className={cn(
-        'relative z-50 w-full max-w-lg rounded-t-2xl rounded-b-none border-t border-x border-white/[0.08] border-b-0 bg-gradient-to-b from-[#0d1525] to-[#0a0f1a] shadow-2xl shadow-black/60 max-h-[92vh] overflow-y-auto',
+        'relative z-50 w-full max-w-lg rounded-t-2xl rounded-b-none border-t border-x border-white/[0.08] border-b-0 bg-gradient-to-b from-[#0d1525] to-[#0a0f1a] shadow-2xl shadow-black/60 max-h-[85vh] overflow-y-auto',
         'sm:rounded-2xl sm:border-b',
         'sm:static sm:inset-auto sm:mx-auto sm:max-h-[85vh] sm:max-w-lg',
-        'p-4 pb-24 sm:p-6',
+        'p-4 pb-8 sm:p-6',
         'animate-up-from-bottom',
         className
       )}
@@ -72,7 +72,8 @@ function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLPar
 function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn(
-      'flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-2 mt-4 pt-4 border-t border-white/[0.06]',
+      'sticky bottom-0 -mx-4 -mb-8 sm:-mx-6 sm:-mb-6 px-4 sm:px-6 py-4 bg-[#0a0f1a]/95 backdrop-blur-sm border-t border-white/[0.06]',
+      'flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-2',
       '[&>button]:w-full [&>button]:sm:w-auto',
       className
     )} {...props} />
