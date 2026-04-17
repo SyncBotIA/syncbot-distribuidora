@@ -11,6 +11,7 @@ import {
   Settings,
   ShieldCheck,
   Truck,
+  Factory,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -25,6 +26,7 @@ export default function MobileNav() {
     { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos', show: has('pedidos.ver') },
     { to: '/estoque', icon: Warehouse, label: 'Estoque', show: has('estoque.ver') },
     { to: '/entregas', icon: Truck, label: 'Entregas', show: has('entregas.ver') },
+    { to: '/fornecedores', icon: Factory, label: 'Fornec.', show: has('fornecedores.ver') },
     { to: '/usuarios', icon: Users, label: 'Equipe', show: has('usuarios.ver') },
     { to: '/hierarquias', icon: ShieldCheck, label: 'Cargos', show: isMaster || isAdmin },
     { to: '/configuracoes', icon: Settings, label: 'Mais', show: true },

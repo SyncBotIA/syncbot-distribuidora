@@ -36,6 +36,7 @@ export const PERMISSION_GROUPS = {
       'produtos.editar': 'Editar produto',
       'produtos.excluir': 'Excluir produto',
       'produtos.gerenciar_categorias': 'Gerenciar categorias',
+      'produtos.vincular_fornecedores': 'Vincular produtos a fornecedores',
     },
   },
   estoque: {
@@ -44,6 +45,18 @@ export const PERMISSION_GROUPS = {
       'estoque.ver': 'Acessar a tela de estoque',
       'estoque.movimentar': 'Criar nova movimentacao',
       'estoque.historico': 'Ver historico de movimentacoes',
+      'estoque.importar_planilha': 'Importar entradas de estoque via planilha',
+    },
+  },
+  fornecedores: {
+    label: 'Fornecedores',
+    permissions: {
+      'fornecedores.ver': 'Acessar a tela de fornecedores',
+      'fornecedores.criar': 'Criar novo fornecedor',
+      'fornecedores.editar': 'Editar fornecedor',
+      'fornecedores.excluir': 'Excluir fornecedor',
+      'fornecedores.importar': 'Importar fornecedores via planilha',
+      'fornecedores.vincular_produtos': 'Vincular produtos a fornecedores',
     },
   },
   clientes: {
@@ -90,6 +103,7 @@ export const ROUTE_PERMISSIONS: Record<string, string | null> = {
   '/produtos': 'produtos.ver',
   '/estoque': 'estoque.ver',
   '/clientes': 'clientes.ver',
+  '/fornecedores': 'fornecedores.ver',
   '/usuarios': 'usuarios.ver',
   '/entregas': 'entregas.ver',
   '/hierarquias': null, // admin-only, hardcoded

@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Zap,
   Truck,
+  Factory,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -31,6 +32,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     { to: '/hierarquias', label: 'Hierarquias', icon: ShieldCheck, show: isMaster || isAdmin },
     { to: '/usuarios', label: 'Usuários', icon: Users, show: has('usuarios.ver') },
     { to: '/clientes', label: 'Clientes', icon: UserCheck, show: has('clientes.ver') },
+    { to: '/fornecedores', label: 'Fornecedores', icon: Factory, show: has('fornecedores.ver') },
     { to: '/produtos', label: 'Produtos', icon: Package, show: has('produtos.ver') },
     { to: '/estoque', label: 'Estoque', icon: Warehouse, show: has('estoque.ver') },
     { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart, show: has('pedidos.ver') },

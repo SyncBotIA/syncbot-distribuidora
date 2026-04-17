@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Search, Trash2, Tags, Package, BarChart3, ArrowUpRight, ChevronDown, Download } from 'lucide-react'
 import { exportToCSV, produtoColumns } from '@/lib/export'
 import { formatCurrency } from '@/lib/utils'
+import ProdutoFornecedoresSection from '@/components/produtos/ProdutoFornecedoresSection'
 import type { Produto, Categoria } from '@/types/database'
 
 function CurrencyInput({ value, onChange, placeholder }: { value: string; onChange: (val: string) => void; placeholder?: string }) {
@@ -499,7 +500,7 @@ export default function Produtos() {
               <DialogTitle>{editing ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
             </div>
           </DialogHeader>
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-xs">Nome</Label>
@@ -551,6 +552,8 @@ export default function Produtos() {
                 <Input type="number" value={form.estoque_minimo} onChange={(e) => setForm({ ...form, estoque_minimo: e.target.value })} placeholder="0" />
               </div>
             </div>
+
+            {editing && <ProdutoFornecedoresSection produtoId={editing.id} />}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>

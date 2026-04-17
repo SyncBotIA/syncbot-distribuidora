@@ -16,15 +16,18 @@ import { Badge } from '@/components/ui/badge'
 import {
   Plus, AlertTriangle, Search, Warehouse, PackageCheck, PackageMinus,
   Package, ArrowUpRight, ArrowDownLeft, SlidersHorizontal, History,
-  Barcode, TrendingDown, ArrowRightLeft, ChevronDown, ChevronRight
+  Barcode, TrendingDown, ArrowRightLeft, ChevronDown, ChevronRight,
+  Factory, FileText
 } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatCurrency } from '@/lib/utils'
 import type { Produto, EstoqueMovimentacao } from '@/types/database'
+import EntradaFornecedorDialog from '@/components/estoque/EntradaFornecedorDialog'
 
 /** Supabase joins return nested data under table name keys */
 type MovimentacaoJoinRow = EstoqueMovimentacao & {
   produtos?: { nome: string; sku: string | null }
   usuarios?: { nome: string }
+  fornecedores?: { razao_social: string; nome_fantasia: string | null }
 }
 
 export default function Estoque() {
@@ -36,6 +39,7 @@ export default function Estoque() {
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoJoinRow[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [entradaFornecedorOpen, setEntradaFornecedorOpen] = useState(false)
   const [tab, setTab] = useState<'estoque' | 'historico'>('estoque')
   const [search, setSearch] = useState('')
 
@@ -82,7 +86,7 @@ export default function Estoque() {
   async function fetchMovimentacoes() {
     const { data } = await supabase
       .from('estoque_movimentacoes')
-      .select('*, produtos(nome, sku), usuarios(nome)')
+      .select('*, produtos(nome, sku), usuarios(nome), fornecedores(razao_social, nome_fantasia)')
       .eq('empresa_id', empresa!.id)
       .order('created_at', { ascending: false })
       .limit(100)
@@ -118,7 +122,7 @@ export default function Estoque() {
     return p.nome.toLowerCase().includes(q) || (p.sku ?? '').toLowerCase().includes(q)
   })
 
-  // Agrupa movimentações: pedido_id agrupa, null fica individual
+  // Agrupa movimentações: pedido_id ou lote_id agrupa, null fica individual
   type MovGroup = {
     key: string
     tipo: EstoqueMovimentacao['tipo']
@@ -126,19 +130,27 @@ export default function Estoque() {
     observacao: string | null
     responsavel: string
     items: MovimentacaoJoinRow[]
+    fornecedor?: { razao_social: string; nome_fantasia: string | null } | null
+    numero_nota_fiscal?: string | null
+    lote_id?: string | null
   }
 
   const groupedMovimentacoes: MovGroup[] = (() => {
-    // Agrupa por pedido_id + tipo (confirmação e cancelamento do mesmo pedido ficam separados)
-    const pedidoTipoMap = new Map<string, MovimentacaoJoinRow[]>()
+    // Agrupa por lote_id (entrada de fornecedor) ou pedido_id + tipo
+    const groupMap = new Map<string, MovimentacaoJoinRow[]>()
     const standalone: MovimentacaoJoinRow[] = []
 
     for (const m of movimentacoes) {
-      if (m.pedido_id) {
-        const groupKey = `${m.pedido_id}::${m.tipo}`
-        const existing = pedidoTipoMap.get(groupKey)
+      if (m.lote_id) {
+        const groupKey = `lote:${m.lote_id}`
+        const existing = groupMap.get(groupKey)
         if (existing) existing.push(m)
-        else pedidoTipoMap.set(groupKey, [m])
+        else groupMap.set(groupKey, [m])
+      } else if (m.pedido_id) {
+        const groupKey = `pedido:${m.pedido_id}::${m.tipo}`
+        const existing = groupMap.get(groupKey)
+        if (existing) existing.push(m)
+        else groupMap.set(groupKey, [m])
       } else {
         standalone.push(m)
       }
@@ -146,7 +158,7 @@ export default function Estoque() {
 
     const groups: MovGroup[] = []
 
-    for (const [groupKey, items] of pedidoTipoMap) {
+    for (const [groupKey, items] of groupMap) {
       const first = items[0]
       groups.push({
         key: groupKey,
@@ -155,6 +167,9 @@ export default function Estoque() {
         observacao: first.observacao,
         responsavel: first.usuarios?.nome ?? '—',
         items,
+        fornecedor: first.fornecedores ?? null,
+        numero_nota_fiscal: first.numero_nota_fiscal ?? null,
+        lote_id: first.lote_id ?? null,
       })
     }
 
@@ -166,6 +181,9 @@ export default function Estoque() {
         observacao: m.observacao,
         responsavel: m.usuarios?.nome ?? '—',
         items: [m],
+        fornecedor: m.fornecedores ?? null,
+        numero_nota_fiscal: m.numero_nota_fiscal ?? null,
+        lote_id: m.lote_id ?? null,
       })
     }
 
@@ -235,13 +253,25 @@ export default function Estoque() {
           </div>
         </div>
         {canManageStock && (
-          <Button
-            onClick={() => { setDialogOpen(true); setFormProdutoId(''); setFormTipo('entrada'); setFormQuantidade(''); setFormObs('') }}
-            className="gap-2 self-start touch-manipulation"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nova Movimentação</span>
-          </Button>
+          <div className="flex flex-wrap gap-2 self-start">
+            <Button
+              onClick={() => setEntradaFornecedorOpen(true)}
+              className="gap-2 touch-manipulation"
+            >
+              <Factory className="h-4 w-4" />
+              <span className="hidden sm:inline">Entrada de Fornecedor</span>
+              <span className="sm:hidden">Entrada NF</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => { setDialogOpen(true); setFormProdutoId(''); setFormTipo('entrada'); setFormQuantidade(''); setFormObs('') }}
+              className="gap-2 touch-manipulation"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Nova Movimentação</span>
+              <span className="sm:hidden">Movim.</span>
+            </Button>
+          </div>
         )}
       </div>
 
@@ -557,13 +587,27 @@ export default function Estoque() {
                           </TableCell>
                           <TableCell className="text-zinc-400">{formatDate(g.created_at)}</TableCell>
                           <TableCell>
-                            <Badge variant={tipoVariant[g.tipo]}>{tipoLabel[g.tipo]}</Badge>
+                            <div className="flex flex-col gap-1">
+                              <Badge variant={tipoVariant[g.tipo]}>{tipoLabel[g.tipo]}</Badge>
+                              {g.numero_nota_fiscal && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
+                                  <FileText className="h-3 w-3" />
+                                  NF {g.numero_nota_fiscal}
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="font-semibold">
                             {hasMultiple
                               ? <span className="text-zinc-300">{g.items.length} produtos</span>
                               : productNames
                             }
+                            {g.fornecedor && (
+                              <div className="text-[11px] text-zinc-500 font-normal mt-0.5 flex items-center gap-1">
+                                <Factory className="h-3 w-3" />
+                                {g.fornecedor.nome_fantasia || g.fornecedor.razao_social}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell className="text-right font-mono font-semibold">{totalQtd}</TableCell>
                           <TableCell>{g.responsavel}</TableCell>
@@ -581,7 +625,14 @@ export default function Estoque() {
                                 <span className="text-[11px] text-zinc-600 font-mono ml-2">({item.produtos.sku})</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-right font-mono text-zinc-400">{item.quantidade}</TableCell>
+                            <TableCell className="text-right font-mono text-zinc-400">
+                              {item.quantidade}
+                              {item.preco_custo_unitario != null && (
+                                <div className="text-[10px] text-zinc-600 font-normal">
+                                  {formatCurrency(item.preco_custo_unitario)} un.
+                                </div>
+                              )}
+                            </TableCell>
                             <TableCell></TableCell>
                             <TableCell></TableCell>
                           </TableRow>
@@ -660,6 +711,22 @@ export default function Estoque() {
                             <p className="text-[11px] text-zinc-600">{formatDate(g.created_at)}</p>
                           </div>
                           <p className="text-[11px] text-zinc-500 mt-1">por {g.responsavel}</p>
+                          {(g.fornecedor || g.numero_nota_fiscal) && (
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                              {g.fornecedor && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-300 text-[10px] font-medium ring-1 ring-blue-500/20">
+                                  <Factory className="h-2.5 w-2.5" />
+                                  {g.fornecedor.nome_fantasia || g.fornecedor.razao_social}
+                                </span>
+                              )}
+                              {g.numero_nota_fiscal && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.04] text-zinc-400 text-[10px] font-mono ring-1 ring-white/[0.06]">
+                                  <FileText className="h-2.5 w-2.5" />
+                                  NF {g.numero_nota_fiscal}
+                                </span>
+                              )}
+                            </div>
+                          )}
                           {g.observacao && (
                             <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2 italic">"{g.observacao}"</p>
                           )}
@@ -744,6 +811,12 @@ export default function Estoque() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EntradaFornecedorDialog
+        open={entradaFornecedorOpen}
+        onClose={() => setEntradaFornecedorOpen(false)}
+        onSaved={() => { fetchEstoque(); fetchMovimentacoes() }}
+      />
     </div>
   )
 }

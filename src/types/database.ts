@@ -61,6 +61,16 @@ export interface Database {
         Insert: Omit<HierarquiaPermissao, 'id' | 'created_at'>
         Update: Partial<Omit<HierarquiaPermissao, 'id' | 'created_at'>>
       }
+      fornecedores: {
+        Row: Fornecedor
+        Insert: Omit<Fornecedor, 'id' | 'created_at'>
+        Update: Partial<Omit<Fornecedor, 'id' | 'created_at'>>
+      }
+      produto_fornecedores: {
+        Row: ProdutoFornecedor
+        Insert: Omit<ProdutoFornecedor, 'id' | 'created_at'>
+        Update: Partial<Omit<ProdutoFornecedor, 'id' | 'created_at'>>
+      }
     }
     Functions: {
       get_subordinados: {
@@ -159,10 +169,15 @@ export interface EstoqueMovimentacao {
   pedido_id: string | null
   usuario_id: string
   observacao: string | null
+  fornecedor_id: string | null
+  numero_nota_fiscal: string | null
+  preco_custo_unitario: number | null
+  lote_id: string | null
   created_at: string
   // Joined
   produto?: Produto
   usuario?: Usuario
+  fornecedor?: Fornecedor
 }
 
 export interface Pedido {
@@ -228,4 +243,64 @@ export interface HierarquiaPermissao {
   hierarquia_id: string
   permissao: string
   created_at: string
+}
+
+export interface Fornecedor {
+  id: string
+  empresa_id: string
+  // Identificação
+  razao_social: string
+  nome_fantasia: string | null
+  cnpj: string | null
+  inscricao_estadual: string | null
+  inscricao_municipal: string | null
+  // Endereço
+  cep: string | null
+  logradouro: string | null
+  numero: string | null
+  complemento: string | null
+  bairro: string | null
+  cidade: string | null
+  uf: string | null
+  // Contato
+  telefone: string | null
+  celular: string | null
+  email: string | null
+  site: string | null
+  contato_nome: string | null
+  contato_cargo: string | null
+  // Comercial
+  prazo_pagamento_dias: number | null
+  forma_pagamento: string | null
+  valor_minimo_pedido: number | null
+  prazo_entrega_dias: number | null
+  condicoes_especiais: string | null
+  // Bancário
+  banco: string | null
+  agencia: string | null
+  conta: string | null
+  chave_pix: string | null
+  // Outros
+  observacao: string | null
+  ativo: boolean
+  created_at: string
+}
+
+export interface ProdutoFornecedor {
+  id: string
+  produto_id: string
+  fornecedor_id: string
+  codigo_no_fornecedor: string | null
+  preco_custo_ultimo: number | null
+  data_ultimo_preco: string | null
+  prazo_entrega_dias: number | null
+  quantidade_minima_compra: number | null
+  embalagem: string | null
+  fornecedor_preferencial: boolean
+  observacao: string | null
+  ativo: boolean
+  created_at: string
+  // Joined
+  produto?: Produto
+  fornecedor?: Fornecedor
 }

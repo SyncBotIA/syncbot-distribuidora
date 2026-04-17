@@ -18,6 +18,7 @@ const Produtos = lazy(() => import('@/pages/Produtos'))
 const Estoque = lazy(() => import('@/pages/Estoque'))
 const Pedidos = lazy(() => import('@/pages/Pedidos'))
 const Clientes = lazy(() => import('@/pages/Clientes'))
+const Fornecedores = lazy(() => import('@/pages/Fornecedores'))
 const MasterPanel = lazy(() => import('@/pages/MasterPanel'))
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
 const Entregas = lazy(() => import('@/pages/Entregas'))
@@ -122,6 +123,7 @@ function AppRoutes() {
           <Route path="/hierarquias" element={<Hierarquias />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/clientes" element={<Clientes />} />
+          <Route path="/fornecedores" element={<Fornecedores />} />
           <Route path="/produtos" element={<Produtos />} />
           <Route path="/estoque" element={<Estoque />} />
           <Route path="/pedidos" element={<Pedidos />} />

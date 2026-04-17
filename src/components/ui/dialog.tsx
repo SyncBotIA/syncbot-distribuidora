@@ -38,13 +38,11 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
     <div
       ref={ref}
       className={cn(
-        // Mobile: fullscreen com scroll
+        // Mobile: fullscreen com scroll | Desktop: dialog centralizado
         'relative z-50 w-full flex-1 bg-gradient-to-b from-[var(--theme-dialog-from)] to-[var(--theme-dialog-to)] shadow-2xl shadow-black/40 overflow-y-auto overscroll-contain',
         'border-[var(--theme-subtle-border)]',
-        // Desktop: dialog centralizado com bordas arredondadas
-        'sm:flex-none sm:max-w-lg sm:max-h-[85vh] sm:rounded-2xl sm:border',
-        // Padding
-        'p-4 pb-4 sm:p-6',
+        'sm:flex-none sm:max-w-lg sm:max-h-[90vh] sm:rounded-2xl sm:border',
+        'p-4 sm:p-6',
         className
       )}
       {...props}
@@ -75,11 +73,16 @@ function DialogDescription({ className, ...props }: React.HTMLAttributes<HTMLPar
   return <p className={cn('text-sm text-muted-foreground', className)} {...props} />
 }
 
+/**
+ * DialogFooter: rodape normal (nao-sticky) com separador visual.
+ * Como DialogContent tem padding simetrico e rola tudo junto, evita-se o bug
+ * de o footer sticky com backdrop-blur sobrepor inputs da ultima linha.
+ */
 function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn(
-      'sticky bottom-0 -mx-4 -mb-4 sm:-mx-6 sm:-mb-6 px-4 sm:px-6 py-4 bg-[var(--theme-dialog-footer-bg)] backdrop-blur-sm border-t border-[var(--theme-subtle-border)]',
-      'flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-2',
+      'mt-6 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 px-4 sm:px-6 py-4 border-t border-[var(--theme-subtle-border)] bg-[var(--theme-dialog-footer-bg)]',
+      'flex flex-col-reverse sm:flex-row sm:justify-end gap-2',
       '[&>button]:w-full [&>button]:sm:w-auto',
       className
     )} {...props} />

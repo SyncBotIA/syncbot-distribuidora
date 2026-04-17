@@ -86,3 +86,14 @@ export const clienteColumns: ExportColumn[] = [
   { key: 'cidade', label: 'Cidade' },
   { key: 'bairro', label: 'Bairro' },
 ]
+
+export const fornecedorColumns: ExportColumn[] = [
+  { key: 'razao_social', label: 'Razao Social' },
+  { key: 'nome_fantasia', label: 'Nome Fantasia' },
+  { key: 'cnpj', label: 'CNPJ' },
+  { key: 'telefone', label: 'Telefone' },
+  { key: 'email', label: 'Email' },
+  { key: 'cidade', label: 'Cidade' },
+  { key: 'uf', label: 'UF' },
+  { key: 'contato_nome', label: 'Contato' },
+]
