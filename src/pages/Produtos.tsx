@@ -123,14 +123,15 @@ export default function Produtos() {
       const { error } = await supabase.from('produtos').update(payload).eq('id', editing.id)
       if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return }
       toast({ title: 'Produto atualizado', variant: 'success' })
+      setDialogOpen(false)
+      fetchProdutos()
     } else {
-      const { error } = await supabase.from('produtos').insert(payload)
-      if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return }
-      toast({ title: 'Produto criado', variant: 'success' })
+      const { data, error } = await supabase.from('produtos').insert(payload).select('*, categoria:categorias(*)').single()
+      if (error || !data) { toast({ title: 'Erro', description: error?.message ?? 'Falha ao criar', variant: 'destructive' }); return }
+      toast({ title: 'Produto criado', description: 'Agora vincule os fornecedores abaixo (opcional).', variant: 'success' })
+      setEditing(data as Produto)
+      fetchProdutos()
     }
-
-    setDialogOpen(false)
-    fetchProdutos()
   }
 
   async function handleDelete(p: Produto) {

@@ -17,7 +17,16 @@ import { Plus, Eye, XCircle, Check, Truck, ShoppingCart, FileText, Search, Filte
 import { exportToCSV, pedidoColumns } from '@/lib/export'
 import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/utils'
 import { cadastrarEmpresa, emitirNFe, consultarNFe, baixarDANFE, baixarXML, downloadBlob, openBlob } from '@/lib/nuvemfiscal'
-import type { Pedido, Produto, PedidoItem, Usuario, Cliente, EmpresaUsuario, Hierarquia } from '@/types/database'
+import type { Pedido, Produto, PedidoItem, Usuario, Cliente, EmpresaUsuario, Hierarquia, CondicaoPagamento, FormaPagamento } from '@/types/database'
+
+function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
+      <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">{label}</p>
+      {children}
+    </div>
+  )
+}
 
 function CurrencyInput({ value, onChange, placeholder }: { value: number; onChange: (val: string) => void; placeholder?: string }) {
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -74,6 +83,12 @@ export default function Pedidos() {
   const [formClienteId, setFormClienteId] = useState('')
   const [formVendedorId, setFormVendedorId] = useState('')
   const [formObs, setFormObs] = useState('')
+  const [formCondicaoId, setFormCondicaoId] = useState('')
+  const [formFormaId, setFormFormaId] = useState('')
+  const [formEmiteNF, setFormEmiteNF] = useState(false)
+  const [clienteCondicoes, setClienteCondicoes] = useState<CondicaoPagamento[]>([])
+  const [clienteFormas, setClienteFormas] = useState<FormaPagamento[]>([])
+  const [loadingPagOpcoes, setLoadingPagOpcoes] = useState(false)
   const [addProdutoId, setAddProdutoId] = useState('')
   const [addQtd, setAddQtd] = useState('1')
   const [search, setSearch] = useState('')
@@ -94,10 +109,47 @@ export default function Pedidos() {
     }
   }, [empresa])
 
+  useEffect(() => {
+    if (!formClienteId) {
+      setClienteCondicoes([])
+      setClienteFormas([])
+      setFormCondicaoId('')
+      setFormFormaId('')
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      setLoadingPagOpcoes(true)
+      const [cc, cf] = await Promise.all([
+        supabase
+          .from('cliente_condicoes_pagamento')
+          .select('condicao_pagamento:condicoes_pagamento(*)')
+          .eq('cliente_id', formClienteId),
+        supabase
+          .from('cliente_formas_pagamento')
+          .select('forma_pagamento:formas_pagamento(*)')
+          .eq('cliente_id', formClienteId),
+      ])
+      if (cancelled) return
+      const conds = ((cc.data ?? []) as Array<{ condicao_pagamento: CondicaoPagamento | null }>)
+        .map((r) => r.condicao_pagamento)
+        .filter((x): x is CondicaoPagamento => !!x && x.ativo)
+      const formasList = ((cf.data ?? []) as Array<{ forma_pagamento: FormaPagamento | null }>)
+        .map((r) => r.forma_pagamento)
+        .filter((x): x is FormaPagamento => !!x && x.ativo)
+      setClienteCondicoes(conds)
+      setClienteFormas(formasList)
+      setFormCondicaoId((prev) => (conds.some((c) => c.id === prev) ? prev : ''))
+      setFormFormaId((prev) => (formasList.some((f) => f.id === prev) ? prev : ''))
+      setLoadingPagOpcoes(false)
+    })()
+    return () => { cancelled = true }
+  }, [formClienteId])
+
   async function fetchPedidos() {
     const { data } = await supabase
       .from('pedidos')
-      .select('*, usuario:usuarios(nome), cliente:clientes(nome)')
+      .select('*, usuario:usuarios(nome), cliente:clientes(nome, cnpj, telefone, cidade, bairro, endereco), condicao_pagamento:condicoes_pagamento(nome), forma_pagamento:formas_pagamento(nome)')
       .eq('empresa_id', empresa!.id)
       .order('created_at', { ascending: false })
 
@@ -224,6 +276,9 @@ export default function Pedidos() {
     setFormClienteId('')
     setFormVendedorId(usuario?.id ?? '')
     setFormObs('')
+    setFormCondicaoId('')
+    setFormFormaId('')
+    setFormEmiteNF(false)
     setDialogOpen(true)
   }
 
@@ -232,6 +287,9 @@ export default function Pedidos() {
     setFormClienteId(pedido.cliente_id ?? '')
     setFormVendedorId(pedido.usuario_id ?? '')
     setFormObs(pedido.observacao ?? '')
+    setFormCondicaoId(pedido.condicao_pagamento_id ?? '')
+    setFormFormaId(pedido.forma_pagamento_id ?? '')
+    setFormEmiteNF(!!pedido.emite_nota_fiscal)
 
     // Carregar itens do pedido
     const { data: items } = await supabase
@@ -314,6 +372,10 @@ export default function Pedidos() {
   async function handleCreatePedido() {
     if (!empresa || !usuario || itens.length === 0) return
 
+    if (!formClienteId) return toast({ title: 'Selecione um cliente', variant: 'destructive' })
+    if (!formCondicaoId) return toast({ title: 'Selecione a condicao de pagamento', variant: 'destructive' })
+    if (!formFormaId) return toast({ title: 'Selecione a forma de pagamento', variant: 'destructive' })
+
     const vendedorId = canAssignToOther && formVendedorId ? formVendedorId : usuario.id
 
     try {
@@ -326,6 +388,9 @@ export default function Pedidos() {
             cliente_id: formClienteId || null,
             valor_total: valorTotal,
             observacao: formObs || null,
+            condicao_pagamento_id: formCondicaoId,
+            forma_pagamento_id: formFormaId,
+            emite_nota_fiscal: formEmiteNF,
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingPedidoId)
@@ -359,6 +424,9 @@ export default function Pedidos() {
             status: 'rascunho',
             valor_total: valorTotal,
             observacao: formObs || null,
+            condicao_pagamento_id: formCondicaoId,
+            forma_pagamento_id: formFormaId,
+            emite_nota_fiscal: formEmiteNF,
           })
           .select()
           .single()
@@ -386,6 +454,9 @@ export default function Pedidos() {
       setFormClienteId('')
       setFormVendedorId('')
       setFormObs('')
+      setFormCondicaoId('')
+      setFormFormaId('')
+      setFormEmiteNF(false)
       fetchPedidos()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar pedido'
@@ -1029,14 +1100,71 @@ export default function Pedidos() {
             )}
 
             <div className="space-y-2">
-              <Label>Cliente</Label>
+              <Label>Cliente *</Label>
               <Select value={formClienteId} onChange={(e) => setFormClienteId(e.target.value)}>
-                <option value="">Sem cliente</option>
+                <option value="">Selecione um cliente...</option>
                 {clientes.map((c) => (
                   <option key={c.id} value={c.id}>{c.nome}{c.cidade ? ` — ${c.cidade}` : ''}</option>
                 ))}
               </Select>
             </div>
+
+            {formClienteId && !loadingPagOpcoes && (clienteCondicoes.length === 0 || clienteFormas.length === 0) && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+                Este cliente não possui {clienteCondicoes.length === 0 ? 'condições' : 'formas'} de pagamento vinculadas.
+                Edite o cliente em <b>Clientes</b> para liberar opções antes de criar o pedido.
+              </div>
+            )}
+
+            {formClienteId && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Condição de pagamento *</Label>
+                  <Select
+                    value={formCondicaoId}
+                    onChange={(e) => setFormCondicaoId(e.target.value)}
+                    disabled={loadingPagOpcoes || clienteCondicoes.length === 0}
+                  >
+                    <option value="">Selecione...</option>
+                    {clienteCondicoes.map((c) => (
+                      <option key={c.id} value={c.id}>{c.nome}</option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Forma de pagamento *</Label>
+                  <Select
+                    value={formFormaId}
+                    onChange={(e) => setFormFormaId(e.target.value)}
+                    disabled={loadingPagOpcoes || clienteFormas.length === 0}
+                  >
+                    <option value="">Selecione...</option>
+                    {clienteFormas.map((f) => (
+                      <option key={f.id} value={f.id}>{f.nome}</option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {formClienteId && (
+              <div className="flex items-center justify-between rounded-xl border border-[var(--theme-subtle-border)] p-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Emitir nota fiscal</p>
+                  <p className="text-[11px] text-muted-foreground">Marque se este pedido deve gerar NF</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={formEmiteNF}
+                    onChange={(e) => setFormEmiteNF(e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-zinc-600/40 rounded-full peer peer-checked:bg-blue-600 transition-colors
+                    after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:after:translate-x-5" />
+                </label>
+              </div>
+            )}
 
             {/* Product add section — mobile friendly */}
             <div className="space-y-3">
@@ -1128,7 +1256,7 @@ export default function Pedidos() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} className="touch-manipulation">Cancelar</Button>
-            <Button onClick={handleCreatePedido} disabled={itens.length === 0 || hasDiscountError} className="touch-manipulation">{editingPedidoId ? 'Salvar Pedido' : 'Criar Pedido'}</Button>
+            <Button onClick={handleCreatePedido} disabled={itens.length === 0 || hasDiscountError || !formClienteId || !formCondicaoId || !formFormaId} className="touch-manipulation">{editingPedidoId ? 'Salvar Pedido' : 'Criar Pedido'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1142,22 +1270,46 @@ export default function Pedidos() {
           {selectedPedido && (
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
-                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Status</p>
+                <InfoCard label="Status">
                   <Badge variant={statusConfig[selectedPedido.status].variant}>
                     {statusConfig[selectedPedido.status].label}
                   </Badge>
-                </div>
-                <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
-                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Data</p>
+                </InfoCard>
+                <InfoCard label="Data">
                   <p className="text-sm font-medium">{formatDate(selectedPedido.created_at)}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
-                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Valor Total</p>
+                </InfoCard>
+                <InfoCard label="Valor Total">
                   <p className="text-sm font-bold text-emerald-400">{formatCurrency(selectedPedido.valor_total)}</p>
-                </div>
+                </InfoCard>
+                <InfoCard label="Emite NF">
+                  <p className="text-sm font-medium">{selectedPedido.emite_nota_fiscal ? 'Sim' : 'Nao'}</p>
+                </InfoCard>
+                <InfoCard label="Vendedor">
+                  <p className="text-sm font-medium truncate">{selectedPedido.usuario?.nome ?? '—'}</p>
+                </InfoCard>
+                <InfoCard label="Cliente">
+                  <p className="text-sm font-medium truncate">{selectedPedido.cliente?.nome ?? '—'}</p>
+                </InfoCard>
+                <InfoCard label="Condicao Pagamento">
+                  <p className="text-sm font-medium truncate">{selectedPedido.condicao_pagamento?.nome ?? '—'}</p>
+                </InfoCard>
+                <InfoCard label="Forma Pagamento">
+                  <p className="text-sm font-medium truncate">{selectedPedido.forma_pagamento?.nome ?? '—'}</p>
+                </InfoCard>
+                {selectedPedido.cliente && (selectedPedido.cliente.telefone || selectedPedido.cliente.cnpj) && (
+                  <div className="col-span-2 p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
+                    <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Dados do Cliente</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-300">
+                      {selectedPedido.cliente.cnpj && <span>CNPJ: <span className="font-mono">{selectedPedido.cliente.cnpj}</span></span>}
+                      {selectedPedido.cliente.telefone && <span>Tel: {selectedPedido.cliente.telefone}</span>}
+                      {(selectedPedido.cliente.cidade || selectedPedido.cliente.bairro || selectedPedido.cliente.endereco) && (
+                        <span>{[selectedPedido.cliente.endereco, selectedPedido.cliente.bairro, selectedPedido.cliente.cidade].filter(Boolean).join(' · ')}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {selectedPedido.observacao && (
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
+                  <div className="col-span-2 p-3 rounded-xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.06]">
                     <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Observa&ccedil;&atilde;o</p>
                     <p className="text-sm">{selectedPedido.observacao}</p>
                   </div>

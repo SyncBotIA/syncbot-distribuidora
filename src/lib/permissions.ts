@@ -86,6 +86,12 @@ export const PERMISSION_GROUPS = {
       'entregas.confirmar': 'Confirmar entrega com foto',
     },
   },
+  configuracoes: {
+    label: 'Configuracoes',
+    permissions: {
+      'configuracoes.pagamento': 'Gerenciar condicoes e formas de pagamento',
+    },
+  },
 } as const
 
 /** Todas as chaves de permissao */
@@ -108,4 +114,5 @@ export const ROUTE_PERMISSIONS: Record<string, string | null> = {
   '/entregas': 'entregas.ver',
   '/hierarquias': null, // admin-only, hardcoded
   '/configuracoes': null, // sempre visivel
+  '/configuracoes/pagamento': 'configuracoes.pagamento',
 }

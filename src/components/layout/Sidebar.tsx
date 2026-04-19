@@ -15,6 +15,7 @@ import {
   Zap,
   Truck,
   Factory,
+  Wallet,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -37,6 +38,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     { to: '/estoque', label: 'Estoque', icon: Warehouse, show: has('estoque.ver') },
     { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart, show: has('pedidos.ver') },
     { to: '/entregas', label: 'Entregas', icon: Truck, show: has('entregas.ver') },
+    { to: '/configuracoes/pagamento', label: 'Pagamento', icon: Wallet, show: has('configuracoes.pagamento') },
     { to: '/configuracoes', label: 'Configurações', icon: Settings, show: true },
   ]
 

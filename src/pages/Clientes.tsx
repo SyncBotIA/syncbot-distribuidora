@@ -15,9 +15,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Search, Phone, Trash2, Loader2, UserCheck, MapPin, Building, Building2, Sparkles, Download } from 'lucide-react'
+import { Plus, Pencil, Search, Phone, Trash2, Loader2, UserCheck, MapPin, Building, Building2, Sparkles, Download, Calendar, CreditCard } from 'lucide-react'
 import { exportToCSV, clienteColumns } from '@/lib/export'
-import type { Cliente, Usuario, EmpresaUsuario } from '@/types/database'
+import type { Cliente, Usuario, EmpresaUsuario, CondicaoPagamento, FormaPagamento } from '@/types/database'
 
 /** Supabase returns joined data; the clientes query aliases as "usuario", the vendedores query uses default "usuarios" */
 type VendedorRow = EmpresaUsuario & { usuario?: { nome: string }; usuarios?: { nome: string } }
@@ -40,12 +40,36 @@ export default function Clientes() {
     nome: '', cnpj: '', cep: '', telefone: '', endereco: '', bairro: '', cidade: '', observacao: '', vendedor_id: '',
   })
 
+  const [condicoes, setCondicoes] = useState<CondicaoPagamento[]>([])
+  const [formas, setFormas] = useState<FormaPagamento[]>([])
+  const [selectedCondicoes, setSelectedCondicoes] = useState<Set<string>>(new Set())
+  const [selectedFormas, setSelectedFormas] = useState<Set<string>>(new Set())
+
   useEffect(() => {
     if (empresa) {
       fetchClientes()
       fetchVendedores()
+      fetchPagamentoOpcoes()
     }
   }, [empresa])
+
+  async function fetchPagamentoOpcoes() {
+    const [c, f] = await Promise.all([
+      supabase.from('condicoes_pagamento').select('*').eq('empresa_id', empresa!.id).eq('ativo', true).order('nome'),
+      supabase.from('formas_pagamento').select('*').eq('empresa_id', empresa!.id).eq('ativo', true).order('nome'),
+    ])
+    setCondicoes((c.data ?? []) as CondicaoPagamento[])
+    setFormas((f.data ?? []) as FormaPagamento[])
+  }
+
+  function toggleSet(setter: React.Dispatch<React.SetStateAction<Set<string>>>, id: string) {
+    setter((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   async function fetchClientes() {
     const query = supabase
@@ -175,10 +199,12 @@ export default function Clientes() {
       nome: '', cnpj: '', cep: '', telefone: '', endereco: '', bairro: '', cidade: '', observacao: '',
       vendedor_id: has('clientes.atribuir_vendedor') ? '' : (usuario?.id ?? ''),
     })
+    setSelectedCondicoes(new Set())
+    setSelectedFormas(new Set())
     setDialogOpen(true)
   }
 
-  function openEdit(c: Cliente) {
+  async function openEdit(c: Cliente) {
     setEditing(c)
     setForm({
       nome: c.nome,
@@ -191,7 +217,15 @@ export default function Clientes() {
       observacao: c.observacao ?? '',
       vendedor_id: c.vendedor_id ?? '',
     })
+    setSelectedCondicoes(new Set())
+    setSelectedFormas(new Set())
     setDialogOpen(true)
+    const [cc, cf] = await Promise.all([
+      supabase.from('cliente_condicoes_pagamento').select('condicao_pagamento_id').eq('cliente_id', c.id),
+      supabase.from('cliente_formas_pagamento').select('forma_pagamento_id').eq('cliente_id', c.id),
+    ])
+    setSelectedCondicoes(new Set((cc.data ?? []).map((r: { condicao_pagamento_id: string }) => r.condicao_pagamento_id)))
+    setSelectedFormas(new Set((cf.data ?? []).map((r: { forma_pagamento_id: string }) => r.forma_pagamento_id)))
   }
 
   async function handleSave() {
@@ -210,14 +244,38 @@ export default function Clientes() {
       vendedor_id: form.vendedor_id || null,
     }
 
+    let clienteId: string
     if (editing) {
       const { error } = await supabase.from('clientes').update(payload).eq('id', editing.id)
       if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return }
+      clienteId = editing.id
       toast({ title: 'Cliente atualizado', variant: 'success' })
     } else {
-      const { error } = await supabase.from('clientes').insert(payload)
-      if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return }
+      const { data, error } = await supabase.from('clientes').insert(payload).select('id').single()
+      if (error || !data) { toast({ title: 'Erro', description: error?.message ?? 'Falha ao criar', variant: 'destructive' }); return }
+      clienteId = data.id
       toast({ title: 'Cliente criado', variant: 'success' })
+    }
+
+    // Sincroniza vinculos de pagamento
+    const delCond = await supabase.from('cliente_condicoes_pagamento').delete().eq('cliente_id', clienteId)
+    const delForma = await supabase.from('cliente_formas_pagamento').delete().eq('cliente_id', clienteId)
+    if (delCond.error || delForma.error) {
+      toast({ title: 'Erro ao limpar vinculos', description: delCond.error?.message ?? delForma.error?.message, variant: 'destructive' })
+      return
+    }
+
+    if (selectedCondicoes.size > 0) {
+      const { error } = await supabase.from('cliente_condicoes_pagamento').insert(
+        Array.from(selectedCondicoes).map((id) => ({ cliente_id: clienteId, condicao_pagamento_id: id }))
+      )
+      if (error) { toast({ title: 'Erro nas condicoes', description: error.message, variant: 'destructive' }); return }
+    }
+    if (selectedFormas.size > 0) {
+      const { error } = await supabase.from('cliente_formas_pagamento').insert(
+        Array.from(selectedFormas).map((id) => ({ cliente_id: clienteId, forma_pagamento_id: id }))
+      )
+      if (error) { toast({ title: 'Erro nas formas', description: error.message, variant: 'destructive' }); return }
     }
 
     setDialogOpen(false)
@@ -593,6 +651,38 @@ export default function Clientes() {
                 </Select>
               </div>
             )}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-emerald-500" /> Condicoes de pagamento permitidas</Label>
+              {condicoes.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">Nenhuma cadastrada. Vá em Configuracoes &gt; Pagamento.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {condicoes.map((c) => (
+                    <label key={c.id} className="flex items-center gap-2 rounded-lg border border-[var(--theme-subtle-border)] p-2 cursor-pointer hover:bg-[var(--theme-subtle-bg-hover)]">
+                      <input type="checkbox" checked={selectedCondicoes.has(c.id)} onChange={() => toggleSet(setSelectedCondicoes, c.id)} />
+                      <span className="text-xs text-foreground truncate">{c.nome}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5 text-violet-500" /> Formas de pagamento permitidas</Label>
+              {formas.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">Nenhuma cadastrada. Vá em Configuracoes &gt; Pagamento.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {formas.map((f) => (
+                    <label key={f.id} className="flex items-center gap-2 rounded-lg border border-[var(--theme-subtle-border)] p-2 cursor-pointer hover:bg-[var(--theme-subtle-bg-hover)]">
+                      <input type="checkbox" checked={selectedFormas.has(f.id)} onChange={() => toggleSet(setSelectedFormas, f.id)} />
+                      <span className="text-xs text-foreground truncate">{f.nome}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label>Observacao</Label>
               <Textarea value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} placeholder="Observacoes sobre o cliente" />

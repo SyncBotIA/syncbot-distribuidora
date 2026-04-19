@@ -21,6 +21,7 @@ const Clientes = lazy(() => import('@/pages/Clientes'))
 const Fornecedores = lazy(() => import('@/pages/Fornecedores'))
 const MasterPanel = lazy(() => import('@/pages/MasterPanel'))
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'))
+const ConfiguracoesPagamento = lazy(() => import('@/pages/ConfiguracoesPagamento'))
 const Entregas = lazy(() => import('@/pages/Entregas'))
 const CriarEmpresa = lazy(() => import('@/pages/CriarEmpresa'))
 
@@ -129,6 +130,7 @@ function AppRoutes() {
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/entregas" element={<Entregas />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/configuracoes/pagamento" element={<ConfiguracoesPagamento />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />

@@ -192,12 +192,33 @@ export interface Pedido {
   nfe_id: string | null
   nfe_status: string | null
   nfe_numero: number | null
+  condicao_pagamento_id: string | null
+  forma_pagamento_id: string | null
+  emite_nota_fiscal: boolean
   created_at: string
   updated_at: string
   // Joined
   itens?: PedidoItem[]
   usuario?: Usuario
   cliente?: Cliente
+  condicao_pagamento?: CondicaoPagamento
+  forma_pagamento?: FormaPagamento
+}
+
+export interface CondicaoPagamento {
+  id: string
+  empresa_id: string
+  nome: string
+  ativo: boolean
+  created_at: string
+}
+
+export interface FormaPagamento {
+  id: string
+  empresa_id: string
+  nome: string
+  ativo: boolean
+  created_at: string
 }
 
 export interface PedidoItem {
