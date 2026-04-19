@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { X } from 'lucide-react'
 
@@ -19,7 +20,7 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50">
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-md animate-fade-in"
@@ -29,7 +30,8 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
       <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center sm:p-4">
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -38,15 +40,18 @@ const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
     <div
       ref={ref}
       className={cn(
-        // Mobile: fullscreen com scroll | Desktop: dialog centralizado
-        'relative z-50 w-full flex-1 bg-gradient-to-b from-[var(--theme-dialog-from)] to-[var(--theme-dialog-to)] shadow-2xl shadow-black/40 overflow-y-auto overscroll-contain',
+        // Mobile: fullscreen com scroll e cantos arredondados no topo
+        'relative z-50 w-full flex-1 rounded-t-2xl bg-gradient-to-b from-[var(--theme-dialog-from)] to-[var(--theme-dialog-to)] shadow-2xl shadow-black/40 overflow-y-auto overscroll-contain',
         'border-[var(--theme-subtle-border)]',
-        'sm:flex-none sm:max-w-lg sm:max-h-[90vh] sm:rounded-2xl sm:border',
+        // Desktop: dialog centralizado
+        'sm:flex-none sm:rounded-2xl sm:max-w-lg sm:max-h-[90vh] sm:border',
         'p-4 sm:p-6',
         className
       )}
       {...props}
     >
+      {/* Indicador de arrastar — visível apenas no mobile */}
+      <div className="sm:hidden w-10 h-1.5 bg-white/20 rounded-full mx-auto mb-3" />
       {onClose && (
         <button
           onClick={onClose}

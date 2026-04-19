@@ -364,7 +364,7 @@ export default function Fornecedores() {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-amber-300 leading-tight">{fornecedores.length}</p>
+              <p className="text-lg font-bold text-amber-600 leading-tight">{fornecedores.length}</p>
               <p className="text-[11px] text-muted-foreground font-medium">Total</p>
             </div>
           </CardContent>
@@ -378,7 +378,7 @@ export default function Fornecedores() {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-violet-300 leading-tight">{totalCidades}</p>
+              <p className="text-lg font-bold text-violet-600 leading-tight">{totalCidades}</p>
               <p className="text-[11px] text-muted-foreground font-medium">Cidades</p>
             </div>
           </CardContent>
@@ -392,7 +392,7 @@ export default function Fornecedores() {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-emerald-300 leading-tight">{totalCnpj}</p>
+              <p className="text-lg font-bold text-emerald-600 leading-tight">{totalCnpj}</p>
               <p className="text-[11px] text-muted-foreground font-medium">Com CNPJ</p>
             </div>
           </CardContent>

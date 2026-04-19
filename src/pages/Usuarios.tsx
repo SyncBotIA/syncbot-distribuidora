@@ -403,7 +403,7 @@ export default function Usuarios() {
               <Users className="h-[18px] w-[18px] text-cyan-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-xl font-bold text-cyan-300 leading-none">{totalAtivos}</p>
+              <p className="text-xl font-bold text-cyan-600 leading-none">{totalAtivos}</p>
               <p className="text-[11px] text-cyan-400/70 font-medium mt-1 truncate">Usuários Ativos</p>
             </div>
           </div>
@@ -415,7 +415,7 @@ export default function Usuarios() {
               <ShieldCheck className="h-[18px] w-[18px] text-blue-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-xl font-bold text-blue-300 leading-none">{hierarquias.length}</p>
+              <p className="text-xl font-bold text-blue-600 leading-none">{hierarquias.length}</p>
               <p className="text-[11px] text-blue-400/70 font-medium mt-1 truncate">Níveis de Hierarquia</p>
             </div>
           </div>
@@ -427,7 +427,7 @@ export default function Usuarios() {
               <UserPlus className="h-[18px] w-[18px] text-violet-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-xl font-bold text-violet-300 leading-none">{availableHierarquias.length}</p>
+              <p className="text-xl font-bold text-violet-600 leading-none">{availableHierarquias.length}</p>
               <p className="text-[11px] text-violet-400/70 font-medium mt-1 truncate">Cargos Disponíveis</p>
             </div>
           </div>

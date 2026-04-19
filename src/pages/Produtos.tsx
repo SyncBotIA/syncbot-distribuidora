@@ -235,7 +235,7 @@ export default function Produtos() {
       {/* ===== Stats ===== */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 stagger-children">
         {/* Produtos Ativos */}
-        <div className="relative overflow-hidden rounded-xl border border-violet-500/10 bg-gradient-to-br from-card to-[#0d1320]">
+        <div className="relative overflow-hidden rounded-xl border border-violet-500/10 bg-gradient-to-br from-card to-[var(--theme-muted)]">
           <div className="absolute -top-4 -right-4 h-20 w-20 rounded-full bg-violet-500/10 blur-xl" />
           <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-violet-500/20 to-transparent" />
           <CardContent className="relative p-3.5 flex items-center gap-3">
@@ -246,14 +246,14 @@ export default function Produtos() {
               </div>
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-violet-300 truncate">{produtos.length}</p>
+              <p className="text-base sm:text-lg font-bold text-violet-600 truncate">{produtos.length}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Produtos Ativos</p>
             </div>
           </CardContent>
         </div>
 
         {/* Categorias */}
-        <div className="relative overflow-hidden rounded-xl border border-blue-500/10 bg-gradient-to-br from-card to-[#0d1320]">
+        <div className="relative overflow-hidden rounded-xl border border-blue-500/10 bg-gradient-to-br from-card to-[var(--theme-muted)]">
           <div className="absolute -top-4 -right-4 h-20 w-20 rounded-full bg-blue-500/10 blur-xl" />
           <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
           <CardContent className="relative p-3.5 flex items-center gap-3">
@@ -264,14 +264,14 @@ export default function Produtos() {
               </div>
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-blue-300 truncate">{categorias.length}</p>
+              <p className="text-base sm:text-lg font-bold text-blue-600 truncate">{categorias.length}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Categorias</p>
             </div>
           </CardContent>
         </div>
 
         {/* Margem Média */}
-        <div className="relative overflow-hidden rounded-xl border border-emerald-500/10 bg-gradient-to-br from-card to-[#0d1320] hidden sm:block">
+        <div className="relative overflow-hidden rounded-xl border border-emerald-500/10 bg-gradient-to-br from-card to-[var(--theme-muted)] hidden sm:block">
           <div className="absolute -top-4 -right-4 h-20 w-20 rounded-full bg-emerald-500/10 blur-xl" />
           <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
           <CardContent className="relative p-4 flex items-center gap-3">
@@ -282,7 +282,7 @@ export default function Produtos() {
               </div>
             </div>
             <div className="min-w-0">
-              <p className="text-lg font-bold text-emerald-300 truncate">{margemMedia.toFixed(1)}%</p>
+              <p className="text-lg font-bold text-emerald-600 truncate">{margemMedia.toFixed(1)}%</p>
               <p className="text-[11px] text-zinc-500 font-medium">Margem Média</p>
             </div>
           </CardContent>

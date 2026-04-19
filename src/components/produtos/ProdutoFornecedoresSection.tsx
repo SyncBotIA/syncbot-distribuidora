@@ -11,6 +11,24 @@ import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Factory, Plus, Pencil, Trash2, Star } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+
+function CurrencyInput({ value, onChange, placeholder }: { value: string; onChange: (val: string) => void; placeholder?: string }) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const digits = e.target.value.replace(/\D/g, '')
+    const cents = parseInt(digits || '0', 10)
+    onChange(String(cents / 100))
+  }
+  const num = parseFloat(value) || 0
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      value={num ? formatCurrency(num) : 'R$ 0,00'}
+      placeholder={placeholder ?? 'R$ 0,00'}
+      onChange={handleChange}
+    />
+  )
+}
 import type { Fornecedor, ProdutoFornecedor } from '@/types/database'
 
 interface Props {
@@ -241,12 +259,9 @@ export default function ProdutoFornecedoresSection({ produtoId }: Props) {
               </div>
               <div className="space-y-2">
                 <Label>Ultimo preco de custo</Label>
-                <Input
-                  type="text"
-                  inputMode="decimal"
+                <CurrencyInput
                   value={form.preco_custo_ultimo}
-                  onChange={(e) => setForm({ ...form, preco_custo_ultimo: e.target.value })}
-                  placeholder="0,00"
+                  onChange={(val) => setForm({ ...form, preco_custo_ultimo: val })}
                 />
               </div>
             </div>

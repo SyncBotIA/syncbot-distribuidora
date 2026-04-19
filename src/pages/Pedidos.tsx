@@ -716,7 +716,7 @@ export default function Pedidos() {
               <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-blue-300 truncate">{pedidos.length}</p>
+              <p className="text-base sm:text-lg font-bold text-blue-600 truncate">{pedidos.length}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Total</p>
             </div>
           </CardContent>
@@ -727,7 +727,7 @@ export default function Pedidos() {
               <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-amber-300 truncate">{pedidosRascunho}</p>
+              <p className="text-base sm:text-lg font-bold text-amber-600 truncate">{pedidosRascunho}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Rascunhos</p>
             </div>
           </CardContent>
@@ -738,7 +738,7 @@ export default function Pedidos() {
               <Check className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-emerald-300 truncate">{pedidosConfirmados}</p>
+              <p className="text-base sm:text-lg font-bold text-emerald-600 truncate">{pedidosConfirmados}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Confirmados</p>
             </div>
           </CardContent>
@@ -749,7 +749,7 @@ export default function Pedidos() {
               <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-violet-300 truncate">{formatCurrency(valorTotalPedidos)}</p>
+              <p className="text-base sm:text-lg font-bold text-violet-600 truncate">{formatCurrency(valorTotalPedidos)}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Valor Total</p>
             </div>
           </CardContent>
@@ -1005,7 +1005,7 @@ export default function Pedidos() {
 
       {/* Create dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent onClose={() => setDialogOpen(false)} className="max-w-2xl p-4 sm:p-6 w-full sm:max-w-lg md:max-w-2xl">
+        <DialogContent onClose={() => setDialogOpen(false)} className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editingPedidoId ? 'Editar Pedido' : 'Novo Pedido'}</DialogTitle>
           </DialogHeader>

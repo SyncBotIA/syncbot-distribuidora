@@ -329,7 +329,7 @@ export default function Hierarquias() {
                   <ShieldCheck className="h-5 w-5 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-emerald-300">{hierarquias.filter(h => h.ativo).length}</p>
+                  <p className="text-lg font-bold text-emerald-600">{hierarquias.filter(h => h.ativo).length}</p>
                   <p className="text-[11px] text-zinc-500 font-medium">Níveis Ativos</p>
                 </div>
               </CardContent>

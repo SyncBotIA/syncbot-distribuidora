@@ -222,7 +222,7 @@ export default function Entregas() {
               <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-amber-300 truncate">{pendentes}</p>
+              <p className="text-base sm:text-lg font-bold text-amber-600 truncate">{pendentes}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Pendentes</p>
             </div>
           </CardContent>
@@ -233,7 +233,7 @@ export default function Entregas() {
               <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-emerald-300 truncate">{entregues}</p>
+              <p className="text-base sm:text-lg font-bold text-emerald-600 truncate">{entregues}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Entregues</p>
             </div>
           </CardContent>
@@ -244,7 +244,7 @@ export default function Entregas() {
               <Package className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-base sm:text-lg font-bold text-blue-300 truncate">{total}</p>
+              <p className="text-base sm:text-lg font-bold text-blue-600 truncate">{total}</p>
               <p className="text-[10px] sm:text-[11px] text-zinc-500 font-medium">Total</p>
             </div>
           </CardContent>

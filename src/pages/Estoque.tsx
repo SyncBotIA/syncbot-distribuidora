@@ -284,7 +284,7 @@ export default function Estoque() {
               <Package className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-lg font-bold text-blue-300">{totalEstoque}</p>
+              <p className="text-lg font-bold text-blue-600">{totalEstoque}</p>
               <p className="text-[11px] text-zinc-500 font-medium">Itens em Estoque</p>
             </div>
           </CardContent>
@@ -296,7 +296,7 @@ export default function Estoque() {
               <PackageCheck className="h-5 w-5 text-emerald-400" />
             </div>
             <div>
-              <p className="text-lg font-bold text-emerald-300">{produtosOk}</p>
+              <p className="text-lg font-bold text-emerald-600">{produtosOk}</p>
               <p className="text-[11px] text-zinc-500 font-medium">Estoque Normal</p>
             </div>
           </CardContent>

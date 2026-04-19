@@ -293,7 +293,7 @@ export default function Clientes() {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-cyan-300 leading-tight">{clientes.length}</p>
+              <p className="text-lg font-bold text-cyan-600 leading-tight">{clientes.length}</p>
               <p className="text-[11px] text-zinc-500 font-medium">Total Clientes</p>
             </div>
           </CardContent>
@@ -307,7 +307,7 @@ export default function Clientes() {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-violet-300 leading-tight">{totalCidades}</p>
+              <p className="text-lg font-bold text-violet-600 leading-tight">{totalCidades}</p>
               <p className="text-[11px] text-zinc-500 font-medium">Cidades</p>
             </div>
           </CardContent>
@@ -321,7 +321,7 @@ export default function Clientes() {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-emerald-300 leading-tight">{clientes.filter(c => c.cnpj).length}</p>
+              <p className="text-lg font-bold text-emerald-600 leading-tight">{clientes.filter(c => c.cnpj).length}</p>
               <p className="text-[11px] text-zinc-500 font-medium">Com CNPJ</p>
             </div>
           </CardContent>

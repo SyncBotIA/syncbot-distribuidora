@@ -20,7 +20,8 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx|css\\)$\")",
       "Bash(tee /tmp/tsc-out.txt)",
       "Bash(echo \"EXIT=$?\")",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(node scripts/gerar-templates.mjs)"
     ]
   }
 }
